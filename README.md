@@ -97,7 +97,9 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
 Damit die Webseite über GitHub Pages gebaut und veröffentlicht werden kann, müssen in den **Settings** des GitHub-Repositorys unter **Secrets and variables > Actions** folgende Repository Secrets hinterlegt werden:
 
 * **`VITE_SUPABASE_URL`:** Deine Supabase API URL (z.B. `https://xyz.supabase.co`).
-* **`VITE_SUPABASE_ANON_KEY`:** Dein Supabase Public Anon Key (Sicher im Frontend verwendbar).
+* **`VITE_SUPABASE_ANON_KEY`:** Dein Supabase Public Anon Key.
+  * **Was ist das?** Dies ist der öffentliche API-Schlüssel (oft auch als **"Publishable Key"** oder **"Anon Key"** bezeichnet). Er ist absolut sicher im Frontend verwendbar, da der Zugriff auf die Datenbank im Hintergrund über Zeilenebene-Sicherheitsrichtlinien (Row Level Security, RLS) geschützt wird.
+  * **Wo finde ich ihn in Supabase?** Navigiere in deinem Supabase-Dashboard auf der linken Seite zu **Project Settings** (Zahnrad-Symbol) > **API**. Unter dem Abschnitt **Project API Keys** findest du den Schlüssel in der Zeile `anon` / `public` (Klicke auf "Copy", um ihn zu kopieren).
 * **`VITE_SYNC_SECRET`:** Ein beliebiges, langes Passwort (z.B. ein UUID-String) zur Absicherung der Edge-Function vor unbefugten Aufrufen.
 
 ---
@@ -163,6 +165,11 @@ Die RLS-Richtlinien in PostgreSQL erzwingen folgende Berechtigungen:
 
 ## ❓ Fehlerbehebung
 
+* **Keine E-Mail nach Registrierung erhalten:** Wenn du dich registrierst und keine Bestätigungs-E-Mail erhältst, kann das folgende Gründe haben:
+  1. **Supabase E-Mail-Limitierungen (Standard-Schnittstelle):** Supabase verwendet standardmäßig einen internen E-Mail-Dienst mit sehr strengen Limits (z.B. maximal 3 E-Mails pro Stunde für das gesamte Projekt) und ohne Zustellgarantie. Sobald dieses Limit überschritten ist, werden keine E-Mails mehr versendet.
+  2. **Eigene SMTP-Verbindung fehlt:** Für den produktiven Einsatz solltest du einen eigenen SMTP-Anbieter (z.B. Resend, SendGrid, Mailgun) in Supabase unter **Project Settings > Auth > SMTP Settings** konfigurieren.
+  3. **E-Mail-Bestätigung deaktivieren (für schnelles Testen/Entwicklung):** Du kannst die E-Mail-Bestätigung in Supabase komplett abschalten, sodass Benutzer sofort nach der Registrierung eingeloggt und aktiv sind. Gehe dazu im Supabase-Dashboard zu **Authentication > Providers > Email** und deaktiviere die Option **"Confirm email"**.
+  4. **Spam-Ordner:** Bitte überprüfe auch den Spam- bzw. Junk-E-Mail-Ordner deines Postfachs.
 * **Webcal-Link liefert Fehler:** Stelle sicher, dass die Webcal-Adresse korrekt eingetragen ist. Das System konvertiert `webcal://` automatisch in `https://` für den Download.
 * **Änderungen werden nicht angezeigt:** Klicke im Frontend auf den Aktualisieren-Button der Mannschaft, um die neuesten Daten aus der Datenbank zu laden.
 * **Fehler beim Passwort-Gate:** Falls du dein Passwort geändert hast, lösche den Browser-Cache oder klicke im Footer auf "Passwort-Gate zurücksetzen", um das Passwort neu einzugeben.

@@ -263,3 +263,80 @@ CREATE POLICY "Allow authenticated users to view match changes"
 CREATE POLICY "Allow admins/system to manage match changes"
     ON public.match_changes FOR ALL
     USING (public.is_club_admin());
+
+-- ----------------------------------------------------
+-- SEED DUMMY ADMIN USER FOR TESTING
+-- ----------------------------------------------------
+DO $$
+DECLARE
+    v_user_id UUID := 'd0000000-0000-0000-0000-000000000001';
+    v_encrypted_pw TEXT := crypt('AdminTT2026!', gen_salt('bf', 8));
+BEGIN
+    -- Insert into auth.users if not exists
+    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@tt-hsv.de') THEN
+        INSERT INTO auth.users (
+            id,
+            instance_id,
+            aud,
+            role,
+            email,
+            encrypted_password,
+            email_confirmed_at,
+            raw_app_meta_data,
+            raw_user_meta_data,
+            created_at,
+            updated_at,
+            confirmation_token,
+            email_change,
+            email_change_token_new,
+            recovery_token,
+            phone_change_token,
+            email_change_token_current
+        ) VALUES (
+            v_user_id,
+            '00000000-0000-0000-0000-000000000000',
+            'authenticated',
+            'authenticated',
+            'admin@tt-hsv.de',
+            v_encrypted_pw,
+            NOW(),
+            '{"provider":"email","providers":["email"]}',
+            '{"name": "Admin Dummy"}',
+            NOW(),
+            NOW(),
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
+        );
+
+        -- Insert into auth.identities
+        INSERT INTO auth.identities (
+            id,
+            user_id,
+            identity_data,
+            provider,
+            provider_id,
+            last_sign_in_at,
+            created_at,
+            updated_at
+        ) VALUES (
+            v_user_id,
+            v_user_id,
+            format('{"sub": "%s", "email": "admin@tt-hsv.de"}', v_user_id)::jsonb,
+            'email',
+            v_user_id::text,
+            NOW(),
+            NOW(),
+            NOW()
+        );
+
+        -- Update profile role to club_admin (since trigger created it with role = 'player')
+        UPDATE public.profiles
+        SET role = 'club_admin', name = 'Admin Dummy'
+        WHERE id = v_user_id;
+    END IF;
+END;
+$$;
