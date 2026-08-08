@@ -1,0 +1,224 @@
+import { SupabaseClient } from '@supabase/supabase-js';
+import { parseIcs, determineHomeAway, extractMatchday, IcsEvent } from './icsParser';
+
+export interface SyncResult {
+  teamId: string;
+  teamName: string;
+  status: 'success' | 'failed';
+  message: string;
+  added: number;
+  updated: number;
+  rescheduled: number;
+  deactivated: number;
+}
+
+export async function syncTeamCalendar(
+  supabase: SupabaseClient,
+  teamId: string
+): Promise<SyncResult> {
+  const result: SyncResult = {
+    teamId,
+    teamName: '',
+    status: 'success',
+    message: '',
+    added: 0,
+    updated: 0,
+    rescheduled: 0,
+    deactivated: 0,
+  };
+
+  try {
+    const { data: team, error: teamErr } = await supabase
+      .from('teams')
+      .select('name, short_name, webcal_url')
+      .eq('id', teamId)
+      .single();
+
+    if (teamErr || !team) {
+      throw new Error(`Team not found or error fetching team: ${teamErr?.message}`);
+    }
+
+    result.teamName = team.name;
+
+    if (!team.webcal_url) {
+      throw new Error('Webcal URL is missing for this team.');
+    }
+
+    const httpUrl = team.webcal_url.replace(/^webcal:\/\//i, 'https://');
+
+    let icsText = '';
+    try {
+      const resp = await fetch(httpUrl);
+      if (!resp.ok) {
+        throw new Error(`HTTP status ${resp.status}`);
+      }
+      icsText = await resp.text();
+    } catch (fetchErr: any) {
+      throw new Error(`Failed to fetch Webcal URL (${httpUrl}): ${fetchErr.message}`);
+    }
+
+    let events: IcsEvent[] = [];
+    try {
+      events = parseIcs(icsText);
+    } catch (parseErr: any) {
+      throw new Error(`Failed to parse ICS calendar: ${parseErr.message}`);
+    }
+
+    const { data: existingMatches, error: matchesErr } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('team_id', teamId);
+
+    if (matchesErr) {
+      throw new Error(`Failed to fetch existing matches: ${matchesErr.message}`);
+    }
+
+    const existingMap = new Map<string, any>();
+    if (existingMatches) {
+      for (const m of existingMatches) {
+        existingMap.set(m.external_uid, m);
+      }
+    }
+
+    const processedUids = new Set<string>();
+
+    for (const event of events) {
+      processedUids.add(event.uid);
+      const existing = existingMap.get(event.uid);
+
+      const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
+      const matchday = extractMatchday(event.description, event.summary);
+
+      if (!existing) {
+        const { error: insertErr } = await supabase
+          .from('matches')
+          .insert({
+            team_id: teamId,
+            external_uid: event.uid,
+            summary: event.summary,
+            description: event.description,
+            location: event.location,
+            dtstart: event.dtstart.toISOString(),
+            dtend: event.dtend.toISOString(),
+            is_home: homeAwayInfo.isHome,
+            matchday: matchday,
+            active: true,
+            version: 1,
+            last_synced_at: new Date().toISOString(),
+          });
+
+        if (insertErr) {
+          console.error(`Error inserting match ${event.uid}:`, insertErr);
+        } else {
+          result.added++;
+        }
+      } else {
+        const oldStart = new Date(existing.dtstart).getTime();
+        const newStart = event.dtstart.getTime();
+        const oldEnd = new Date(existing.dtend).getTime();
+        const newEnd = event.dtend.getTime();
+
+        const dateTimeChanged = oldStart !== newStart || oldEnd !== newEnd;
+        const otherDetailsChanged =
+          existing.summary !== event.summary ||
+          existing.description !== event.description ||
+          existing.location !== event.location ||
+          existing.matchday !== matchday ||
+          !existing.active;
+
+        if (dateTimeChanged) {
+          const newVersion = existing.version + 1;
+
+          const { error: updateErr } = await supabase
+            .from('matches')
+            .update({
+              summary: event.summary,
+              description: event.description,
+              location: event.location,
+              dtstart: event.dtstart.toISOString(),
+              dtend: event.dtend.toISOString(),
+              is_home: homeAwayInfo.isHome,
+              matchday: matchday,
+              active: true,
+              version: newVersion,
+              last_synced_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+
+          if (updateErr) {
+            console.error(`Error updating rescheduled match ${existing.id}:`, updateErr);
+          } else {
+            result.rescheduled++;
+
+            await supabase
+              .from('match_changes')
+              .insert({
+                match_id: existing.id,
+                old_dtstart: existing.dtstart,
+                new_dtstart: event.dtstart.toISOString(),
+                change_type: 'date_time_changed',
+              });
+          }
+        } else if (otherDetailsChanged) {
+          const { error: updateErr } = await supabase
+            .from('matches')
+            .update({
+              summary: event.summary,
+              description: event.description,
+              location: event.location,
+              is_home: homeAwayInfo.isHome,
+              matchday: matchday,
+              active: true,
+              last_synced_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+
+          if (updateErr) {
+            console.error(`Error updating details for match ${existing.id}:`, updateErr);
+          } else {
+            result.updated++;
+          }
+        } else {
+          await supabase
+            .from('matches')
+            .update({ last_synced_at: new Date().toISOString() })
+            .eq('id', existing.id);
+        }
+      }
+    }
+
+    for (const [uid, existing] of existingMap.entries()) {
+      if (!processedUids.has(uid) && existing.active) {
+        const { error: deacErr } = await supabase
+          .from('matches')
+          .update({
+            active: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+
+        if (deacErr) {
+          console.error(`Error deactivating match ${existing.id}:`, deacErr);
+        } else {
+          result.deactivated++;
+
+          await supabase
+            .from('match_changes')
+            .insert({
+              match_id: existing.id,
+              change_type: 'cancelled',
+            });
+        }
+      }
+    }
+
+    result.message = `Erfolgreich synchronisiert. ${result.added} neue Spiele, ${result.rescheduled} verschoben, ${result.updated} Details geändert, ${result.deactivated} inaktiv gesetzt.`;
+  } catch (err: any) {
+    result.status = 'failed';
+    result.message = err.message || 'Unknown sync error';
+  }
+
+  return result;
+}
