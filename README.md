@@ -92,6 +92,59 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
 
 ---
 
+## ⚡ Supabase Edge Functions einrichten & bereitstellen
+
+Die Edge Function `sync-calendars` wird verwendet, um die Kalender vollautomatisch einmal täglich (via GitHub Action) oder auf Knopfdruck im Admin-Bereich zu synchronisieren.
+
+Wenn du die Edge Function in deinem Supabase-Projekt bereitstellen möchtest, folge diesen Schritten:
+
+1. **Supabase CLI installieren:**
+   Installiere die Supabase CLI auf deinem lokalen Computer.
+   * Unter macOS/Linux:
+     ```bash
+     brew install supabase/tap/supabase
+     ```
+   * Unter Windows (mit scoop):
+     ```powershell
+     scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+     scoop install supabase
+     ```
+   * Alternativ über `npm`:
+     ```bash
+     npm install -g supabase
+     ```
+
+2. **In Supabase einloggen:**
+   Verbinde die CLI mit deinem Supabase-Konto:
+   ```bash
+   supabase login
+   ```
+
+3. **Projekt verknüpfen:**
+   Verknüpfe dein lokales Verzeichnis mit deinem Supabase-Projekt. Du benötigst dazu dein Projekt-Referenz-ID (findest du in den Projekt-Einstellungen im Supabase-Dashboard unter *General settings > Reference ID*):
+   ```bash
+   supabase link --project-ref DEINE_PROJEKT_REFERENZ_ID
+   ```
+
+4. **Secrets / Umgebungsvariablen setzen:**
+   Die Edge Function benötigt Zugriff auf deine Supabase-URL, den Service-Role-Schlüssel und das Synchronisations-Passwort. Setze diese Secrets in Supabase über die CLI:
+   ```bash
+   supabase secrets set SUPABASE_URL="https://DEINE_PROJEKT_REFERENZ_ID.supabase.co"
+   supabase secrets set SUPABASE_SERVICE_ROLE_KEY="DEIN_SERVICE_ROLE_KEY"
+   supabase secrets set SYNC_SECRET="DEIN_VITE_SYNC_SECRET"
+   ```
+   *Hinweis:* Den `SUPABASE_SERVICE_ROLE_KEY` findest du in deinem Supabase-Dashboard unter *Project Settings > API > service_role (secret)*. Gib diesen niemals im Frontend oder öffentlich weiter!
+
+5. **Edge Function deployen:**
+   Veröffentliche die Funktion mit folgendem Befehl:
+   ```bash
+   supabase functions deploy sync-calendars
+   ```
+
+Sobald die Funktion erfolgreich deployed wurde, läuft die Synchronisierung im Admin-Dashboard extrem performant direkt auf den Servern von Supabase und umgeht sämtliche Browser-CORS-Beschränkungen!
+
+---
+
 ## 🎛️ GitHub-Secrets konfigurieren
 
 Damit die Webseite über GitHub Pages gebaut und veröffentlicht werden kann, müssen in den **Settings** des GitHub-Repositorys unter **Secrets and variables > Actions** folgende Repository Secrets hinterlegt werden:
