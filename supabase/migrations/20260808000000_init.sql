@@ -285,7 +285,13 @@ BEGIN
             raw_app_meta_data,
             raw_user_meta_data,
             created_at,
-            updated_at
+            updated_at,
+            confirmation_token,
+            email_change,
+            email_change_token_new,
+            recovery_token,
+            phone_change_token,
+            email_change_token_current
         ) VALUES (
             v_user_id,
             '00000000-0000-0000-0000-000000000000',
@@ -297,7 +303,13 @@ BEGIN
             '{"provider":"email","providers":["email"]}',
             '{"name": "Admin Dummy"}',
             NOW(),
-            NOW()
+            NOW(),
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
         );
 
         -- Insert into auth.identities
