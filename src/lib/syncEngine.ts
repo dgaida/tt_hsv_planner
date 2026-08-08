@@ -12,6 +12,67 @@ export interface SyncResult {
   deactivated: number;
 }
 
+async function fetchIcsText(httpUrl: string): Promise<string> {
+  const errors: string[] = [];
+
+  // 1. Try api.allorigins.win
+  try {
+    const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(httpUrl)}`;
+    const resp = await fetch(allOriginsUrl);
+    if (resp.ok && typeof resp.json === 'function') {
+      const json = await resp.json();
+      if (json && json.contents) {
+        if (json.contents.startsWith('data:')) {
+          const commaIdx = json.contents.indexOf(',');
+          if (commaIdx !== -1) {
+            const base64Str = json.contents.substring(commaIdx + 1);
+            const binary = atob(base64Str);
+            const bytes = new Uint8Array(binary.split('').map(c => c.charCodeAt(0)));
+            return new TextDecoder('utf-8').decode(bytes);
+          }
+        }
+        return json.contents;
+      }
+    } else if (resp.ok && typeof resp.text === 'function') {
+      const text = await resp.text();
+      if (text && text.includes('BEGIN:VCALENDAR')) {
+        return text;
+      }
+    }
+    errors.push(`AllOrigins returned status ${resp.status}`);
+  } catch (err: any) {
+    errors.push(`AllOrigins error: ${err.message}`);
+  }
+
+  // 2. Try codetabs proxy as a fallback
+  try {
+    const codetabsUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(httpUrl)}`;
+    const resp = await fetch(codetabsUrl);
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text && text.includes('BEGIN:VCALENDAR')) {
+        return text;
+      }
+    }
+    errors.push(`Codetabs returned status ${resp.status}`);
+  } catch (err: any) {
+    errors.push(`Codetabs error: ${err.message}`);
+  }
+
+  // 3. Last resort: Direct fetch (might fail with CORS but always good as ultimate fallback)
+  try {
+    const resp = await fetch(httpUrl);
+    if (resp.ok) {
+      return await resp.text();
+    }
+    errors.push(`Direct fetch returned status ${resp.status}`);
+  } catch (err: any) {
+    errors.push(`Direct fetch error: ${err.message}`);
+  }
+
+  throw new Error(`Alle Verbindungsmethoden zum Kalender-Download sind fehlgeschlagen. Details: [${errors.join('; ')}]`);
+}
+
 export async function syncTeamCalendar(
   supabase: SupabaseClient,
   teamId: string
@@ -48,11 +109,7 @@ export async function syncTeamCalendar(
 
     let icsText = '';
     try {
-      const resp = await fetch(httpUrl);
-      if (!resp.ok) {
-        throw new Error(`HTTP status ${resp.status}`);
-      }
-      icsText = await resp.text();
+      icsText = await fetchIcsText(httpUrl);
     } catch (fetchErr: any) {
       throw new Error(`Failed to fetch Webcal URL (${httpUrl}): ${fetchErr.message}`);
     }
