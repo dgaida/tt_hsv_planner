@@ -143,7 +143,7 @@ Du musst **nichts** auf deinem Computer installieren! GitHub Actions kann die Ed
 
 1. Gehe in deinem GitHub-Repository auf **Settings > Secrets and variables > Actions**.
 2. Erstelle ein neues Repository-Secret namens **`SUPABASE_ACCESS_TOKEN`**:
-   * Gehe auf [database.supabase.com/tokens](https://database.supabase.com/tokens) und erstelle ein neues Personal Access Token. Kopiere es und speichere es in diesem Secret.
+   * Gehe auf [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) und erstelle ein neues Personal Access Token. Kopiere es und speichere es in diesem Secret.
 3. Erstelle ein neues Repository-Secret namens **`SUPABASE_PROJECT_ID`**:
    * Trage dort deine Projekt-Referenz-ID (z. B. `abcde12345`) ein.
 4. Füge folgenden Workflow in eine neue Datei namens `.github/workflows/deploy-edge-functions.yml` in deinem Repository ein:
