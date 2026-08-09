@@ -94,54 +94,93 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
 
 ## ⚡ Supabase Edge Functions einrichten & bereitstellen
 
-Die Edge Function `sync-calendars` wird verwendet, um die Kalender vollautomatisch einmal täglich (via GitHub Action) oder auf Knopfdruck im Admin-Bereich zu synchronisieren.
+### Wie funktioniert die Synchronisation?
+Um Missverständnisse zu vermeiden, hier eine kurze Erklärung, wie die automatische Kalender-Synchronisation aufgebaut ist:
 
-Wenn du die Edge Function in deinem Supabase-Projekt bereitstellen möchtest, folge diesen Schritten:
+1. **Die Edge Function (`sync-calendars`):** Das ist ein kleines Programm (geschrieben in TypeScript/Deno), das direkt auf den Servern von Supabase läuft. Da es auf dem Server läuft, kann es die Webcal-Kalender von `mytischtennis.de` ohne Einschränkungen (wie Browser-CORS-Blockaden) herunterladen und die Termine in die Datenbank schreiben.
+2. **Die GitHub Action (`sync-calendars.yml`):** Diese Action ist **kein** Deployment-Skript und installiert auch kein Supabase auf GitHub. Sie ist lediglich ein **Wecker (Cronjob)**, der einmal täglich um 04:00 Uhr UTC die bereits auf Supabase bereitgestellte Edge Function per HTTP-Aufruf (`curl`) triggert.
+
+**Das bedeutet:** Der Quellcode der Edge Function aus dem Verzeichnis `supabase/functions/sync-calendars/` muss einmalig auf die Server von Supabase übertragen (veröffentlicht/deployed) werden.
+
+Dafür gibt es zwei Wege – entweder **manuell über deinen Computer (Weg A)** oder **vollautomatisch über GitHub (Weg B, empfohlen, da keine lokale Installation nötig ist!)**:
+
+---
+
+### Weg A: Manuelle Bereitstellung (Über deinen lokalen Computer)
+Wenn du die Bereitstellung einmalig von deinem eigenen PC aus durchführen möchtest, musst du die Supabase CLI installieren, um den Code hochzuladen:
 
 1. **Supabase CLI installieren:**
-   Installiere die Supabase CLI auf deinem lokalen Computer.
-   * Unter macOS/Linux:
-     ```bash
-     brew install supabase/tap/supabase
-     ```
-   * Unter Windows (mit scoop):
-     ```powershell
-     scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-     scoop install supabase
-     ```
-   * Alternativ über `npm`:
-     ```bash
-     npm install -g supabase
-     ```
+   Installiere die Supabase CLI auf deinem Computer.
+   * Unter macOS/Linux: `brew install supabase/tap/supabase`
+   * Unter Windows: `npm install -g supabase`
 
-2. **In Supabase einloggen:**
-   Verbinde die CLI mit deinem Supabase-Konto:
+2. **In Supabase einloggen & Projekt verknüpfen:**
+   Melde dich an und verbinde dein lokales Verzeichnis mit deinem Supabase-Projekt. Du benötigst dazu deine Projekt-Referenz-ID (findest du im Supabase-Dashboard unter *Settings > General > Reference ID*):
    ```bash
    supabase login
-   ```
-
-3. **Projekt verknüpfen:**
-   Verknüpfe dein lokales Verzeichnis mit deinem Supabase-Projekt. Du benötigst dazu dein Projekt-Referenz-ID (findest du in den Projekt-Einstellungen im Supabase-Dashboard unter *General settings > Reference ID*):
-   ```bash
    supabase link --project-ref DEINE_PROJEKT_REFERENZ_ID
    ```
 
-4. **Secrets / Umgebungsvariablen setzen:**
-   Die Edge Function benötigt Zugriff auf deine Supabase-URL, den Service-Role-Schlüssel und das Synchronisations-Passwort. Setze diese Secrets in Supabase über die CLI:
+3. **Secrets / Umgebungsvariablen in Supabase setzen:**
+   Die Edge Function benötigt Zugriff auf deine Supabase-URL, den Service-Role-Schlüssel (für Admin-Schreibrechte) und dein Synchronisations-Passwort. Setze diese Secrets über deine CLI:
    ```bash
    supabase secrets set SUPABASE_URL="https://DEINE_PROJEKT_REFERENZ_ID.supabase.co"
    supabase secrets set SUPABASE_SERVICE_ROLE_KEY="DEIN_SERVICE_ROLE_KEY"
    supabase secrets set SYNC_SECRET="DEIN_VITE_SYNC_SECRET"
    ```
-   *Hinweis:* Den `SUPABASE_SERVICE_ROLE_KEY` findest du in deinem Supabase-Dashboard unter *Project Settings > API > service_role (secret)*. Gib diesen niemals im Frontend oder öffentlich weiter!
+   *Hinweis:* Den `SUPABASE_SERVICE_ROLE_KEY` findest du in deinem Supabase-Dashboard unter *Settings > API > service_role (secret)*. Gib diesen niemals im Frontend oder öffentlich weiter!
 
-5. **Edge Function deployen:**
+4. **Edge Function deployen:**
    Veröffentliche die Funktion mit folgendem Befehl:
    ```bash
    supabase functions deploy sync-calendars
    ```
 
-Sobald die Funktion erfolgreich deployed wurde, läuft die Synchronisierung im Admin-Dashboard extrem performant direkt auf den Servern von Supabase und umgeht sämtliche Browser-CORS-Beschränkungen!
+---
+
+### Weg B: Automatische Bereitstellung (Über GitHub Actions - Empfohlen! 🚀)
+Du musst **nichts** auf deinem Computer installieren! GitHub Actions kann die Edge Function bei jedem Push auf den `main`-Branch automatisch für dich auf Supabase hochladen.
+
+1. Gehe in deinem GitHub-Repository auf **Settings > Secrets and variables > Actions**.
+2. Erstelle ein neues Repository-Secret namens **`SUPABASE_ACCESS_TOKEN`**:
+   * Gehe auf [database.supabase.com/tokens](https://database.supabase.com/tokens) und erstelle ein neues Personal Access Token. Kopiere es und speichere es in diesem Secret.
+3. Erstelle ein neues Repository-Secret namens **`SUPABASE_PROJECT_ID`**:
+   * Trage dort deine Projekt-Referenz-ID (z. B. `abcde12345`) ein.
+4. Füge folgenden Workflow in eine neue Datei namens `.github/workflows/deploy-edge-functions.yml` in deinem Repository ein:
+   ```yaml
+   name: Deploy Edge Functions
+
+   on:
+     push:
+       branches:
+         - main
+         - master
+       paths:
+         - 'supabase/functions/**'
+
+   jobs:
+     deploy:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+
+         - uses: supabase/setup-cli@v1
+           with:
+             version: latest
+
+         - name: Deploy Edge Function
+           run: |
+             supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --password "${{ secrets.SUPABASE_DB_PASSWORD || 'dummy' }}"
+             supabase functions deploy sync-calendars --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+           env:
+             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+   ```
+5. Damit die Edge Function auch bei automatischem Deployment die nötigen Passwörter und URLs kennt, musst du diese einmalig im **Supabase Dashboard** unter **Settings > Edge Functions > Add New Secret** eintragen:
+   * `SUPABASE_URL` = `https://DEINE_PROJEKT_REFERENZ_ID.supabase.co`
+   * `SUPABASE_SERVICE_ROLE_KEY` = (dein Service-Role-Schlüssel aus Settings > API)
+   * `SYNC_SECRET` = (dein langes Synchronisations-Passwort)
+
+Sobald der Code auf Supabase bereitgestellt ist (egal ob über Weg A oder B), läuft alles vollautomatisch im Hintergrund!
 
 ---
 
