@@ -22,6 +22,7 @@ function unfoldLines(icsString: string): string {
   return icsString.replace(/\r?\n[ \t]/g, '');
 }
 
+// TODO - add documentation
 function parseLocalDateToUtc(
   year: number,
   monthIndex: number,
