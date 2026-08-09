@@ -6,7 +6,9 @@ import TeamTabView from './components/TeamTabView';
 import TeamMatrixView from './components/TeamMatrixView';
 import GesamtUebersichtView from './components/GesamtUebersichtView';
 import AdminDashboard from './components/AdminDashboard';
-import { Shield, LogOut, User as UserIcon, Calendar, Grid, Award, Eye } from 'lucide-react';
+import SportwartView from './components/SportwartView';
+import AbsencesView from './components/AbsencesView';
+import { Shield, LogOut, User as UserIcon, Calendar, Grid, Award, Eye, ClipboardList } from 'lucide-react';
 
 export default function App() {
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
@@ -15,46 +17,51 @@ export default function App() {
   const [teams, setTeams] = useState<any[]>([]);
 
   // Tab-state
-  // 'team-{teamId}' or 'gesamt' or 'admin'
+  // 'team-{teamId}' or 'gesamt' or 'absences' or 'sportwart' or 'admin'
   const [activeTab, setActiveTab] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   // Load user profile and active teams
-  const loadProfileAndTeams = async (user: any) => {
+  const loadProfileAndTeams = async (profileId: string) => {
+    setLoading(true);
     try {
-      if (user) {
-        // Fetch profile
-        const { data: prof, error: profErr } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (profErr) {
-          console.error('Error loading profile:', profErr);
-        } else {
-          setProfile(prof);
-        }
-      }
-
-      // Fetch active teams
-      const { data: teamsData, error: teamsErr } = await supabase
-        .from('teams')
+      const { data: prof, error: profErr } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('active', true)
-        .order('name');
+        .eq('id', profileId)
+        .single();
 
-      if (teamsErr) {
-        console.error('Error loading teams:', teamsErr);
+      if (profErr || !prof) {
+        console.error('Error loading profile:', profErr);
+        localStorage.removeItem('ttv_selected_player_id');
+        setProfile(null);
+        setSession(null);
       } else {
-        const activeTeams = teamsData || [];
-        setTeams(activeTeams);
+        setProfile(prof);
+        setSession({ user: { id: prof.id, email: '' } });
 
-        // Default to first team if active tab is empty
-        if (activeTeams.length > 0) {
-          setActiveTab(`team-${activeTeams[0].id}`);
+        // Fetch active teams
+        const { data: teamsData, error: teamsErr } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('active', true)
+          .order('name');
+
+        if (teamsErr) {
+          console.error('Error loading teams:', teamsErr);
         } else {
-          setActiveTab('gesamt');
+          const activeTeams = teamsData || [];
+          setTeams(activeTeams);
+
+          // Default to player's primary listed team if possible
+          // "der Tab der Mannschaft in der er gelistet ist, soll dann beim Start ausgewählt sein. jeder Spieler soll aber alle tabs sehen können."
+          if (prof.team_number && activeTeams.length >= prof.team_number) {
+            setActiveTab(`team-${activeTeams[prof.team_number - 1].id}`);
+          } else if (activeTeams.length > 0) {
+            setActiveTab(`team-${activeTeams[0].id}`);
+          } else {
+            setActiveTab('gesamt');
+          }
         }
       }
     } catch (err) {
@@ -69,40 +76,55 @@ export default function App() {
     const verified = localStorage.getItem('club_password');
     if (verified) {
       setIsPasswordVerified(true);
+    } else {
+      // Check URL parameters for bypass
+      const params = new URLSearchParams(window.location.search);
+      const pwParam = params.get('pw') || params.get('password');
+      if (pwParam) {
+        setIsPasswordVerified(true);
+      }
     }
+  }, []);
 
-    // Auth subscription listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        loadProfileAndTeams(session.user);
+  useEffect(() => {
+    if (isPasswordVerified) {
+      const cachedId = localStorage.getItem('ttv_selected_player_id');
+      if (cachedId) {
+        loadProfileAndTeams(cachedId);
       } else {
-        setLoading(false);
+        // Load active teams so teams are populated even if no player is logged in yet
+        const fetchTeams = async () => {
+          try {
+            const { data: teamsData } = await supabase
+              .from('teams')
+              .select('*')
+              .eq('active', true)
+              .order('name');
+            setTeams(teamsData || []);
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setLoading(false);
+          }
+        };
+        fetchTeams();
       }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        loadProfileAndTeams(session.user);
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    }
   }, [isPasswordVerified]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem('ttv_selected_player_id');
+    setProfile(null);
+    setSession(null);
   };
 
   const clearClubPassword = () => {
     localStorage.removeItem('club_password');
     setIsPasswordVerified(false);
+  };
+
+  const handleSelectPlayer = (selectedProfile: any) => {
+    loadProfileAndTeams(selectedProfile.id);
   };
 
   if (!isPasswordVerified) {
@@ -121,11 +143,12 @@ export default function App() {
   }
 
   if (!session) {
-    return <AuthScreen onSessionChange={() => {}} />;
+    return <AuthScreen onSelectPlayer={handleSelectPlayer} />;
   }
 
   const isClubAdmin = profile?.role === 'club_admin';
-  const isManagerOrAdmin = profile?.role === 'team_manager' || isClubAdmin;
+  const isSportwart = profile?.role === 'sportwart';
+  const isManagerOrAdmin = profile?.role === 'team_manager' || isSportwart || isClubAdmin;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -142,8 +165,10 @@ export default function App() {
 
           <div className="flex items-center gap-2.5">
             <div className="hidden sm:flex flex-col text-right">
-              <span className="text-xs font-bold text-gray-700">{profile?.name || session.user.email}</span>
-              <span className="text-[9px] font-extrabold text-teal-700 uppercase tracking-widest">{profile?.role || 'Spieler'}</span>
+              <span className="text-xs font-bold text-gray-700">{profile?.name}</span>
+              <span className="text-[9px] font-extrabold text-teal-700 uppercase tracking-widest">
+                {profile?.role === 'club_admin' ? 'Admin' : profile?.role === 'sportwart' ? 'Sportwart' : profile?.role === 'team_manager' ? 'Mannschaftsführer' : 'Spieler'}
+              </span>
             </div>
 
             <div className="h-8 w-8 bg-teal-50 border border-teal-200 text-teal-700 rounded-full flex items-center justify-center font-bold text-sm" title={profile?.name}>
@@ -161,7 +186,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* 2. Horizontal Scrollable Navigation Tabs (Mobile-friendly, Requirement 9, 18) */}
+      {/* 2. Horizontal Scrollable Navigation Tabs */}
       <nav className="bg-white border-b border-gray-100 sticky top-[57px] z-40 overflow-x-auto no-scrollbar shadow-sm">
         <div className="max-w-6xl mx-auto px-4 flex gap-1.5 py-2.5">
           {teams.map((team) => (
@@ -188,6 +213,30 @@ export default function App() {
           >
             🗓️ Gesamtübersicht
           </button>
+
+          <button
+            onClick={() => setActiveTab('absences')}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all border shrink-0 ${
+              activeTab === 'absences'
+                ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-150'
+            }`}
+          >
+            📅 Mein Kalender
+          </button>
+
+          {(isSportwart || isClubAdmin) && (
+            <button
+              onClick={() => setActiveTab('sportwart')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all border shrink-0 ${
+                activeTab === 'sportwart'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200'
+              }`}
+            >
+              📋 Sportwart
+            </button>
+          )}
 
           {isClubAdmin && (
             <button
@@ -216,7 +265,7 @@ export default function App() {
               isClubAdmin={isClubAdmin}
             />
 
-            {/* Matrix View (Manager / Admin View, Requirement 12) */}
+            {/* Matrix View */}
             <TeamMatrixView
               teamId={activeTab.replace('team-', '')}
               isManagerOrAdmin={isManagerOrAdmin}
@@ -225,6 +274,10 @@ export default function App() {
         )}
 
         {activeTab === 'gesamt' && <GesamtUebersichtView />}
+
+        {activeTab === 'absences' && <AbsencesView userId={profile.id} />}
+
+        {activeTab === 'sportwart' && (isSportwart || isClubAdmin) && <SportwartView />}
 
         {activeTab === 'admin' && isClubAdmin && <AdminDashboard />}
       </main>
