@@ -1,0 +1,68 @@
+# Anforderungen (Requirements) - TTV Spielplaner
+
+Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen für den **Tischtennis-Spielbereitschafts-Planer (TTV Spielplaner)**.
+
+---
+
+## 1. Funktionale Anforderungen (Functional Requirements)
+
+### 1.1. Mannschaftsverwaltung (Teams)
+* **FA-1.1.1:** Das System muss standardmäßig mindestens drei Tischtennis-Mannschaften unterstützen.
+* **FA-1.1.2:** Administratoren müssen in der Lage sein, neue Mannschaften hinzuzufügen, bestehende Mannschaften zu deaktivieren und deren zugehörige Webcal-Kalender-Links zu pflegen.
+* **FA-1.1.3:** Mannschaften müssen eine eindeutige ID, einen Namen (z. B. "Herren I", "Herren II") und ein Flag zur Aktivierung/Deaktivierung besitzen.
+
+### 1.2. Kalender-Synchronisation & Terminverwaltung (Calendar Sync & Match Management)
+* **FA-1.2.1:** Das System muss Spieltermine automatisch aus den bereitgestellten Webcal-Kalendern von myTischtennis.de auslesen.
+* **FA-1.2.2:** Die Synchronisation muss sowohl automatisiert (einmal täglich per Cronjob via GitHub Actions / Supabase Edge Functions) als auch manuell (durch einen Administrator im Admin-Dashboard) ausgelöst werden können.
+* **FA-1.2.3:** Falls die Edge-Function bei einer manuellen Synchronisation nicht erreichbar ist, muss ein clientseitiger Fallback im Browser einspringen (CORS-Proxy-gestützt), um die ICS-Dateien herunterzuladen, zu parsen und die Termine in die Datenbank zu schreiben.
+* **FA-1.2.4:** Der ICS-Parser muss zeitzonensicher arbeiten und alle Termine korrekt in die Zeitzone `Europe/Berlin` übersetzen.
+* **FA-1.2.5:** Das System muss Spielverlegungen anhand der stabilen `UID` des ICS-Events erkennen. Bei einer Terminverschiebung müssen historische Rückmeldungen archiviert werden, und die Spieler müssen im Frontend per Warnsymbol (⚠️) um eine erneute Bestätigung gebeten werden.
+* **FA-1.2.6:** Alle Synchronisations-Vorgänge müssen mit Status (Erfolg/Fehler), Zeitstempel und Anzahl der importierten Spiele protokolliert werden.
+
+### 1.3. Benutzerverwaltung & Berechtigungskonzept (User Management & Roles)
+* **FA-1.3.1:** Benutzer müssen sich registrieren und anmelden können (E-Mail und Passwort).
+* **FA-1.3.2:** Es müssen drei unterschiedliche Rollen existieren:
+  * **Spieler (player):** Kann Mannschaften, Termine und Rückmeldungen einsehen und seine eigene Verfügbarkeit für Spiele eintragen/ändern.
+  * **Mannschaftsführer (team_manager):** Besitzt alle Rechte eines Spielers und kann zusätzlich Spieler der eigenen Mannschaft zuordnen/entfernen.
+  * **Vereinsadministrator (club_admin):** Besitzt alle Rechte eines Mannschaftsführers, kann neue Mannschaften verwalten, Rollen anderer Benutzer ändern, Synchronisationen anstoßen und Protokolle einsehen.
+* **FA-1.3.3:** Das System muss sicherstellen, dass Spieler nur ihre eigenen Verfügbarkeiten bearbeiten können (erzwungen durch PostgreSQL RLS-Richtlinien im Backend).
+
+### 1.4. Verfügbarkeiten & Rückmeldungen (Availabilities & Responses)
+* **FA-1.4.1:** Spieler müssen ihre Verfügbarkeit für anstehende Spiele mit vordefinierten Zuständen angeben können (z. B. "Verfügbar", "Nicht verfügbar", "Unsicher").
+* **FA-1.4.2:** Spieler müssen die Möglichkeit haben, optionale Bemerkungen (z. B. Grund für Ausfall oder spätere Anreise) einzugeben.
+* **FA-1.4.3:** Spieler müssen sich mannschaftsübergreifend für Spiele eintragen können, um als Ersatzspieler zur Verfügung zu stehen.
+
+### 1.5. Gesamtübersicht & Konflikterkennung (Dashboard & Conflict Detection)
+* **FA-1.5.1:** Das System muss eine chronologische Gesamtübersicht aller Spiele für die Vereinsführung bereitstellen.
+* **FA-1.5.2:** Die Gesamtübersicht muss eine automatische Terminkonflikt-Erkennung enthalten. Steht ein Spieler am selben Kalendertag/zur selben Uhrzeit bei zwei verschiedenen Mannschaften als verfügbar eingetragen, muss eine optische Warnung ausgegeben werden.
+* **FA-1.5.3:** Das System muss eine Matrix-Ansicht bereitstellen, in der Mannschaftsführer die Rückmeldungen aller Spieler auf einen Blick sehen und verwalten können.
+
+### 1.6. Globaler Passwortschutz (Password Gate)
+* **FA-1.6.1:** Die gesamte Web-Anwendung muss durch ein globales Vereinspasswort geschützt sein. Ohne dieses Passwort dürfen keine Spielerdaten, Namen oder Termine geladen oder angezeigt werden.
+* **FA-1.6.2:** Das System muss einen URL-Bypass unterstützen. Vereinsmitglieder müssen über personalisierte oder präparierte Links wie `https://[domain]/?pw=[passwort]` oder `https://[domain]/?password=[passwort]` direkt eingeloggt werden, ohne das Passwort manuell eingeben zu müssen.
+
+---
+
+## 2. Nicht-funktionale Anforderungen (Non-Functional Requirements)
+
+### 2.1. Benutzbarkeit & Design (Usability & Design)
+* **NFA-2.1.1 (Smartphone-Optimierung):** Die Benutzeroberfläche muss "Mobile-First" gestaltet und vollständig für mobile Endgeräte (Smartphones) optimiert sein. Buttons und Steuerelemente müssen großflächig und berührungsfreundlich gestaltet sein.
+* **NFA-2.1.2 (Responsive Design):** Die Oberfläche muss sich flüssig an verschiedene Bildschirmgrößen anpassen (vom Smartphone über Tablets bis hin zu Desktop-Monitoren).
+
+### 2.2. Sicherheit & Datenschutz (Security & Privacy)
+* **NFA-2.2.1 (Row Level Security):** Der Datenzugriff auf Supabase-Ebene muss über strikte PostgreSQL RLS (Row Level Security) Richtlinien abgesichert sein. Kein Client darf in der Lage sein, unbefugt Daten zu lesen oder zu manipulieren.
+* **NFA-2.2.2 (Datenminimierung):** Es dürfen keine unnötigen personenbezogenen Daten erhoben werden. Name und E-Mail-Adresse sind für die Funktionalität ausreichend.
+* **NFA-2.2.3 (Passwortschutz):** Passwörter müssen sicher gehasht in der Datenbank abgelegt werden (z. B. unter Verwendung von pgcrypto / bcrypt). Sensible Service-Keys (z. B. Supabase `service_role`-Schlüssel) dürfen keinesfalls im Frontend zugänglich sein.
+
+### 2.3. Zuverlässigkeit & Ausfallsicherheit (Reliability & Resilience)
+* **NFA-2.3.1 (Robustheit bei Netzwerkfehlern):** Bei Netzwerkproblemen oder Fehlern beim externen Kalender-Sync darf die Anwendung nicht abstürzen. Vorhandene Termine müssen aus dem Cache bzw. der Datenbank gelesen und angezeigt werden.
+* **NFA-2.3.2 (Fallback-Mechanismen):** Bei Ausfall der Edge-Function muss die clientseitige Synchronisation reibungslos einspringen können.
+
+### 2.4. Performance & Skalierbarkeit (Performance & Scalability)
+* **NFA-2.4.1 (Schnelle Ladezeiten):** Die Anwendung muss innerhalb von weniger als 2 Sekunden auf mobilen Geräten über eine standardmäßige 3G/4G-Verbindung einsatzbereit sein.
+* **NFA-2.4.2 (Geringe Serverlast):** Die Synchronisation der Kalender sollte effizient gestaltet sein, um unnötige Schreibzugriffe und API-Aufrufe bei Supabase zu vermeiden.
+
+### 2.5. Wartbarkeit & Erweiterbarkeit (Maintainability & Extensibility)
+* **NFA-2.5.1 (Erweiterbare Architektur):** Der Programmcode muss modular aufgebaut sein (Trennung von Komponenten, API-Clients, Parsern und Typdefinitionen), um zukünftige Erweiterungen (z. B. Push-Benachrichtigungen oder Chat-Funktion) zu erleichtern.
+* **NFA-2.5.2 (Testbarkeit):** Kritische Logikbausteine wie der `icsParser` und die `syncEngine` müssen durch automatisierte Unit- und Integrationstests (z. B. Vitest) abgedeckt sein.
+* **NFA-2.5.3 (CI/CD):** Der Build-, Test- und Deployment-Prozess muss über GitHub Actions automatisiert sein.
