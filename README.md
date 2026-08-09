@@ -21,6 +21,11 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
    * Die Vereinsführung sieht in der Gesamtübersicht chronologisch alle Spiele und erkennt sofort, wer als Ersatzspieler (Aushilfe) einspringen kann.
 6. **Automatische Terminkonflikt-Erkennung:** Steht ein Spieler am selben Tag/Uhrzeit zeitgleich bei zwei verschiedenen Mannschaften als verfügbar eingetragen, warnt die Gesamtübersicht die Vereinsführung vor einem Terminkonflikt.
 7. **Smartphone-Optimierung:** Großflächige, berührungsfreundliche Buttons für die Touch-Bedienung. Responsive Darstellung für alle Geräteklassen (Mobile-First).
+8. **Dezidierte Sportwart-Rolle:** Ermöglicht die Verwaltung aller Vereinsmitglieder, Bearbeitung ihrer TTR-Punkte, manuelles Eintragen/Löschen von Profilen und Zuordnung zu Mannschaften sowie deren Listenplätzen (z. B. "1.3" für Team 1, Position 3).
+9. **Abwesenheits-Kalender (Mein Kalender & 2-Monats-Planer):**
+   * Alle Spieler haben Zugriff auf einen persönlichen "Mein Kalender"-Tab, um Abwesenheitszeiträume (z. B. Urlaub, Arbeit, Krankheit) mit Bemerkungen einzutragen.
+   * Der Sportwart besitzt ein integriertes Planungs-Dashboard, das alle Abwesenheiten für die kommenden 60 Tage übersichtlich in einer Monatsmatrix visualisiert und eine detaillierte Tagesansicht per Klick bereitstellt.
+10. **Passwortlose Anmeldung mit Dropdown-Auswahl:** Um die Hürde für Spieler zu minimieren, ist kein klassisches E-Mail/Passwort-Login zwingend erforderlich. Spieler können sich einfach per Namens-Dropdown anmelden. Die ID des ausgewählten Spielers wird zur Bequemlichkeit im `localStorage` des Browsers gecacht. Die `profiles`-Tabelle ist dabei unabhängig von `auth.users` aufgebaut, was das direkte Erstellen von Profilen durch Sportwarte/Admins ermöglicht.
 
 ---
 

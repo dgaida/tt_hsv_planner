@@ -20,17 +20,21 @@ Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen
 * **FA-1.2.6:** Alle Synchronisations-Vorgänge müssen mit Status (Erfolg/Fehler), Zeitstempel und Anzahl der importierten Spiele protokolliert werden.
 
 ### 1.3. Benutzerverwaltung & Berechtigungskonzept (User Management & Roles)
-* **FA-1.3.1:** Benutzer müssen sich registrieren und anmelden können (E-Mail und Passwort).
-* **FA-1.3.2:** Es müssen drei unterschiedliche Rollen existieren:
-  * **Spieler (player):** Kann Mannschaften, Termine und Rückmeldungen einsehen und seine eigene Verfügbarkeit für Spiele eintragen/ändern.
+* **FA-1.3.1:** Das System unterstützt sowohl die klassische Anmeldung als auch ein passwortloses System. Spieler können sich direkt über eine Dropdown-Auswahl ihres Namens anmelden (mit clientseitigem Caching der ausgewählten Profil-ID in `localStorage`).
+* **FA-1.3.2:** Die Profile-Tabelle muss unabhängig von `auth.users` arbeiten, sodass der Sportwart/Administrator neue Profile direkt anlegen kann, ohne dass diese vorab einen Auth-Account registrieren müssen.
+* **FA-1.3.3:** Es müssen vier unterschiedliche Rollen existieren:
+  * **Spieler (player):** Kann Mannschaften, Termine und Rückmeldungen einsehen und seine eigene Verfügbarkeit für Spiele eintragen/ändern, sowie eigene Abwesenheiten pflegen.
   * **Mannschaftsführer (team_manager):** Besitzt alle Rechte eines Spielers und kann zusätzlich Spieler der eigenen Mannschaft zuordnen/entfernen.
-  * **Vereinsadministrator (club_admin):** Besitzt alle Rechte eines Mannschaftsführers, kann neue Mannschaften verwalten, Rollen anderer Benutzer ändern, Synchronisationen anstoßen und Protokolle einsehen.
-* **FA-1.3.3:** Das System muss sicherstellen, dass Spieler nur ihre eigenen Verfügbarkeiten bearbeiten können (erzwungen durch PostgreSQL RLS-Richtlinien im Backend).
+  * **Sportwart (sportwart):** Besitzt alle Rechte eines Mannschaftsführers. Kann zusätzlich Spieler und deren TTR-Punkte anlegen und verwalten, Aufstellungen und Listenplätze editieren, die Anzahl gemeldeter Mannschaften konfigurieren und besitzt Zugriff auf die gesammelte Abwesenheits-Planung.
+  * **Vereinsadministrator (club_admin):** Besitzt alle Rechte der anderen Rollen, kann neue Mannschaften verwalten, Rollen aller Benutzer ändern, Synchronisationen anstoßen und Protokolle einsehen.
+* **FA-1.3.4:** Das System muss sicherstellen, dass Spieler nur ihre eigenen Verfügbarkeiten und Abwesenheiten bearbeiten können (erzwungen durch PostgreSQL RLS-Richtlinien im Backend).
 
 ### 1.4. Verfügbarkeiten & Rückmeldungen (Availabilities & Responses)
 * **FA-1.4.1:** Spieler müssen ihre Verfügbarkeit für anstehende Spiele mit vordefinierten Zuständen angeben können (z. B. "Verfügbar", "Nicht verfügbar", "Unsicher").
 * **FA-1.4.2:** Spieler müssen die Möglichkeit haben, optionale Bemerkungen (z. B. Grund für Ausfall oder spätere Anreise) einzugeben.
 * **FA-1.4.3:** Spieler müssen sich mannschaftsübergreifend für Spiele eintragen können, um als Ersatzspieler zur Verfügung zu stehen.
+* **FA-1.4.4:** Ein Abwesenheits-System muss Spielern ermöglichen, single- oder multi-day Abwesenheiten mit Startdatum, Enddatum und optionaler Begründung (z.B. Urlaub, Krankheit) im Tab "Mein Kalender" einzutragen und zu löschen.
+* **FA-1.4.5:** Der Sportwart besitzt eine aggregierte 2-Monats-Visualisierung aller Spieler-Abwesenheiten als Kalendermatrix, mit detaillierter Tagesansicht beim Anklicken eines Tages, um die Einsatzplanung zu erleichtern.
 
 ### 1.5. Gesamtübersicht & Konflikterkennung (Dashboard & Conflict Detection)
 * **FA-1.5.1:** Das System muss eine chronologische Gesamtübersicht aller Spiele für die Vereinsführung bereitstellen.
