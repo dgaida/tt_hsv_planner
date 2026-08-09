@@ -47,6 +47,7 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
+  // TODO - add documentation
   const handleManualSync = async () => {
     setSyncing(true);
     setSyncFeedback('Synchronisiere Kalender...');
