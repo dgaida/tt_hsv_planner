@@ -82,14 +82,19 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
 
 1. Erstelle ein neues, kostenloses Projekt auf [supabase.com](https://supabase.com).
 2. Navigiere in deinem Supabase-Dashboard zum **SQL Editor**.
-3. Kopiere den Inhalt der Datei `supabase/migrations/20260808000000_init.sql` und führe das Skript aus. Es legt alle Tabellen, Enums, Trigger, RPC-Funktionen und RLS-Richtlinien an:
+3. Kopiere den Inhalt der Datei `supabase/migrations/20260808000000_init.sql` und führe das Skript aus. Es legt alle Tabellen, Enums, Trigger, RPC-Funktionen und RLS-Richtlinien an.
+
+   **Wichtiger Hinweis zur Robustheit:** Dieses Migrationsskript ist vollständig **idempotent** aufgebaut. Das bedeutet, du kannst das gesamte Skript jederzeit erneut im SQL Editor ausführen (z. B. nach einem Update des Repositories). Es aktualisiert eine bereits bestehende Datenbankstruktur sicher (z. B. fügt es fehlende Spalten wie `position_number` oder neue Tabellen wie `absences` hinzu), ohne bestehende Daten zu überschreiben oder Fehler wie `type "user_role" already exists` auszulösen.
+
+   Es legt folgende Objekte an bzw. stellt sicher, dass sie existieren:
    * **`teams`:** Konfiguration der Mannschaften und Webcal-Links.
-   * **`profiles`:** Erweitert die Benutzerverwaltung um Namen und Rollen (`player`, `team_manager`, `club_admin`).
+   * **`profiles`:** Erweitert die Benutzerverwaltung um Namen, Rollen (`player`, `team_manager`, `club_admin`, `sportwart`) und die Listenposition (`position_number`).
    * **`team_players`:** Zuordnungstabelle (Spieler können mehreren Mannschaften zugeordnet sein).
    * **`matches`:** Speichert alle importierten Spiele inkl. Spieltag, Termin und Version.
    * **`availabilities`:** Spieler-Rückmeldungen inkl. Bemerkung und der beantworteten Spiel-Version.
    * **`sync_runs`:** Protokollierung der Synchronisierungs-Läufe.
    * **`match_changes`:** Protokollierung von Terminverschiebungen (Spielverlegungen).
+   * **`absences`:** Abwesenheiten für den Spieler-Abwesenheitskalender.
 4. Standard-Vereinspasswort ändern (optional): In der Tabelle `club_settings` wird standardmäßig der Hash des Passworts `Tischtennis2026` hinterlegt. Du kannst im SQL Editor ein eigenes Passwort hashen lassen:
    ```sql
    UPDATE public.club_settings
