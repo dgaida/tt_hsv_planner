@@ -224,6 +224,90 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
 
                           const isOutdated = av && av.version_responded < m.version;
 
+                          if (isManagerOrAdmin) {
+                            return (
+                              <td key={m.id} className="px-1.5 py-2 text-center text-sm">
+                                <div className="flex flex-col items-center">
+                                  <select
+                                    value={av ? av.response : ''}
+                                    onChange={async (e) => {
+                                      const val = e.target.value;
+                                      let comment = av?.comment || '';
+
+                                      if (val) {
+                                        const enteredComment = window.prompt(
+                                          `Optionaler Kommentar für ${player.name} bei diesem Spiel:`,
+                                          comment
+                                        );
+                                        if (enteredComment !== null) {
+                                          comment = enteredComment;
+                                        }
+
+                                        if (av) {
+                                          const { error } = await supabase
+                                            .from('availabilities')
+                                            .update({
+                                              response: val,
+                                              comment: comment,
+                                              version_responded: m.version,
+                                              updated_at: new Date().toISOString(),
+                                            })
+                                            .eq('id', av.id);
+                                          if (error) alert('Fehler: ' + error.message);
+                                        } else {
+                                          const { error } = await supabase
+                                            .from('availabilities')
+                                            .insert({
+                                              match_id: m.id,
+                                              player_id: player.id,
+                                              response: val,
+                                              comment: comment,
+                                              version_responded: m.version,
+                                            });
+                                          if (error) alert('Fehler: ' + error.message);
+                                        }
+                                      } else {
+                                        if (av) {
+                                          const { error } = await supabase
+                                            .from('availabilities')
+                                            .delete()
+                                            .eq('id', av.id);
+                                          if (error) alert('Fehler: ' + error.message);
+                                        }
+                                      }
+                                      loadMatrixData();
+                                    }}
+                                    className={`text-xs p-1 rounded-md border outline-none font-bold bg-white cursor-pointer ${
+                                      av?.response === 'yes' && !isOutdated
+                                        ? 'border-emerald-300 text-emerald-800 bg-emerald-50'
+                                        : av?.response === 'no' && !isOutdated
+                                        ? 'border-rose-300 text-rose-800 bg-rose-50'
+                                        : av?.response === 'maybe' && !isOutdated
+                                        ? 'border-amber-300 text-amber-800 bg-amber-50'
+                                        : 'border-gray-300 text-gray-500'
+                                    }`}
+                                    title={av?.comment ? `Kommentar: ${av.comment}` : 'Status wählen'}
+                                  >
+                                    <option value="">–</option>
+                                    <option value="yes">Ja</option>
+                                    <option value="maybe">Vielleicht</option>
+                                    <option value="no">Nein</option>
+                                  </select>
+                                  {isOutdated && (
+                                    <span className="text-[10px] leading-tight text-amber-600 font-bold" title="Termin geändert - Neu abstimmen!">
+                                      ⚠️
+                                    </span>
+                                  )}
+                                  {av?.comment && (
+                                    <span className="text-[9px] text-gray-400 truncate max-w-[50px] mt-1" title={av.comment}>
+                                      💬
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          }
+
                           return (
                             <td key={m.id} className="px-2 py-3 text-center text-sm">
                               {av ? (
@@ -285,7 +369,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
             </div>
           )}
 
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex flex-wrap gap-4 text-xs text-gray-600">
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-150 flex flex-wrap gap-4 text-xs text-gray-600">
             <div><span className="font-bold">H:</span> Heimspiel</div>
             <div><span className="font-bold">A:</span> Auswärtsspiel</div>
             <div><span className="font-bold">✅:</span> Ja</div>

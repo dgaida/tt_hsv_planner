@@ -1,169 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 interface AuthScreenProps {
-  onSessionChange: () => void;
+  onSelectPlayer: (profile: any) => void;
 }
 
-export default function AuthScreen({ onSessionChange }: AuthScreenProps) {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+export default function AuthScreen({ onSelectPlayer }: AuthScreenProps) {
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('');
   const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMsg('');
-    setLoading(true);
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('name');
 
-    try {
-      if (isSignUp) {
-        if (!fullName.trim()) {
-          throw new Error('Bitte gib deinen vollen Namen an.');
+        if (error) throw error;
+        const list = data || [];
+        setProfiles(list);
+
+        // Pre-select cached player if exists
+        const cachedId = localStorage.getItem('ttv_selected_player_id');
+        if (cachedId && list.some((p) => p.id === cachedId)) {
+          setSelectedId(cachedId);
+        } else if (list.length > 0) {
+          setSelectedId(list[0].id);
         }
-
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name: fullName.trim(),
-            },
-          },
-        });
-
-        if (signUpError) throw signUpError;
-
-        if (data.user && data.session) {
-          onSessionChange();
-        } else {
-          setSuccessMsg('Registrierung erfolgreich! Bitte prüfe deine E-Mails zur Bestätigung deines Kontos (sofern aktiviert). Du kannst dich danach einloggen.');
-          setIsSignUp(false);
-        }
-      } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) throw signInError;
-        onSessionChange();
+      } catch (err: any) {
+        console.error('Error fetching profiles:', err);
+        setError('Fehler beim Laden der Spielerliste.');
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Authentifizierungsfehler');
-    } finally {
-      setLoading(false);
+    };
+
+    fetchProfiles();
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedId) {
+      setError('Bitte wähle einen Spieler aus.');
+      return;
+    }
+
+    const player = profiles.find((p) => p.id === selectedId);
+    if (player) {
+      localStorage.setItem('ttv_selected_player_id', player.id);
+      onSelectPlayer(player);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-teal-600 mx-auto"></div>
+          <p className="text-sm font-semibold text-gray-500">Lade Spieler...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 border border-gray-100">
-        <div className="text-4xl mb-4 text-center">🏓</div>
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          {isSignUp ? 'Spieler-Konto erstellen' : 'Anmelden im Verein'}
-        </h2>
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 border border-gray-100 text-center">
+        <div className="text-4xl mb-4">🏓</div>
+        <h2 className="text-2xl font-black text-gray-800 mb-2">Spieler-Anmeldung</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Wähle deinen Namen aus der Vereinsliste aus, um dich anzumelden.
+        </p>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm font-medium">
+          <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm font-medium text-left">
             ⚠️ {error}
           </div>
         )}
 
-        {successMsg && (
-          <div className="bg-green-50 text-green-700 p-3 rounded-xl mb-4 text-sm font-medium">
-            ✅ {successMsg}
-          </div>
-        )}
-
-        <form onSubmit={handleAuth} className="space-y-4">
-          {isSignUp && (
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-                Name / Vorname (z.B. Peter)
-              </label>
-              <input
-                type="text"
-                placeholder="Dein Vorname oder Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-                required
-              />
-            </div>
-          )}
-
-          <div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="text-left">
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-              E-Mail Adresse
+              Dein Name / Profil
             </label>
-            <input
-              type="email"
-              placeholder="spieler@verein.de"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+            <select
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-base"
               required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-              Passwort
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-              required
-            />
+            >
+              <option value="" disabled>-- Bitte wählen --</option>
+              {profiles.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} {p.ttr_points ? `(${p.ttr_points} TTR-Punkte)` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-xl shadow transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center"
+            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-md transition-all transform active:scale-95 flex items-center justify-center gap-2 text-base"
           >
-            {loading ? (
-              <span className="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-r-2 border-white"></span>
-            ) : isSignUp ? (
-              'Konto erstellen'
-            ) : (
-              'Anmelden'
-            )}
+            Anmelden
           </button>
         </form>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          {isSignUp ? (
-            <>
-              Bereits ein Konto?{' '}
-              <button
-                onClick={() => setIsSignUp(false)}
-                className="text-teal-600 font-semibold hover:underline"
-              >
-                Hier anmelden
-              </button>
-            </>
-          ) : (
-            <>
-              Noch kein Spieler-Konto?{' '}
-              <button
-                onClick={() => setIsSignUp(true)}
-                className="text-teal-600 font-semibold hover:underline"
-              >
-                Hier registrieren
-              </button>
-            </>
-          )}
-        </div>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Create custom enums
-CREATE TYPE public.user_role AS ENUM ('player', 'team_manager', 'club_admin');
+CREATE TYPE public.user_role AS ENUM ('player', 'team_manager', 'club_admin', 'sportwart');
 CREATE TYPE public.availability_response AS ENUM ('yes', 'no', 'maybe');
 
 -- 1. Club Settings (e.g., global access password)
@@ -20,11 +20,14 @@ INSERT INTO public.club_settings (key, value)
 VALUES ('club_password_hash', crypt('Tischtennis2026', gen_salt('bf', 8)))
 ON CONFLICT (key) DO NOTHING;
 
--- 2. Profiles (extends auth.users)
+-- 2. Profiles (now independent of auth.users so Sportwart can create players directly)
 CREATE TABLE public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     role public.user_role NOT NULL DEFAULT 'player',
+    ttr_points INTEGER NOT NULL DEFAULT 0,
+    team_number INTEGER,
+    position_number INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -110,11 +113,38 @@ CREATE TABLE public.match_changes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 9. Absences (Abwesenheiten)
+CREATE TABLE public.absences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    player_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed default test players
+INSERT INTO public.profiles (id, name, role, ttr_points, team_number, position_number)
+VALUES
+  ('d0000000-0000-0000-0000-000000000001', 'Max Mustermann', 'sportwart', 1600, 1, 1),
+  ('d0000000-0000-0000-0000-000000000002', 'Mia Musterfrau', 'player', 1500, 1, 2),
+  ('d0000000-0000-0000-0000-000000000003', 'Hans Meier', 'team_manager', 1000, 2, 1)
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed default team_players
+INSERT INTO public.team_players (team_id, player_id)
+VALUES
+  ('11111111-1111-1111-1111-111111111111', 'd0000000-0000-0000-0000-000000000001'),
+  ('11111111-1111-1111-1111-111111111111', 'd0000000-0000-0000-0000-000000000002'),
+  ('22222222-2222-2222-2222-222222222222', 'd0000000-0000-0000-0000-000000000003')
+ON CONFLICT DO NOTHING;
+
 -- ----------------------------------------------------
 -- TRIGGERS & FUNCTIONS
 -- ----------------------------------------------------
 
--- Automatically create profile on user signup
+-- Automatically create profile on user signup (fallback/legacy)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -122,7 +152,8 @@ DECLARE
 BEGIN
     default_name := COALESCE(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1));
     INSERT INTO public.profiles (id, name, role)
-    VALUES (new.id, default_name, 'player');
+    VALUES (new.id, default_name, 'player')
+    ON CONFLICT (id) DO NOTHING;
     RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -163,7 +194,7 @@ RETURNS BOOLEAN AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM public.profiles
-        WHERE id = auth.uid() AND role IN ('team_manager', 'club_admin')
+        WHERE id = auth.uid() AND role IN ('team_manager', 'club_admin', 'sportwart')
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -181,162 +212,94 @@ ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.availabilities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sync_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.match_changes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.absences ENABLE ROW LEVEL SECURITY;
 
--- 1. Club Settings RLS Policies
-CREATE POLICY "Allow authenticated users to read club settings keys (excluding hashed password)"
+-- Club Settings RLS Policies
+CREATE POLICY "Allow anyone to read club settings"
     ON public.club_settings FOR SELECT
-    USING (auth.role() = 'authenticated' AND key <> 'club_password_hash');
+    USING (true);
 
-CREATE POLICY "Allow club admin full control over settings"
+CREATE POLICY "Allow anyone to manage club settings"
     ON public.club_settings FOR ALL
-    USING (public.is_club_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- 2. Profiles RLS Policies
-CREATE POLICY "Allow authenticated users to read all profiles"
+-- Profiles RLS Policies
+CREATE POLICY "Allow anyone to read profiles"
     ON public.profiles FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow users to update their own profile display name"
-    ON public.profiles FOR UPDATE
-    USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id AND role = (SELECT role FROM public.profiles WHERE id = auth.uid())); -- Prevent role change by normal user
-
-CREATE POLICY "Allow club admin to manage all profiles"
+CREATE POLICY "Allow anyone to manage profiles"
     ON public.profiles FOR ALL
-    USING (public.is_club_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- 3. Teams RLS Policies
-CREATE POLICY "Allow authenticated users to read teams"
+-- Teams RLS Policies
+CREATE POLICY "Allow anyone to read teams"
     ON public.teams FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow club admins to manage teams"
+CREATE POLICY "Allow anyone to manage teams"
     ON public.teams FOR ALL
-    USING (public.is_club_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- 4. Team Players RLS Policies
-CREATE POLICY "Allow authenticated users to read team player mapping"
+-- Team Players RLS Policies
+CREATE POLICY "Allow anyone to read team players"
     ON public.team_players FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow team managers and admins to manage team players"
+CREATE POLICY "Allow anyone to manage team players"
     ON public.team_players FOR ALL
-    USING (public.is_manager_or_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- 5. Matches RLS Policies
-CREATE POLICY "Allow authenticated users to read matches"
+-- Matches RLS Policies
+CREATE POLICY "Allow anyone to read matches"
     ON public.matches FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow admins/system to write matches"
+CREATE POLICY "Allow anyone to manage matches"
     ON public.matches FOR ALL
-    USING (public.is_club_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- 6. Availabilities RLS Policies
-CREATE POLICY "Allow authenticated users to read availabilities"
+-- Availabilities RLS Policies
+CREATE POLICY "Allow anyone to read availabilities"
     ON public.availabilities FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow users to create/update their own availability"
+CREATE POLICY "Allow anyone to manage availabilities"
     ON public.availabilities FOR ALL
-    USING (auth.uid() = player_id)
-    WITH CHECK (auth.uid() = player_id);
+    USING (true)
+    WITH CHECK (true);
 
-CREATE POLICY "Allow team managers and admins to clean up or modify availability"
-    ON public.availabilities FOR DELETE
-    USING (public.is_manager_or_admin());
-
--- 7. Sync Runs RLS Policies
-CREATE POLICY "Allow authenticated users to view sync runs"
+-- Sync Runs RLS Policies
+CREATE POLICY "Allow anyone to read sync runs"
     ON public.sync_runs FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow admins/system to manage sync runs"
+CREATE POLICY "Allow anyone to manage sync runs"
     ON public.sync_runs FOR ALL
-    USING (public.is_club_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- 8. Match Changes RLS Policies
-CREATE POLICY "Allow authenticated users to view match changes"
+-- Match Changes RLS Policies
+CREATE POLICY "Allow anyone to read match changes"
     ON public.match_changes FOR SELECT
-    USING (auth.role() = 'authenticated');
+    USING (true);
 
-CREATE POLICY "Allow admins/system to manage match changes"
+CREATE POLICY "Allow anyone to manage match changes"
     ON public.match_changes FOR ALL
-    USING (public.is_club_admin());
+    USING (true)
+    WITH CHECK (true);
 
--- ----------------------------------------------------
--- SEED DUMMY ADMIN USER FOR TESTING
--- ----------------------------------------------------
-DO $$
-DECLARE
-    v_user_id UUID := 'd0000000-0000-0000-0000-000000000001';
-    v_encrypted_pw TEXT := crypt('AdminTT2026!', gen_salt('bf', 8));
-BEGIN
-    -- Insert into auth.users if not exists
-    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'admin@tt-hsv.de') THEN
-        INSERT INTO auth.users (
-            id,
-            instance_id,
-            aud,
-            role,
-            email,
-            encrypted_password,
-            email_confirmed_at,
-            raw_app_meta_data,
-            raw_user_meta_data,
-            created_at,
-            updated_at,
-            confirmation_token,
-            email_change,
-            email_change_token_new,
-            recovery_token,
-            phone_change_token,
-            email_change_token_current
-        ) VALUES (
-            v_user_id,
-            '00000000-0000-0000-0000-000000000000',
-            'authenticated',
-            'authenticated',
-            'admin@tt-hsv.de',
-            v_encrypted_pw,
-            NOW(),
-            '{"provider":"email","providers":["email"]}',
-            '{"name": "Admin Dummy"}',
-            NOW(),
-            NOW(),
-            '',
-            '',
-            '',
-            '',
-            '',
-            ''
-        );
+-- Absences RLS Policies
+CREATE POLICY "Allow anyone to read absences"
+    ON public.absences FOR SELECT
+    USING (true);
 
-        -- Insert into auth.identities
-        INSERT INTO auth.identities (
-            id,
-            user_id,
-            identity_data,
-            provider,
-            provider_id,
-            last_sign_in_at,
-            created_at,
-            updated_at
-        ) VALUES (
-            v_user_id,
-            v_user_id,
-            format('{"sub": "%s", "email": "admin@tt-hsv.de"}', v_user_id)::jsonb,
-            'email',
-            v_user_id::text,
-            NOW(),
-            NOW(),
-            NOW()
-        );
-
-        -- Update profile role to club_admin (since trigger created it with role = 'player')
-        UPDATE public.profiles
-        SET role = 'club_admin', name = 'Admin Dummy'
-        WHERE id = v_user_id;
-    END IF;
-END;
-$$;
+CREATE POLICY "Allow anyone to manage absences"
+    ON public.absences FOR ALL
+    USING (true)
+    WITH CHECK (true);
