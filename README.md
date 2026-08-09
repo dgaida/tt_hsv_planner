@@ -272,3 +272,8 @@ Die RLS-Richtlinien in PostgreSQL erzwingen folgende Berechtigungen:
 * **Webcal-Link liefert Fehler:** Stelle sicher, dass die Webcal-Adresse korrekt eingetragen ist. Das System konvertiert `webcal://` automatisch in `https://` für den Download.
 * **Änderungen werden nicht angezeigt:** Klicke im Frontend auf den Aktualisieren-Button der Mannschaft, um die neuesten Daten aus der Datenbank zu laden.
 * **Fehler beim Passwort-Gate:** Falls du dein Passwort geändert hast, lösche den Browser-Cache oder klicke im Footer auf "Passwort-Gate zurücksetzen", um das Passwort neu einzugeben.
+* **Fehler "Could not find the 'position_number' column of 'profiles' in the schema cache":** Dieser Fehler tritt auf, wenn die Spalte `position_number` zwar in der Datenbank angelegt wurde (z. B. durch Ausführen des `20260808000000_init.sql`-Skripts), Supabase (PostgREST) seinen internen Schema-Cache jedoch noch nicht aktualisiert hat. **Die Datenbank muss dafür nicht komplett gelöscht und neu angelegt werden.**
+  Führe einfach den folgenden Befehl im **SQL Editor** in deinem Supabase-Dashboard aus, um den Cache neu zu laden:
+  ```sql
+  NOTIFY pgrst, 'reload schema';
+  ```
