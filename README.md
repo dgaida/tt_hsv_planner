@@ -273,7 +273,24 @@ Die RLS-Richtlinien in PostgreSQL erzwingen folgende Berechtigungen:
 * **Änderungen werden nicht angezeigt:** Klicke im Frontend auf den Aktualisieren-Button der Mannschaft, um die neuesten Daten aus der Datenbank zu laden.
 * **Fehler beim Passwort-Gate:** Falls du dein Passwort geändert hast, lösche den Browser-Cache oder klicke im Footer auf "Passwort-Gate zurücksetzen", um das Passwort neu einzugeben.
 * **Fehler "Could not find the 'position_number' column of 'profiles' in the schema cache" oder "Could not find the table 'public.absences' in the schema cache":** Diese Fehler treten auf, wenn eine Spalte (z. B. `position_number`) oder eine Tabelle (z. B. `absences`) zwar in der Datenbank angelegt wurde (z. B. durch Ausführen des `20260808000000_init.sql`-Skripts), Supabase (PostgREST) seinen internen Schema-Cache jedoch noch nicht aktualisiert hat. **Die Datenbank muss dafür nicht komplett gelöscht und neu angelegt werden.**
-  Führe einfach den folgenden Befehl im **SQL Editor** in deinem Supabase-Dashboard aus, um den Cache manuell neu zu laden:
-  ```sql
-  NOTIFY pgrst, 'reload schema';
-  ```
+
+  Sollte das Problem auftreten, probiere bitte die folgenden Lösungswege nacheinander aus:
+
+  1. **Standard-Cache-Reload erzwingen (SQL Editor):**
+     Führe diesen Befehl im **SQL Editor** aus, um den Cache manuell neu zu laden:
+     ```sql
+     NOTIFY pgrst, 'reload schema';
+     ```
+
+  2. **Postgres-Benachrichtigungswarteschlange aktualisieren (falls Schritt 1 ignoriert wird):**
+     Manchmal blockiert eine verstopfte Benachrichtigungs-Queue im Hintergrund das Signal. Führe diesen Befehl aus:
+     ```sql
+     SELECT pg_notification_queue_usage();
+     ```
+     Dadurch wird die Queue bereinigt und PostgREST gezwungen, das Schema zu aktualisieren.
+
+  3. **Dashboard-Trigger nutzen (Erzwingt Backend-Rebuild):**
+     Gehe im Supabase-Dashboard auf **Project Settings** (Zahnrad) > **Data API**. Nimm dort eine kleine Änderung vor (z. B. kurz ein anderes Schema aktivieren/deaktivieren oder eine Einstellung umschalten) und klicke auf **Save**. Dies stößt einen vollständigen, backendseitigen Rebuild des Schema-Caches an.
+
+  4. **Projekt pausieren & fortsetzen (Harter Neustart):**
+     Hilft keiner der obigen Schritte, klicke im Supabase-Dashboard auf **Pause Project** und setze es nach wenigen Minuten wieder mit **Resume Project** fort. Dadurch wird der PostgREST-Container komplett neu gestartet und liest das gesamte Schema frisch ein.
