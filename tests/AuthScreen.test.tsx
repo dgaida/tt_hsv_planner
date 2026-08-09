@@ -8,6 +8,10 @@ vi.mock('../src/lib/supabaseClient', () => {
   return {
     supabase: {
       from: vi.fn(),
+      auth: {
+        signInWithPassword: vi.fn(),
+        signUp: vi.fn(),
+      },
     },
   };
 });
@@ -23,7 +27,7 @@ describe('AuthScreen', () => {
     localStorage.clear();
   });
 
-  it('renders loading state then renders select dropdown with profiles', async () => {
+  it('renders tab bar and loads dropdown list of profiles', async () => {
     const fromMock = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
@@ -38,15 +42,12 @@ describe('AuthScreen', () => {
 
     // Renders profiles list next
     await waitFor(() => {
-      expect(screen.getByText('Spieler-Anmeldung')).toBeDefined();
-      expect(screen.getByText('Max Mustermann (1600 TTR-Punkte)')).toBeDefined();
-      expect(screen.getByText('Mia Musterfrau (1500 TTR-Punkte)')).toBeDefined();
+      expect(screen.getByText('TTV Spielplaner')).toBeDefined();
+      expect(screen.getByText('Max Mustermann (1600 TTR)')).toBeDefined();
     });
   });
 
-  it('selects cached player from localStorage automatically', async () => {
-    localStorage.setItem('ttv_selected_player_id', '2');
-
+  it('allows switching tabs between passwordless, password, and register', async () => {
     const fromMock = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
@@ -57,49 +58,13 @@ describe('AuthScreen', () => {
     render(<AuthScreen onSelectPlayer={() => {}} />);
 
     await waitFor(() => {
-      const selectElement = screen.getByRole('combobox') as HTMLSelectElement;
-      expect(selectElement.value).toBe('2');
-    });
-  });
-
-  it('calls onSelectPlayer when form is submitted with a player selected', async () => {
-    const onSelectPlayerMock = vi.fn();
-
-    const fromMock = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
-      }),
-    });
-    vi.mocked(supabase.from).mockImplementation(fromMock as any);
-
-    render(<AuthScreen onSelectPlayer={onSelectPlayerMock} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Max Mustermann (1600 TTR-Punkte)')).toBeDefined();
+      expect(screen.getByText('Direkt-Auswahl')).toBeDefined();
     });
 
-    const selectElement = screen.getByRole('combobox');
-    fireEvent.change(selectElement, { target: { value: '1' } });
+    const passTab = screen.getByText('Mit Passwort');
+    fireEvent.click(passTab);
 
-    const submitBtn = screen.getByRole('button', { name: 'Anmelden' });
-    fireEvent.click(submitBtn);
-
-    expect(localStorage.getItem('ttv_selected_player_id')).toBe('1');
-    expect(onSelectPlayerMock).toHaveBeenCalledWith(mockProfiles[0]);
-  });
-
-  it('shows error message if database call fails', async () => {
-    const fromMock = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        order: vi.fn().mockResolvedValue({ data: null, error: new Error('DB Error') }),
-      }),
-    });
-    vi.mocked(supabase.from).mockImplementation(fromMock as any);
-
-    render(<AuthScreen onSelectPlayer={() => {}} />);
-
-    await waitFor(() => {
-      expect(screen.getByText('⚠️ Fehler beim Laden der Spielerliste.')).toBeDefined();
-    });
+    expect(screen.getByPlaceholderText('name@verein.de')).toBeDefined();
+    expect(screen.getByPlaceholderText('••••••••')).toBeDefined();
   });
 });

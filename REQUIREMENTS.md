@@ -20,7 +20,8 @@ Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen
 * **FA-1.2.6:** Alle Synchronisations-Vorgänge müssen mit Status (Erfolg/Fehler), Zeitstempel und Anzahl der importierten Spiele protokolliert werden.
 
 ### 1.3. Benutzerverwaltung & Berechtigungskonzept (User Management & Roles)
-* **FA-1.3.1:** Das System unterstützt sowohl die klassische Anmeldung als auch ein passwortloses System. Spieler können sich direkt über eine Dropdown-Auswahl ihres Namens anmelden (mit clientseitigem Caching der ausgewählten Profil-ID in `localStorage`).
+* **FA-1.3.1:** Das Anmeldefenster unterstützt sowohl die passwortlose Direkt-Auswahl über ein Dropdown als auch eine klassische, passwortgeschützte Anmeldung (Email & Passwort) sowie eine Registrierungsfunktion.
+* **FA-1.3.1a:** Wenn sich ein Benutzer passwortlos über die Direkt-Auswahl einloggt, erhält er im Frontend ausschließlich standardmäßige Spieler-Rechte ('player'). Höhere Rollen (Admin, Sportwart, Mannschaftsführer) müssen sich zwingend mit ihrem Passwort anmelden, um ihre erweiterten Rechte zu aktivieren.
 * **FA-1.3.2:** Die Profile-Tabelle muss unabhängig von `auth.users` arbeiten, sodass der Sportwart/Administrator neue Profile direkt anlegen kann, ohne dass diese vorab einen Auth-Account registrieren müssen.
 * **FA-1.3.3:** Es müssen vier unterschiedliche Rollen existieren:
   * **Spieler (player):** Kann Mannschaften, Termine und Rückmeldungen einsehen und seine eigene Verfügbarkeit für Spiele eintragen/ändern, sowie eigene Abwesenheiten pflegen.

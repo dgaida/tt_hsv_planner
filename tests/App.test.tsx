@@ -9,11 +9,19 @@ vi.mock('../src/lib/supabaseClient', () => {
     supabase: {
       from: vi.fn(),
       rpc: vi.fn(),
+      auth: {
+        signOut: vi.fn(),
+      },
     },
   };
 });
 
 describe('App Component', () => {
+  const mockProfile = { id: 'p-1', name: 'Max Mustermann', role: 'sportwart', team_number: 1 };
+  const mockTeams = [
+    { id: 't-1', name: 'Herren I', short_name: 'Herren 1', active: true },
+  ];
+
   beforeEach(() => {
     vi.restoreAllMocks();
     localStorage.clear();
@@ -39,14 +47,10 @@ describe('App Component', () => {
 
     vi.mocked(supabase.from).mockImplementation((table: string) => {
       if (table === 'profiles') {
-        return createMockChain([
-          { id: 'p-1', name: 'Max Mustermann', role: 'sportwart', team_number: 1 },
-        ]);
+        return createMockChain([mockProfile]);
       }
       if (table === 'teams') {
-        return createMockChain([
-          { id: 't-1', name: 'Herren I', short_name: 'Herren 1', active: true },
-        ]);
+        return createMockChain(mockTeams);
       }
       return createMockChain([]);
     });
@@ -59,16 +63,33 @@ describe('App Component', () => {
     expect(screen.getByText(/Diese Anwendung ist passwortgeschützt/)).toBeTruthy();
   });
 
-  it('bypasses PasswordGate if club password in localStorage or pw URL parameter is present', async () => {
+  it('forces user role to player if login method is passwordless', async () => {
     localStorage.setItem('club_password', 'valid-pw');
     localStorage.setItem('ttv_selected_player_id', 'p-1');
+    localStorage.setItem('ttv_login_method', 'passwordless');
 
     render(<App />);
 
-    // Renders the main app after password bypass and user selection load
     await waitFor(() => {
       expect(screen.getByText('TTV Spielplaner')).toBeTruthy();
       expect(screen.getByText('Max Mustermann')).toBeTruthy();
+      // Role is downgraded to 'Spieler'
+      expect(screen.getByText('Spieler')).toBeTruthy();
+    });
+  });
+
+  it('preserves database role if login method is password', async () => {
+    localStorage.setItem('club_password', 'valid-pw');
+    localStorage.setItem('ttv_selected_player_id', 'p-1');
+    localStorage.setItem('ttv_login_method', 'password');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('TTV Spielplaner')).toBeTruthy();
+      expect(screen.getByText('Max Mustermann')).toBeTruthy();
+      // Role is preserved as 'Sportwart'
+      expect(screen.getByText('Sportwart')).toBeTruthy();
     });
   });
 });

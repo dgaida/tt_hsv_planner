@@ -37,7 +37,12 @@ export default function App() {
         setProfile(null);
         setSession(null);
       } else {
-        setProfile(prof);
+        const loginMethod = localStorage.getItem('ttv_login_method') || 'passwordless';
+        const finalProfile = {
+          ...prof,
+          role: loginMethod === 'passwordless' ? 'player' : prof.role,
+        };
+        setProfile(finalProfile);
         setSession({ user: { id: prof.id, email: '' } });
 
         // Fetch active teams
@@ -114,6 +119,8 @@ export default function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('ttv_selected_player_id');
+    localStorage.removeItem('ttv_login_method');
+    supabase.auth.signOut();
     setProfile(null);
     setSession(null);
   };

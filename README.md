@@ -25,7 +25,9 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
 9. **Abwesenheits-Kalender (Mein Kalender & 2-Monats-Planer):**
    * Alle Spieler haben Zugriff auf einen persönlichen "Mein Kalender"-Tab, um Abwesenheitszeiträume (z. B. Urlaub, Arbeit, Krankheit) mit Bemerkungen einzutragen.
    * Der Sportwart besitzt ein integriertes Planungs-Dashboard, das alle Abwesenheiten für die kommenden 60 Tage übersichtlich in einer Monatsmatrix visualisiert und eine detaillierte Tagesansicht per Klick bereitstellt.
-10. **Passwortlose Anmeldung mit Dropdown-Auswahl:** Um die Hürde für Spieler zu minimieren, ist kein klassisches E-Mail/Passwort-Login zwingend erforderlich. Spieler können sich einfach per Namens-Dropdown anmelden. Die ID des ausgewählten Spielers wird zur Bequemlichkeit im `localStorage` des Browsers gecacht. Die `profiles`-Tabelle ist dabei unabhängig von `auth.users` aufgebaut, was das direkte Erstellen von Profilen durch Sportwarte/Admins ermöglicht.
+10. **Passwortlose Anmeldung mit Dropdown-Auswahl & Passwort-Option für höhere Rollen:**
+    * Um die Hürde für Spieler zu minimieren, können diese sich passwortlos per Namens-Dropdown anmelden. Hierbei werden sie im Frontend mit standardmäßigen Spieler-Rechten ('player') ausgestattet.
+    * Für administrative und leitende Funktionen (Mannschaftsführer, Sportwart, Administrator) steht ein alternatives E-Mail/Passwort-Login bereit. Nur bei Anmeldung mit Passwort werden die vollen, in der Datenbank hinterlegten, erweiterten Berechtigungen im Frontend freigeschaltet. Zudem steht eine Registrierungsfunktion für neue Accounts zur Verfügung.
 
 ---
 
