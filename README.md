@@ -82,14 +82,19 @@ Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kal
 
 1. Erstelle ein neues, kostenloses Projekt auf [supabase.com](https://supabase.com).
 2. Navigiere in deinem Supabase-Dashboard zum **SQL Editor**.
-3. Kopiere den Inhalt der Datei `supabase/migrations/20260808000000_init.sql` und führe das Skript aus. Es legt alle Tabellen, Enums, Trigger, RPC-Funktionen und RLS-Richtlinien an:
+3. Kopiere den Inhalt der Datei `supabase/migrations/20260808000000_init.sql` und führe das Skript aus. Es legt alle Tabellen, Enums, Trigger, RPC-Funktionen und RLS-Richtlinien an.
+
+   **Wichtiger Hinweis zur Robustheit:** Dieses Migrationsskript ist vollständig **idempotent** aufgebaut. Das bedeutet, du kannst das gesamte Skript jederzeit erneut im SQL Editor ausführen (z. B. nach einem Update des Repositories). Es aktualisiert eine bereits bestehende Datenbankstruktur sicher (z. B. fügt es fehlende Spalten wie `position_number` oder neue Tabellen wie `absences` hinzu), ohne bestehende Daten zu überschreiben oder Fehler wie `type "user_role" already exists` auszulösen.
+
+   Es legt folgende Objekte an bzw. stellt sicher, dass sie existieren:
    * **`teams`:** Konfiguration der Mannschaften und Webcal-Links.
-   * **`profiles`:** Erweitert die Benutzerverwaltung um Namen und Rollen (`player`, `team_manager`, `club_admin`).
+   * **`profiles`:** Erweitert die Benutzerverwaltung um Namen, Rollen (`player`, `team_manager`, `club_admin`, `sportwart`) und die Listenposition (`position_number`).
    * **`team_players`:** Zuordnungstabelle (Spieler können mehreren Mannschaften zugeordnet sein).
    * **`matches`:** Speichert alle importierten Spiele inkl. Spieltag, Termin und Version.
    * **`availabilities`:** Spieler-Rückmeldungen inkl. Bemerkung und der beantworteten Spiel-Version.
    * **`sync_runs`:** Protokollierung der Synchronisierungs-Läufe.
    * **`match_changes`:** Protokollierung von Terminverschiebungen (Spielverlegungen).
+   * **`absences`:** Abwesenheiten für den Spieler-Abwesenheitskalender.
 4. Standard-Vereinspasswort ändern (optional): In der Tabelle `club_settings` wird standardmäßig der Hash des Passworts `Tischtennis2026` hinterlegt. Du kannst im SQL Editor ein eigenes Passwort hashen lassen:
    ```sql
    UPDATE public.club_settings
@@ -272,3 +277,25 @@ Die RLS-Richtlinien in PostgreSQL erzwingen folgende Berechtigungen:
 * **Webcal-Link liefert Fehler:** Stelle sicher, dass die Webcal-Adresse korrekt eingetragen ist. Das System konvertiert `webcal://` automatisch in `https://` für den Download.
 * **Änderungen werden nicht angezeigt:** Klicke im Frontend auf den Aktualisieren-Button der Mannschaft, um die neuesten Daten aus der Datenbank zu laden.
 * **Fehler beim Passwort-Gate:** Falls du dein Passwort geändert hast, lösche den Browser-Cache oder klicke im Footer auf "Passwort-Gate zurücksetzen", um das Passwort neu einzugeben.
+* **Fehler "Could not find the 'position_number' column of 'profiles' in the schema cache" oder "Could not find the table 'public.absences' in the schema cache":** Diese Fehler treten auf, wenn eine Spalte (z. B. `position_number`) oder eine Tabelle (z. B. `absences`) zwar in der Datenbank angelegt wurde (z. B. durch Ausführen des `20260808000000_init.sql`-Skripts), Supabase (PostgREST) seinen internen Schema-Cache jedoch noch nicht aktualisiert hat. **Die Datenbank muss dafür nicht komplett gelöscht und neu angelegt werden.**
+
+  Sollte das Problem auftreten, probiere bitte die folgenden Lösungswege nacheinander aus:
+
+  1. **Standard-Cache-Reload erzwingen (SQL Editor):**
+     Führe diesen Befehl im **SQL Editor** aus, um den Cache manuell neu zu laden:
+     ```sql
+     NOTIFY pgrst, 'reload schema';
+     ```
+
+  2. **Postgres-Benachrichtigungswarteschlange aktualisieren (falls Schritt 1 ignoriert wird):**
+     Manchmal blockiert eine verstopfte Benachrichtigungs-Queue im Hintergrund das Signal. Führe diesen Befehl aus:
+     ```sql
+     SELECT pg_notification_queue_usage();
+     ```
+     Dadurch wird die Queue bereinigt und PostgREST gezwungen, das Schema zu aktualisieren.
+
+  3. **Dashboard-Trigger nutzen (Erzwingt Backend-Rebuild):**
+     Gehe im Supabase-Dashboard auf **Project Settings** (Zahnrad) > **Data API**. Nimm dort eine kleine Änderung vor (z. B. kurz ein anderes Schema aktivieren/deaktivieren oder eine Einstellung umschalten) und klicke auf **Save**. Dies stößt einen vollständigen, backendseitigen Rebuild des Schema-Caches an.
+
+  4. **Projekt pausieren & fortsetzen (Harter Neustart):**
+     Hilft keiner der obigen Schritte, klicke im Supabase-Dashboard auf **Pause Project** und setze es nach wenigen Minuten wieder mit **Resume Project** fort. Dadurch wird der PostgREST-Container komplett neu gestartet und liest das gesamte Schema frisch ein.
