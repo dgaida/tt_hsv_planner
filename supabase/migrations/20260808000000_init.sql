@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 -- Ensure team_number and position_number columns exist (for older database schemas)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role public.user_role NOT NULL DEFAULT 'player';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ttr_points INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS team_number INTEGER;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS position_number INTEGER;
 
