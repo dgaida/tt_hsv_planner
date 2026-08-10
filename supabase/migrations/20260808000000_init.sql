@@ -12,6 +12,13 @@ BEGIN
     END IF;
 END $$;
 
+-- Ensure 'sportwart' value exists in the user_role enum (for older database schemas)
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'sportwart';
+
+-- Commit the transaction so that the new enum value 'sportwart' is registered
+-- and can be used in subsequent statements in the same script.
+COMMIT;
+
 -- 1. Club Settings (e.g., global access password)
 CREATE TABLE IF NOT EXISTS public.club_settings (
     key TEXT PRIMARY KEY,
@@ -40,6 +47,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 
 -- Ensure team_number and position_number columns exist (for older database schemas)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role public.user_role NOT NULL DEFAULT 'player';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ttr_points INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS team_number INTEGER;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS position_number INTEGER;
 
