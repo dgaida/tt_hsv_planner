@@ -12,6 +12,9 @@ BEGIN
     END IF;
 END $$;
 
+-- Ensure 'sportwart' value exists in the user_role enum (for older database schemas)
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'sportwart';
+
 -- 1. Club Settings (e.g., global access password)
 CREATE TABLE IF NOT EXISTS public.club_settings (
     key TEXT PRIMARY KEY,
