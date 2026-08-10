@@ -483,20 +483,38 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                   </div>
                 )}
 
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-4">
-                  <div className="flex-1">
-                    <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-full mb-2">
-                      Spieltag {match.matchday || '-'}
-                    </span>
-                    <h3 className={`text-base sm:text-lg font-bold ${countJa < 4 ? 'text-red-600' : 'text-gray-800'}`}>
-                      {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {opponent}
-                    </h3>
-                    <p className="text-sm font-semibold text-teal-700 mt-1">
-                      📅 {formatGermanDate(match.dtstart)}
-                    </p>
+                  {/* Desktop/Tablet: 2-column layout. Left: match information & Location. Right: RSVP counters & Lineup list. */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5 pb-4 border-b border-gray-100">
+                    {/* Left Column: Match details, Location, Description */}
+                    <div className="space-y-4">
+                      <div>
+                        <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-full mb-2">
+                          Spieltag {match.matchday || '-'}
+                        </span>
+                        <h3 className={`text-base sm:text-lg font-bold ${countJa < 4 ? 'text-red-600' : 'text-gray-800'}`}>
+                          {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {opponent}
+                        </h3>
+                        <p className="text-sm font-semibold text-teal-700 mt-1">
+                          📅 {formatGermanDate(match.dtstart)}
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs sm:text-sm text-gray-600">
+                        {match.location && (
+                          <p>
+                            <span className="font-medium text-gray-700">📍 Ort:</span> {match.location}
+                          </p>
+                        )}
+                        {match.description && (
+                          <p className="italic text-gray-500">
+                            {match.description.replace(/\\n/g, '\n')}
+                          </p>
+                        )}
+                      </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2 shrink-0 w-full md:w-auto">
+                    {/* Right Column: RSVP Summary & Live Lineup */}
+                    <div className="flex flex-col gap-3 shrink-0">
                     <div className="flex items-center justify-between md:justify-end gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 text-xs sm:text-sm w-full md:w-auto">
                       <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 font-semibold text-emerald-700">
@@ -515,7 +533,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                     </div>
 
                     {/* Active 4 Lineup players list right under sum/status icons */}
-                    <div className="w-full bg-slate-50 rounded-xl p-3 border border-slate-150 space-y-2 text-xs md:min-w-[280px]">
+                      <div className="w-full bg-slate-50 rounded-xl p-3 border border-slate-150 space-y-2 text-xs">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-1.5">
                         <span className="font-extrabold text-slate-700">👥 Aufstellung (Stamm 1-4 / Ersatz)</span>
                         {canReorder && <span className="text-[10px] bg-teal-100 text-teal-800 px-1 py-0.5 rounded font-bold">Sortierbar</span>}
@@ -620,19 +638,6 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                       )}
                     </div>
                   </div>
-                </div>
-
-                <div className="space-y-1.5 text-xs sm:text-sm text-gray-600 mb-5 pb-4 border-b border-gray-100">
-                  {match.location && (
-                    <p>
-                      <span className="font-medium text-gray-700">📍 Ort:</span> {match.location}
-                    </p>
-                  )}
-                  {match.description && (
-                    <p className="italic text-gray-500">
-                      {match.description.replace(/\\n/g, '\n')}
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-4">
