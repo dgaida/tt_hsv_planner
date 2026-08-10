@@ -1,301 +1,75 @@
 # Tischtennis-Spielbereitschafts-Planer (TTV Spielplaner)
 
-Dieses Repository enthält eine vollständige, produktionsreife Web-Anwendung zur Organisation der Spielbereitschaft für drei (oder mehr) Tischtennis-Mannschaften eines Vereins.
+Dieses Repository enthält eine vollständige, produktionsreife und smartphone-optimierte Web-Anwendung zur Organisation der Spielbereitschaft für Tischtennis-Vereine.
 
-Die Anwendung liest die Spieltermine automatisch aus den jeweiligen **Webcal-Kalendern von myTischtennis.de** ein und stellt eine gemeinsame, smartphone-optimierte Plattform zur Planung der Spielbereitschaft bereit.
-
----
-
-## 🚀 Kern-Features
-
-1. **Mehrere Mannschaften verwalten:** Drei Mannschaften sind vordefiniert. Über das Admin-Panel oder die Datenbank können beliebig viele weitere Mannschaften ohne Codeänderungen hinzugefügt werden.
-2. **Automatischer & Manueller Sync:** Die Kalender synchronisieren sich vollautomatisch einmal täglich (über GitHub Actions). Zusätzlich kann ein Administrator die Synchronisation direkt im Frontend anstoßen.
-3. **Erkennung von Spielverlegungen (Termin-Versionierung):**
-   * Verlegungen werden über die stabile `UID` des ICS-Events erkannt.
-   * **Wichtiger Datenschutz/Daten-Erhalt (Korrektur 1):** Bei einer Terminverschiebung gehen bisherige Rückmeldungen nicht verloren, sondern werden historisch archiviert. Da die Stimme für den alten Termin abgegeben wurde, markiert das System die Rückmeldung im Frontend als *„erneute Antwort erforderlich“ (⚠️)* und bittet den Spieler um Bestätigung für den neuen Termin.
-4. **Globale Passwort-Sperre (Bypass-Links - Ergänzung 2):**
-   * Die Anwendung ist standardmäßig durch ein globales Vereinspasswort geschützt.
-   * Vereinsmitglieder können über einen personalisierten Link wie `https://username.github.io/repo/?pw=Passwort` direkt eingeloggt werden, ohne das Passwort manuell eingeben zu müssen.
-5. **Mannschaftsübergreifende Verfügbarkeit & Ersatz-Organisation:**
-   * Ermöglicht Spielern, sich bei mehreren Mannschaften als spielbereit einzutragen.
-   * Die Vereinsführung sieht in der Gesamtübersicht chronologisch alle Spiele und erkennt sofort, wer als Ersatzspieler (Aushilfe) einspringen kann.
-6. **Automatische Terminkonflikt-Erkennung:** Steht ein Spieler am selben Tag/Uhrzeit zeitgleich bei zwei verschiedenen Mannschaften als verfügbar eingetragen, warnt die Gesamtübersicht die Vereinsführung vor einem Terminkonflikt.
-7. **Smartphone-Optimierung:** Großflächige, berührungsfreundliche Buttons für die Touch-Bedienung. Responsive Darstellung für alle Geräteklassen (Mobile-First).
-8. **Dezidierte Sportwart-Rolle:** Ermöglicht die Verwaltung aller Vereinsmitglieder, Bearbeitung ihrer TTR-Punkte, manuelles Eintragen/Löschen von Profilen und Zuordnung zu Mannschaften sowie deren Listenplätzen (z. B. "1.3" für Team 1, Position 3).
-9. **Abwesenheits-Kalender (Mein Kalender & 2-Monats-Planer):**
-   * Alle Spieler haben Zugriff auf einen persönlichen "Mein Kalender"-Tab, um Abwesenheitszeiträume (z. B. Urlaub, Arbeit, Krankheit) mit Bemerkungen einzutragen.
-   * Der Sportwart besitzt ein integriertes Planungs-Dashboard, das alle Abwesenheiten für die kommenden 60 Tage übersichtlich in einer Monatsmatrix visualisiert und eine detaillierte Tagesansicht per Klick bereitstellt.
-10. **Passwortlose Anmeldung mit Dropdown-Auswahl & Passwort-Option für höhere Rollen:**
-    * Um die Hürde für Spieler zu minimieren, können diese sich passwortlos per Namens-Dropdown anmelden. Hierbei werden sie im Frontend mit standardmäßigen Spieler-Rechten ('player') ausgestattet.
-    * Für administrative und leitende Funktionen (Mannschaftsführer, Sportwart, Administrator) steht ein alternatives E-Mail/Passwort-Login bereit. Nur bei Anmeldung mit Passwort werden die vollen, in der Datenbank hinterlegten, erweiterten Berechtigungen im Frontend freigeschaltet. Zudem steht eine Registrierungsfunktion für neue Accounts zur Verfügung.
+Die Anwendung liest Spieltermine automatisch aus den jeweiligen **Webcal-Kalendern von myTischtennis.de** ein und bietet eine gemeinsame Plattform zur unkomplizierten Rückmeldung und Organisation der Spieltage.
 
 ---
 
-## 🛠️ Technische Architektur
+## 📖 Dokumentation (docs/)
 
-* **Frontend:** HTML5, CSS3, React, TypeScript, Tailwind CSS, Lucide Icons, Vite.
-* **Backend & Datenbank:** Supabase (PostgreSQL, Realtime, Edge Functions).
-* **Daten-Parser:** Standardkonformer, zeitzonenbewusster (Europe/Berlin) ICS-Kalenderparser.
-* **Sicherheit:** Supabase Row Level Security (RLS) verhindert unbefugten Zugriff. Keine sensiblen Service-Keys im Frontend.
-* **Deployment:** GitHub Actions & Hosting über GitHub Pages.
+Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokumentation im Ordner [`docs/`](./docs/) hinterlegt:
 
----
-
-## 📂 Verzeichnisstruktur
-
-```text
-/
-├── .github/workflows/
-│   ├── deploy.yml            # Automatische Veröffentlichung auf GitHub Pages
-│   └── sync-calendars.yml    # Täglicher Cronjob zur Kalender-Synchronisation
-├── src/
-│   ├── components/
-│   │   ├── AdminDashboard.tsx         # Webcal-Links, Rollen und manuelle Synchronisierung
-│   │   ├── AuthScreen.tsx             # Login & Registrierung für Spieler
-│   │   ├── GesamtUebersichtView.tsx   # Chronologische Übersicht & Konflikterkennung
-│   │   ├── PasswordGate.tsx           # Globaler Passwortschutz (URL-Bypass)
-│   │   ├── TeamMatrixView.tsx         # Mannschaftsführer-Rückmelde-Matrix
-│   │   └── TeamTabView.tsx            # Spieltags-Listen & Voting-Fläche
-│   ├── lib/
-│   │   ├── icsParser.ts       # Zeitzonensicherer ICS-Parser
-│   │   ├── supabaseClient.ts  # Supabase-Initialisierung
-│   │   └── syncEngine.ts      # Kalender-Synchronisations-Engine
-│   ├── App.tsx                # Haupt-Routing & Tab-Navigation
-│   ├── index.css              # Globale CSS- & Tailwind-Stile
-│   └── main.tsx               # React-Einstiegspunkt
-├── supabase/
-│   ├── migrations/
-│   │   └── 20260808000000_init.sql  # Komplette DB-Migration, RLS & RPCs
-│   └── functions/
-│       └── sync-calendars/
-│           └── index.ts       # Supabase Edge-Function für automatisierte Syncs
-├── tests/
-│   ├── icsParser.test.ts      # Tests für den ICS-Parser
-│   └── syncEngine.test.ts     # Tests für die Synchronisations-Engine
-├── package.json
-└── vite.config.ts
-```
+1. 🚀 **[Erst-Einrichtung & Installation](./docs/einrichtung.md)**
+   * Lokale Entwicklung einrichten (`npm run dev`)
+   * Supabase-Datenbank-Setup (Tabellen, RLS, RPCs)
+   * Bereitstellung der Edge Function (`sync-calendars`)
+   * CI/CD via GitHub Actions (Hosting & automatisierter Cronjob-Sync)
+2. 🧑‍💻 **[Nutzung & Benutzerhandbuch](./docs/nutzung.md)**
+   * **Spieler:** Abwesenheitskalender, Zu- und Absagen (RSVP), passwortloser Login
+   * **Mannschaftsführer:** Stammspieler-Verwaltung, Teamzuordnungen
+   * **Sportwart:** Spielerverwaltung, TTR-Punkte, Aufstellungen (Lineups), Abwesenheitsmatrix (60 Tage)
+   * **Administrator:** Teampflege, Webcal-Links, Rollenzuweisungen, Synchronisationsberichte
+3. 🏗️ **[Technische Architektur](./docs/architektur.md)**
+   * Technologiestack (React, Vite, TypeScript, Tailwind, Supabase)
+   * Datenmodell & Datenbankschema (Lineup JSONB, Absences, etc.)
+   * Kalender-Synchronisations-Engine (Proxy-Bypass, Edge-Function-Logik)
+   * Ersatzspieler-Nachrückerlogik & Berechtigungskonzept (RLS)
+4. ❓ **[FAQ & Fehlerbehebung](./docs/faq.md)**
+   * Fehlerbehebung beim PostgREST-Cache (`NOTIFY pgrst, 'reload schema'`)
+   * Globale Passwort-Sperre & URL-Bypass-Links
+   * Probleme beim E-Mail-Versand oder Webcal-Import
 
 ---
 
-## 🧱 Supabase-Einrichtung (Schritt-für-Schritt)
+## 🚀 Kern-Features im Überblick
 
-1. Erstelle ein neues, kostenloses Projekt auf [supabase.com](https://supabase.com).
-2. Navigiere in deinem Supabase-Dashboard zum **SQL Editor**.
-3. Kopiere den Inhalt der Datei `supabase/migrations/20260808000000_init.sql` und führe das Skript aus. Es legt alle Tabellen, Enums, Trigger, RPC-Funktionen und RLS-Richtlinien an.
-
-   **Wichtiger Hinweis zur Robustheit:** Dieses Migrationsskript ist vollständig **idempotent** aufgebaut. Das bedeutet, du kannst das gesamte Skript jederzeit erneut im SQL Editor ausführen (z. B. nach einem Update des Repositories). Es aktualisiert eine bereits bestehende Datenbankstruktur sicher (z. B. fügt es fehlende Spalten wie `position_number` oder neue Tabellen wie `absences` hinzu), ohne bestehende Daten zu überschreiben oder Fehler wie `type "user_role" already exists` auszulösen.
-
-   Es legt folgende Objekte an bzw. stellt sicher, dass sie existieren:
-   * **`teams`:** Konfiguration der Mannschaften und Webcal-Links.
-   * **`profiles`:** Erweitert die Benutzerverwaltung um Namen, Rollen (`player`, `team_manager`, `club_admin`, `sportwart`) und die Listenposition (`position_number`).
-   * **`team_players`:** Zuordnungstabelle (Spieler können mehreren Mannschaften zugeordnet sein).
-   * **`matches`:** Speichert alle importierten Spiele inkl. Spieltag, Termin und Version.
-   * **`availabilities`:** Spieler-Rückmeldungen inkl. Bemerkung und der beantworteten Spiel-Version.
-   * **`sync_runs`:** Protokollierung der Synchronisierungs-Läufe.
-   * **`match_changes`:** Protokollierung von Terminverschiebungen (Spielverlegungen).
-   * **`absences`:** Abwesenheiten für den Spieler-Abwesenheitskalender.
-4. Standard-Vereinspasswort ändern (optional): In der Tabelle `club_settings` wird standardmäßig der Hash des Passworts `Tischtennis2026` hinterlegt. Du kannst im SQL Editor ein eigenes Passwort hashen lassen:
-   ```sql
-   UPDATE public.club_settings
-   SET value = crypt('DEIN_NEUES_PASSWORT', gen_salt('bf', 8))
-   WHERE key = 'club_password_hash';
-   ```
+* **Mehrere Mannschaften verwalten:** Mannschaften können flexibel über das Admin-Panel oder direkt in der Datenbank angelegt, aktiviert/deaktiviert und mit eigenen Webcal-Kalendern verknüpft werden.
+* **Automatischer & Manueller Sync:** Kalender synchronisieren sich vollautomatisch einmal täglich (via GitHub Actions Cronjob). Alternativ können Administratoren oder Sportwarte die Synchronisation direkt im Frontend auslösen.
+* **Erkennung von Spielverlegungen (Termin-Versionierung):**
+  * Verschiebt sich ein Spiel auf myTischtennis.de, wird dies über die stabile `UID` des ICS-Events erkannt.
+  * Bereits abgegebene Rückmeldungen werden archiviert und im Frontend als *„erneute Antwort erforderlich“ (⚠️)* markiert, damit Spieler den neuen Termin explizit bestätigen können.
+* **Abwesenheits-Kalender (Mein Kalender & 2-Monats-Planer):**
+  * Spieler können Abwesenheiten (z. B. Urlaub, Arbeit, Krankheit) im persönlichen Kalender pflegen.
+  * Dem Sportwart steht eine visuelle 2-Monats-Abwesenheitsmatrix aller Spieler für die langfristige Planung zur Verfügung.
+* **Intelligente Ersatzspieler-Regelung (Ersatzspieler-Logik):**
+  * Das System stellt automatisch die Top 4 Stammspieler eines Teams auf.
+  * Fehlt ein Stammspieler oder sagt ab, rückt automatisch der am besten platzierte, verfügbare Ersatzspieler (basierend auf Vereinsrangliste: Teamnummer und Position) nach.
+* **Automatische Terminkonflikt-Erkennung:** Ist ein Spieler zeitgleich bei zwei Spielen als verfügbar eingetragen, wird die Vereinsleitung sofort optisch gewarnt.
+* **Zweigeteiltes Login-Verfahren:**
+  * **Passwortloser Login:** Spieler können sich für schnelle Rückmeldungen direkt über ein Namens-Dropdown einloggen (erhält standardmäßig die Rolle `player`).
+  * **Passwort-Login:** Um administrative Rollen (Mannschaftsführer, Sportwart, Admin) freizuschalten, ist eine Anmeldung mit E-Mail und Passwort erforderlich.
+* **Smartphone-Optimierung:** Konsequentes Mobile-First-Design mit großen, berührungsfreundlichen Schaltflächen für eine reibungslose Bedienung auf jedem Smartphone.
+* **Globale Passwort-Sperre:** Schutz aller Vereinsdaten durch ein globales Passwort. Unterstützt URL-Bypass per Parameter (`?pw=Passwort`), um Mitgliedern den direkten Zugriff zu erleichtern.
 
 ---
 
-## ⚡ Supabase Edge Functions einrichten & bereitstellen
+## 🛠️ Schnelleinstieg für Entwickler
 
-### Wie funktioniert die Synchronisation?
-Um Missverständnisse zu vermeiden, hier eine kurze Erklärung, wie die automatische Kalender-Synchronisation aufgebaut ist:
-
-1. **Die Edge Function (`sync-calendars`):** Das ist ein kleines Programm (geschrieben in TypeScript/Deno), das direkt auf den Servern von Supabase läuft. Da es auf dem Server läuft, kann es die Webcal-Kalender von `mytischtennis.de` ohne Einschränkungen (wie Browser-CORS-Blockaden) herunterladen und die Termine in die Datenbank schreiben.
-2. **Die GitHub Action (`sync-calendars.yml`):** Diese Action ist **kein** Deployment-Skript und installiert auch kein Supabase auf GitHub. Sie ist lediglich ein **Wecker (Cronjob)**, der einmal täglich um 04:00 Uhr UTC die bereits auf Supabase bereitgestellte Edge Function per HTTP-Aufruf (`curl`) triggert.
-
-**Das bedeutet:** Der Quellcode der Edge Function aus dem Verzeichnis `supabase/functions/sync-calendars/` muss einmalig auf die Server von Supabase übertragen (veröffentlicht/deployed) werden.
-
-Dafür gibt es zwei Wege – entweder **manuell über deinen Computer (Weg A)** oder **vollautomatisch über GitHub (Weg B, empfohlen, da keine lokale Installation nötig ist!)**:
-
----
-
-### Weg A: Manuelle Bereitstellung (Über deinen lokalen Computer)
-Wenn du die Bereitstellung einmalig von deinem eigenen PC aus durchführen möchtest, musst du die Supabase CLI installieren, um den Code hochzuladen:
-
-1. **Supabase CLI installieren:**
-   Installiere die Supabase CLI auf deinem Computer.
-   * Unter macOS/Linux: `brew install supabase/tap/supabase`
-   * Unter Windows: `npm install -g supabase`
-
-2. **In Supabase einloggen & Projekt verknüpfen:**
-   Melde dich an und verbinde dein lokales Verzeichnis mit deinem Supabase-Projekt. Du benötigst dazu deine Projekt-Referenz-ID (findest du im Supabase-Dashboard unter *Settings > General > Reference ID*):
+1. **Repository klonen und Abhängigkeiten installieren:**
    ```bash
-   supabase login
-   supabase link --project-ref DEINE_PROJEKT_REFERENZ_ID
-   ```
-
-3. **Secrets / Umgebungsvariablen in Supabase setzen:**
-   Die Edge Function benötigt Zugriff auf deine Supabase-URL, den Service-Role-Schlüssel (für Admin-Schreibrechte) und dein Synchronisations-Passwort. Setze diese Secrets über deine CLI:
-   ```bash
-   supabase secrets set SUPABASE_URL="https://DEINE_PROJEKT_REFERENZ_ID.supabase.co"
-   supabase secrets set SUPABASE_SERVICE_ROLE_KEY="DEIN_SERVICE_ROLE_KEY"
-   supabase secrets set SYNC_SECRET="DEIN_VITE_SYNC_SECRET"
-   ```
-   *Hinweis:* Den `SUPABASE_SERVICE_ROLE_KEY` findest du in deinem Supabase-Dashboard unter *Settings > API > service_role (secret)*. Gib diesen niemals im Frontend oder öffentlich weiter!
-
-4. **Edge Function deployen:**
-   Veröffentliche die Funktion mit folgendem Befehl:
-   ```bash
-   supabase functions deploy sync-calendars
-   ```
-
----
-
-### Weg B: Automatische Bereitstellung (Über GitHub Actions - Empfohlen! 🚀)
-Du musst **nichts** auf deinem Computer installieren! GitHub Actions kann die Edge Function bei jedem Push auf den `main`-Branch automatisch für dich auf Supabase hochladen.
-
-1. Gehe in deinem GitHub-Repository auf **Settings > Secrets and variables > Actions**.
-2. Erstelle ein neues Repository-Secret namens **`SUPABASE_ACCESS_TOKEN`**:
-   * Gehe auf [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) und erstelle ein neues Personal Access Token. Kopiere es und speichere es in diesem Secret.
-3. Erstelle ein neues Repository-Secret namens **`SUPABASE_PROJECT_ID`**:
-   * Trage dort deine Projekt-Referenz-ID (z. B. `abcde12345`) ein. Du findest deine Projekt-Referenz-ID im Supabase-Dashboard unter **Project Settings** (Zahnrad-Symbol unten links) > **General** > **Reference ID**.
-4. Füge folgenden Workflow in eine neue Datei namens `.github/workflows/deploy-edge-functions.yml` in deinem Repository ein:
-   ```yaml
-   name: Deploy Edge Functions
-
-   on:
-     push:
-       branches:
-         - main
-         - master
-       paths:
-         - 'supabase/functions/**'
-
-   jobs:
-     deploy:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v4
-
-         - uses: supabase/setup-cli@v1
-           with:
-             version: latest
-
-         - name: Deploy Edge Function
-           run: |
-             supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --password "${{ secrets.SUPABASE_DB_PASSWORD || 'dummy' }}"
-             supabase functions deploy sync-calendars --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
-           env:
-             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-   ```
-5. Damit die Edge Function auch bei automatischem Deployment die nötigen Passwörter und URLs kennt, musst du diese einmalig im **Supabase Dashboard** unter **Settings > Edge Functions > Add New Secret** eintragen:
-   * `SUPABASE_URL` = `https://DEINE_PROJEKT_REFERENZ_ID.supabase.co`
-   * `SUPABASE_SERVICE_ROLE_KEY` = (dein Service-Role-Schlüssel aus Settings > API)
-   * `SYNC_SECRET` = (dein langes Synchronisations-Passwort)
-
-Sobald der Code auf Supabase bereitgestellt ist (egal ob über Weg A oder B), läuft alles vollautomatisch im Hintergrund!
-
----
-
-## 🎛️ GitHub-Secrets konfigurieren
-
-Damit die Webseite über GitHub Pages gebaut und veröffentlicht werden kann, müssen in den **Settings** des GitHub-Repositorys unter **Secrets and variables > Actions** folgende Repository Secrets hinterlegt werden:
-
-* **`VITE_SUPABASE_URL`:** Deine Supabase API URL (z.B. `https://xyz.supabase.co`).
-* **`VITE_SUPABASE_ANON_KEY`:** Dein Supabase Public Anon Key.
-  * **Was ist das?** Dies ist der öffentliche API-Schlüssel (oft auch als **"Publishable Key"** oder **"Anon Key"** bezeichnet). Er ist absolut sicher im Frontend verwendbar, da der Zugriff auf die Datenbank im Hintergrund über Zeilenebene-Sicherheitsrichtlinien (Row Level Security, RLS) geschützt wird.
-  * **Wo finde ich ihn in Supabase?** Navigiere in deinem Supabase-Dashboard auf der linken Seite zu **Project Settings** (Zahnrad-Symbol) > **API**. Unter dem Abschnitt **Project API Keys** findest du den Schlüssel in der Zeile `anon` / `public` (Klicke auf "Copy", um ihn zu kopieren).
-* **`VITE_SYNC_SECRET`:** Ein beliebiges, langes Passwort (z.B. ein UUID-String) zur Absicherung der Edge-Function vor unbefugten Aufrufen.
-
----
-
-## 🚀 Deployment (GitHub Pages)
-
-1. Gehe in deinem Repository auf **Settings > Pages**.
-2. Wähle unter **Build and deployment > Source** die Option **GitHub Actions** aus.
-3. Sobald du deinen Code auf `main` oder `master` pushst, startet die GitHub Actions Pipeline automatisch, baut das React-Frontend mit den Secrets und veröffentlicht es auf GitHub Pages.
-
----
-
-## 🔄 Kalender-Synchronisation (Täglicher Cronjob)
-
-Die Datei `.github/workflows/sync-calendars.yml` führt einmal täglich (um 04:00 Uhr UTC) einen Aufruf an die Supabase Edge Function aus. Sie nutzt dafür die Secrets `VITE_SUPABASE_URL` und `VITE_SYNC_SECRET` zur Authentifizierung.
-
-Solltest du die Supabase Edge Function nicht einsetzen wollen, besitzt das Admin-Dashboard im Frontend einen **vollwertigen, clientseitigen Fallback**: Wenn ein Admin auf `Spielpläne jetzt synchronisieren` klickt und die Edge Function nicht erreicht wird, übernimmt der integrierte Frontend-Sync die Aktualisierung direkt über die API des Browsers und protokolliert das Ergebnis in der Datenbank.
-
----
-
-## 🧑‍🤝‍🧑 Rollen und Rechtekonzept
-
-Die RLS-Richtlinien in PostgreSQL erzwingen folgende Berechtigungen:
-
-* **Spieler (`player`):**
-  * Kann alle Mannschaften, Spiele und Rückmeldungen einsehen.
-  * Kann nur die *eigene* Verfügbarkeit und Bemerkung eintragen und ändern.
-* **Mannschaftsführer (`team_manager`):**
-  * Besitzt alle Spieler-Rechte.
-  * Kann Spieler der eigenen Mannschaft zuordnen und entfernen (Team-Zugehörigkeiten pflegen).
-* **Vereinsadministrator (`club_admin`):**
-  * Besitzt alle Rechte der Mannschaftsführer.
-  * Kann Mannschaften anlegen, deaktivieren und deren Webcal-Links bearbeiten.
-  * Kann die Rollen aller Vereinsmitglieder ändern.
-  * Kann Synchronisations-Vorgänge manuell auslösen und die Protokolle einsehen.
-
----
-
-## 🔒 Datenschutz-Hinweise
-
-* Es werden keine sensiblen personenbezogenen Daten erhoben (nur Name und E-Mail-Adresse).
-* Die gesamte Oberfläche ist passwortgeschützt. Nicht-Mitglieder ohne das globale Vereinspasswort sehen keinerlei Spielerdaten, Namen oder Spieltermine.
-* RLS-Regeln im Backend verhindern, dass ein Spieler fremde Rückmeldungen manipuliert.
-
----
-
-## 🛠️ Lokale Entwicklung & Tests
-
-1. Repository klonen und Abhängigkeiten installieren:
-   ```bash
+   git clone https://github.com/DEIN_USER/DEIN_REPO.git
+   cd DEIN_REPO
    npm install
    ```
-2. Lokalen Server starten:
+2. **Lokalen Entwicklungsserver starten:**
    ```bash
    npm run dev
    ```
-3. Alle automatisierten Tests (Parser, Sync-Engine, Zeitzonen) ausführen:
+   Die Anwendung öffnet sich unter `http://localhost:5173`.
+3. **Automatisierte Tests ausführen:**
    ```bash
    npm run test
    ```
 
----
-
-## ❓ Fehlerbehebung
-
-* **Keine E-Mail nach Registrierung erhalten:** Wenn du dich registrierst und keine Bestätigungs-E-Mail erhältst, kann das folgende Gründe haben:
-  1. **Supabase E-Mail-Limitierungen (Standard-Schnittstelle):** Supabase verwendet standardmäßig einen internen E-Mail-Dienst mit sehr strengen Limits (z.B. maximal 3 E-Mails pro Stunde für das gesamte Projekt) und ohne Zustellgarantie. Sobald dieses Limit überschritten ist, werden keine E-Mails mehr versendet.
-  2. **Eigene SMTP-Verbindung fehlt:** Für den produktiven Einsatz solltest du einen eigenen SMTP-Anbieter (z.B. Resend, SendGrid, Mailgun) in Supabase unter **Project Settings > Auth > SMTP Settings** konfigurieren.
-  3. **E-Mail-Bestätigung deaktivieren (für schnelles Testen/Entwicklung):** Du kannst die E-Mail-Bestätigung in Supabase komplett abschalten, sodass Benutzer sofort nach der Registrierung eingeloggt und aktiv sind. Gehe dazu im Supabase-Dashboard zu **Authentication > Providers > Email** und deaktiviere die Option **"Confirm email"**.
-  4. **Spam-Ordner:** Bitte überprüfe auch den Spam- bzw. Junk-E-Mail-Ordner deines Postfachs.
-* **Webcal-Link liefert Fehler:** Stelle sicher, dass die Webcal-Adresse korrekt eingetragen ist. Das System konvertiert `webcal://` automatisch in `https://` für den Download.
-* **Änderungen werden nicht angezeigt:** Klicke im Frontend auf den Aktualisieren-Button der Mannschaft, um die neuesten Daten aus der Datenbank zu laden.
-* **Fehler beim Passwort-Gate:** Falls du dein Passwort geändert hast, lösche den Browser-Cache oder klicke im Footer auf "Passwort-Gate zurücksetzen", um das Passwort neu einzugeben.
-* **Fehler "Could not find the 'position_number' column of 'profiles' in the schema cache" oder "Could not find the table 'public.absences' in the schema cache":** Diese Fehler treten auf, wenn eine Spalte (z. B. `position_number`) oder eine Tabelle (z. B. `absences`) zwar in der Datenbank angelegt wurde (z. B. durch Ausführen des `20260808000000_init.sql`-Skripts), Supabase (PostgREST) seinen internen Schema-Cache jedoch noch nicht aktualisiert hat. **Die Datenbank muss dafür nicht komplett gelöscht und neu angelegt werden.**
-
-  Sollte das Problem auftreten, probiere bitte die folgenden Lösungswege nacheinander aus:
-
-  1. **Standard-Cache-Reload erzwingen (SQL Editor):**
-     Führe diesen Befehl im **SQL Editor** aus, um den Cache manuell neu zu laden:
-     ```sql
-     NOTIFY pgrst, 'reload schema';
-     ```
-
-  2. **Postgres-Benachrichtigungswarteschlange aktualisieren (falls Schritt 1 ignoriert wird):**
-     Manchmal blockiert eine verstopfte Benachrichtigungs-Queue im Hintergrund das Signal. Führe diesen Befehl aus:
-     ```sql
-     SELECT pg_notification_queue_usage();
-     ```
-     Dadurch wird die Queue bereinigt und PostgREST gezwungen, das Schema zu aktualisieren.
-
-  3. **Dashboard-Trigger nutzen (Erzwingt Backend-Rebuild):**
-     Gehe im Supabase-Dashboard auf **Project Settings** (Zahnrad) > **Data API**. Nimm dort eine kleine Änderung vor (z. B. kurz ein anderes Schema aktivieren/deaktivieren oder eine Einstellung umschalten) und klicke auf **Save**. Dies stößt einen vollständigen, backendseitigen Rebuild des Schema-Caches an.
-
-  4. **Projekt pausieren & fortsetzen (Harter Neustart):**
-     Hilft keiner der obigen Schritte, klicke im Supabase-Dashboard auf **Pause Project** und setze es nach wenigen Minuten wieder mit **Resume Project** fort. Dadurch wird der PostgREST-Container komplett neu gestartet und liest das gesamte Schema frisch ein.
+Für die komplette Anleitung zur Anbindung von Supabase und dem Deployment auf GitHub Pages siehe **[Erst-Einrichtung & Installation](./docs/einrichtung.md)**.

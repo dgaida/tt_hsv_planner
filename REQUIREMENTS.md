@@ -1,6 +1,6 @@
 # Anforderungen (Requirements) - TTV Spielplaner
 
-Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen für den **Tischtennis-Spielbereitschafts-Planer (TTV Spielplaner)**.
+Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen für den **Tischtennis-Spielbereitschafts-Planer (TTV Spielplaner)**. Eine tiefergehende technische Ausarbeitung und Rollenbeschreibungen findest du in der [technischen Dokumentation](./docs/architektur.md) sowie dem [Benutzerhandbuch](./docs/nutzung.md).
 
 ---
 
@@ -25,7 +25,7 @@ Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen
 * **FA-1.3.2:** Die Profile-Tabelle muss unabhängig von `auth.users` arbeiten, sodass der Sportwart/Administrator neue Profile direkt anlegen kann, ohne dass diese vorab einen Auth-Account registrieren müssen.
 * **FA-1.3.3:** Es müssen vier unterschiedliche Rollen existieren:
   * **Spieler (player):** Kann Mannschaften, Termine und Rückmeldungen einsehen und seine eigene Verfügbarkeit für Spiele eintragen/ändern, sowie eigene Abwesenheiten pflegen.
-  * **Mannschaftsführer (team_manager):** Besitzt alle Rechte eines Spielers und kann zusätzlich Spieler der eigenen Mannschaft zuordnen/entfernen.
+  * **Mannschaftsführer (team_manager):** Besitzt alle Rechte eines Spielers und kann zusätzlich Spieler der eigenen Mannschaft zuordnen/entfernen sowie die Verfügbarkeiten von Ersatzspielern (Substitutes) verwalten.
   * **Sportwart (sportwart):** Besitzt alle Rechte eines Mannschaftsführers. Kann zusätzlich Spieler und deren TTR-Punkte anlegen und verwalten, Aufstellungen und Listenplätze editieren, die Anzahl gemeldeter Mannschaften konfigurieren und besitzt Zugriff auf die gesammelte Abwesenheits-Planung.
   * **Vereinsadministrator (club_admin):** Besitzt alle Rechte der anderen Rollen, kann neue Mannschaften verwalten, Rollen aller Benutzer ändern, Synchronisationen anstoßen und Protokolle einsehen.
 * **FA-1.3.4:** Das System muss sicherstellen, dass Spieler nur ihre eigenen Verfügbarkeiten und Abwesenheiten bearbeiten können (erzwungen durch PostgreSQL RLS-Richtlinien im Backend).
@@ -36,11 +36,13 @@ Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen
 * **FA-1.4.3:** Spieler müssen sich mannschaftsübergreifend für Spiele eintragen können, um als Ersatzspieler zur Verfügung zu stehen.
 * **FA-1.4.4:** Ein Abwesenheits-System muss Spielern ermöglichen, single- oder multi-day Abwesenheiten mit Startdatum, Enddatum und optionaler Begründung (z.B. Urlaub, Krankheit) im Tab "Mein Kalender" einzutragen und zu löschen.
 * **FA-1.4.5:** Der Sportwart besitzt eine aggregierte 2-Monats-Visualisierung aller Spieler-Abwesenheiten als Kalendermatrix, mit detaillierter Tagesansicht beim Anklicken eines Tages, um die Einsatzplanung zu erleichtern.
+* **FA-1.4.6 (Ersatzspieler-Nachrückerlogik):** Das System ermittelt die standardmäßige Aufstellung eines Spiels anhand der Top 4 Stammspieler (gemeldet auf den Positionen 1 bis 4). Ist einer dieser Spieler nicht verfügbar (Rückmeldung 'no' oder 'maybe') oder fehlt ein Eintrag, rückt dynamisch der am besten platzierte Ersatzspieler nach, der mit 'yes' zugesagt hat. Die Priorisierung erfolgt hierbei nach globaler Einstufung (sortiert nach `team_number` aufsteigend, danach `position_number` aufsteigend).
 
 ### 1.5. Gesamtübersicht & Konflikterkennung (Dashboard & Conflict Detection)
 * **FA-1.5.1:** Das System muss eine chronologische Gesamtübersicht aller Spiele für die Vereinsführung bereitstellen.
 * **FA-1.5.2:** Die Gesamtübersicht muss eine automatische Terminkonflikt-Erkennung enthalten. Steht ein Spieler am selben Kalendertag/zur selben Uhrzeit bei zwei verschiedenen Mannschaften als verfügbar eingetragen, muss eine optische Warnung ausgegeben werden.
 * **FA-1.5.3:** Das System muss eine Matrix-Ansicht bereitstellen, in der Mannschaftsführer die Rückmeldungen aller Spieler auf einen Blick sehen und verwalten können.
+* **FA-1.5.4 (Zuwenig-Zusagen-Warnung):** Wenn ein Spiel weniger als 4 positive Zusagen ('yes') aufweist, muss das System den Spieltitel in der Übersicht rot einfärben und ein Warndreieck-Symbol (`AlertTriangle`) einblenden.
 
 ### 1.6. Globaler Passwortschutz (Password Gate)
 * **FA-1.6.1:** Die gesamte Web-Anwendung muss durch ein globales Vereinspasswort geschützt sein. Ohne dieses Passwort dürfen keine Spielerdaten, Namen oder Termine geladen oder angezeigt werden.
