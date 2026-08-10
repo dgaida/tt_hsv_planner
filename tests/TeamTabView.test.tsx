@@ -45,6 +45,7 @@ describe('TeamTabView', () => {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: [mockTeam], error: null }),
               single: vi.fn().mockResolvedValue({ data: mockTeam, error: null }),
             }),
           }),
@@ -58,6 +59,13 @@ describe('TeamTabView', () => {
                 order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
               }),
             }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [], error: null }),
           }),
         };
       }

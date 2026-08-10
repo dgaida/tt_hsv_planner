@@ -17,6 +17,8 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [teamName, setTeamName] = useState('');
+  const [allProfiles, setAllProfiles] = useState<any[]>([]);
+  const [activeTeams, setActiveTeams] = useState<any[]>([]);
 
   const loadData = async () => {
     setLoading(true);
@@ -33,6 +35,19 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
 
       const fetchedMatches = matchesData || [];
       setMatches(fetchedMatches);
+
+      const { data: activeTeamsData } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      setActiveTeams(activeTeamsData || []);
+
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('name');
+      setAllProfiles(profilesData || []);
 
       if (fetchedMatches.length > 0) {
         const matchIds = fetchedMatches.map((m) => m.id);
@@ -178,6 +193,135 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
     }
   };
 
+  const getLineupForMatch = (match: any, matchAvails: any[]) => {
+    // 1. Establish the current team's team_number from activeTeams sorted by name
+    const sortedTeams = [...activeTeams].sort((a, b) => a.name.localeCompare(b.name));
+    const teamIndex = sortedTeams.findIndex((t) => t.id === teamId) + 1; // 1-based index
+
+    // All profiles with sorting helper:
+    // Sorted by team_number (nulls last), then position_number (nulls last), then name
+    const getSortValue = (p: any) => {
+      const teamNum = p.team_number ?? 999999;
+      const posNum = p.position_number ?? 999999;
+      return { teamNum, posNum, name: p.name || '' };
+    };
+
+    const sortedProfiles = [...allProfiles].sort((a, b) => {
+      const sA = getSortValue(a);
+      const sB = getSortValue(b);
+      if (sA.teamNum !== sB.teamNum) return sA.teamNum - sB.teamNum;
+      if (sA.posNum !== sB.posNum) return sA.posNum - sB.posNum;
+      return sA.name.localeCompare(sB.name);
+    });
+
+    // Stammspieler are the players officially listed for this team (team_number = teamIndex, positions 1 to 4 if possible)
+    // Wait, requirement: "die ersten vier Stamm-Spieler (also bei Mannschaft 1: die Spieler 1.1 bis 1.4)"
+    // Let's gather Stammspieler. They are profiles with team_number === teamIndex and position_number in [1, 2, 3, 4]
+    const stammspieler = sortedProfiles.filter((p) => p.team_number === teamIndex && p.position_number >= 1 && p.position_number <= 4);
+
+    // To handle cases where a team has fewer than four officially listed Stammspieler or any Stammspieler is unavailable (response === 'no' or 'maybe'),
+    // we need to dynamically find substitutes ("von unten weitere Spieler nachrücken, bis wieder 4 Spieler da sind, die alle können")
+    // "alle können" means response === 'yes'
+    // Let's find who CANNOT play. Stammspieler who either:
+    // - are missing (if less than 4 exist)
+    // - responded 'no' or 'maybe'
+    // Let's collect available Stammspieler first
+    const confirmedStammspieler = stammspieler.filter((p) => {
+      const av = matchAvails.find((a) => a.player_id === p.id);
+      return av && av.response === 'yes' && av.version_responded === match.version;
+    });
+
+    // Also collect Stammspieler who have 'maybe' or 'no' or no RSVP (they can't be relied upon as confirmed Stammspieler)
+    const activeLineup: any[] = [];
+    const usedIds = new Set<string>();
+
+    // Dynamic lineup building logic:
+    // We want to fill up to 4 spots.
+    // First, let's look at the first 4 stamm positions (1.1, 1.2, 1.3, 1.4)
+    // For each position, check if that stammspieler is available ('yes'). If yes, they are part of the lineup.
+    // If not available (no response, 'maybe', 'no', or player doesn't exist for that slot), we must fill this slot with a substitute!
+    // Substitutes are other players from "below" (meaning higher position_number in the same team, e.g., 1.5, or players in lower teams, i.e. team_number > teamIndex, or unassigned/others)
+    // who have explicitly RSVPed 'yes' (meaning "alle können").
+    // Let's filter potential substitutes:
+    // They must be sorted by club ranking "below" the current stamm position or team.
+    // Let's gather all possible substitutes:
+    // Any profile that:
+    // - is not one of the 4 Stammspieler
+    // - has responded 'yes' for this match.
+    // Let's sort them in club ranking order:
+    const availableSubstitutes = sortedProfiles.filter((p) => {
+      // Must not be one of the 4 Stammspieler
+      const isStamm = stammspieler.some((s) => s.id === p.id);
+      if (isStamm) return false;
+
+      // Must have RSVP 'yes'
+      const av = matchAvails.find((a) => a.player_id === p.id);
+      return av && av.response === 'yes' && av.version_responded === match.version;
+    });
+
+    let substituteIndex = 0;
+    for (let i = 1; i <= 4; i++) {
+      // Find the official stammspieler at position i
+      const stamm = stammspieler.find((s) => s.position_number === i);
+      const av = stamm ? matchAvails.find((a) => a.player_id === stamm.id) : null;
+      const isAvailable = av && av.response === 'yes' && av.version_responded === match.version;
+
+      if (stamm && isAvailable) {
+        activeLineup.push(stamm);
+        usedIds.add(stamm.id);
+      } else {
+        // Find next available substitute from the substitutes pool
+        if (substituteIndex < availableSubstitutes.length) {
+          const sub = availableSubstitutes[substituteIndex];
+          activeLineup.push(sub);
+          usedIds.add(sub.id);
+          substituteIndex++;
+        } else if (stamm) {
+          // If no substitutes are left, but we have a Stammspieler who didn't RSVP yes (or has no RSVP), we still display them as placeholder/unconfirmed Stammspieler!
+          // Wait, the requirement says "wenn eine Mannschaft keine vier Stammspieler hat oder von den ersten vier Spielern, einer nicht oder vllt. nicht kann, rücken von unten weitere Spieler nach... bis wieder 4 Spieler da sind, die alle können".
+          // If we ran out of substitutes, we should still try to show the official Stammspieler so that there are 4 entries, or show the available ones.
+          // Let's keep the official Stammspieler in their slots if they haven't been replaced.
+          activeLineup.push(stamm);
+          usedIds.add(stamm.id);
+        }
+      }
+    }
+
+    // Sort activeLineup if there is a custom lineup saved in matches.lineup (which is an array of player UUIDs)
+    if (match.lineup && Array.isArray(match.lineup)) {
+      const lineupOrder = match.lineup as string[];
+      // We only sort players that are present in both the calculated lineup and the saved lineup order.
+      // Any calculated lineup players not in the lineupOrder are placed at the end in their calculated order.
+      activeLineup.sort((a, b) => {
+        const idxA = lineupOrder.indexOf(a.id);
+        const idxB = lineupOrder.indexOf(b.id);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        return 0;
+      });
+    }
+
+    return { activeLineup, stammspieler };
+  };
+
+  const handleUpdateLineupOrder = async (matchId: string, newLineupOrder: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('matches')
+        .update({ lineup: newLineupOrder })
+        .eq('id', matchId);
+
+      if (error) throw error;
+      // Update local state
+      setMatches((prev) =>
+        prev.map((m) => (m.id === matchId ? { ...m, lineup: newLineupOrder } : m))
+      );
+    } catch (err: any) {
+      alert('Fehler beim Speichern der Reihenfolge: ' + err.message);
+    }
+  };
+
   const formatGermanDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('de-DE', {
@@ -242,6 +386,73 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
               ? (match.summary.split(' vs ')[1] || match.summary).trim()
               : (match.summary.split(' vs ')[0] || match.summary).trim();
 
+            const { activeLineup, stammspieler } = getLineupForMatch(match, matchAvails);
+
+            // Determine authorization for reordering or editing response:
+            // "für die nachrückenden Spieler kann nur der Mannschaftsführer der Mannschaft in denen diese Spieler Stammspieler sind, deren Verfügbarkeit verändern."
+            // Also, club_admin and sportwart and team_manager of current team can edit Stammspieler's availability.
+            // Let's first identify what "team_manager" the user is.
+            const userIsAdminOrSportwart = userRole === 'club_admin' || userRole === 'sportwart';
+
+            // Check if current user is the team manager of this team
+            // Let's find current user's profile
+            const currentUserProfile = allProfiles.find((p) => p.id === userId);
+            const userTeamNumber = currentUserProfile?.team_number;
+            const sortedTeams = [...activeTeams].sort((a, b) => a.name.localeCompare(b.name));
+            const currentTeamIndex = sortedTeams.findIndex((t) => t.id === teamId) + 1;
+
+            const isCurrentTeamManager = userRole === 'team_manager' && userTeamNumber === currentTeamIndex;
+            const canReorder = userIsAdminOrSportwart || isCurrentTeamManager;
+
+            const movePlayer = (index: number, direction: 'up' | 'down') => {
+              const newIndex = direction === 'up' ? index - 1 : index + 1;
+              if (newIndex < 0 || newIndex >= activeLineup.length) return;
+
+              const copy = [...activeLineup];
+              const temp = copy[index];
+              copy[index] = copy[newIndex];
+              copy[newIndex] = temp;
+
+              const orderIds = copy.map((p) => p.id);
+              handleUpdateLineupOrder(match.id, orderIds);
+            };
+
+            const handleUpdatePlayerResponse = async (playerId: string, responseType: 'yes' | 'no' | 'maybe') => {
+              const existingAv = matchAvails.find((a) => a.player_id === playerId);
+              try {
+                if (existingAv) {
+                  const { error } = await supabase
+                    .from('availabilities')
+                    .update({
+                      response: responseType,
+                      version_responded: match.version,
+                      updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', existingAv.id);
+                  if (error) throw error;
+                } else {
+                  const { error } = await supabase
+                    .from('availabilities')
+                    .insert({
+                      match_id: match.id,
+                      player_id: playerId,
+                      response: responseType,
+                      version_responded: match.version,
+                    });
+                  if (error) throw error;
+                }
+
+                // Refresh data
+                const { data: allAvail } = await supabase
+                  .from('availabilities')
+                  .select('*, profiles(name)')
+                  .in('match_id', matches.map((m) => m.id));
+                setAllAvailabilities(allAvail || []);
+              } catch (err: any) {
+                alert('Fehler beim Aktualisieren der Verfügbarkeit: ' + err.message);
+              }
+            };
+
             return (
               <div
                 key={match.id}
@@ -272,8 +483,8 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                   </div>
                 )}
 
-                <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
-                  <div>
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-4">
+                  <div className="flex-1">
                     <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-full mb-2">
                       Spieltag {match.matchday || '-'}
                     </span>
@@ -285,22 +496,129 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 text-xs sm:text-sm">
-                      <span className="flex items-center gap-1 font-semibold text-emerald-700">
-                        ✅ {countJa}
-                      </span>
-                      <span className="flex items-center gap-1 font-semibold text-amber-600">
-                        🤔 {countVielleicht}
-                      </span>
-                      <span className="flex items-center gap-1 font-semibold text-rose-600">
-                        ❌ {countNein}
-                      </span>
+                  <div className="flex flex-col items-end gap-2 shrink-0 w-full md:w-auto">
+                    <div className="flex items-center justify-between md:justify-end gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 text-xs sm:text-sm w-full md:w-auto">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                          ✅ {countJa}
+                        </span>
+                        <span className="flex items-center gap-1 font-semibold text-amber-600">
+                          🤔 {countVielleicht}
+                        </span>
+                        <span className="flex items-center gap-1 font-semibold text-rose-600">
+                          ❌ {countNein}
+                        </span>
+                      </div>
+                      {countJa < 4 && (
+                        <AlertTriangle className="h-5 w-5 text-red-600 animate-pulse" title="Weniger als 4 Zusagen!" />
+                      )}
                     </div>
 
-                    {countJa < 4 && (
-                      <AlertTriangle className="h-8 w-8 text-red-600 animate-pulse" title="Weniger als 4 Zusagen!" />
-                    )}
+                    {/* Active 4 Lineup players list right under sum/status icons */}
+                    <div className="w-full bg-slate-50 rounded-xl p-3 border border-slate-150 space-y-2 text-xs md:min-w-[280px]">
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-1.5">
+                        <span className="font-extrabold text-slate-700">👥 Aufstellung (Stamm 1-4 / Ersatz)</span>
+                        {canReorder && <span className="text-[10px] bg-teal-100 text-teal-800 px-1 py-0.5 rounded font-bold">Sortierbar</span>}
+                      </div>
+                      {activeLineup.length === 0 ? (
+                        <p className="text-slate-400 italic">Keine Spieler aufgestellt.</p>
+                      ) : (
+                        activeLineup.slice(0, 4).map((p, idx) => {
+                          const av = matchAvails.find((a) => a.player_id === p.id);
+                          const response = av && av.version_responded === match.version ? av.response : null;
+
+                          // Auth rules:
+                          // "Der Mannschaftsführer und die Admins müssen in der Lage sein, die Antworten dieser 4 Spieler zu ändern."
+                          // "für die nachrückenden Spieler kann nur der Mannschaftsführer der Mannschaft in denen diese Spieler Stammspieler sind, deren Verfügbarkeit verändern."
+                          // Also:
+                          // - If player is a Stammspieler of the current team:
+                          //   - Can change if: userIsAdminOrSportwart || isCurrentTeamManager || userId === p.id
+                          // - If player is a substitute (not a Stammspieler of the current team):
+                          //   - Can change if: userIsAdminOrSportwart || userId === p.id || (userRole === 'team_manager' && userTeamNumber === p.team_number)
+                          // Let's implement this permission check cleanly:
+                          const isStammOfCurrentTeam = stammspieler.some((s) => s.id === p.id);
+                          let canEditResponse = false;
+                          if (userIsAdminOrSportwart || userId === p.id) {
+                            canEditResponse = true;
+                          } else if (isStammOfCurrentTeam && isCurrentTeamManager) {
+                            canEditResponse = true;
+                          } else if (!isStammOfCurrentTeam && userRole === 'team_manager' && userTeamNumber === p.team_number) {
+                            canEditResponse = true;
+                          }
+
+                          return (
+                            <div key={p.id} className="flex items-center justify-between gap-2 p-1.5 bg-white rounded-lg border border-slate-200 hover:border-slate-300 transition-all">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.5 rounded shrink-0">
+                                  {p.team_number && p.position_number ? `${p.team_number}.${p.position_number}` : 'Ersatz'}
+                                </span>
+                                <span className="font-semibold text-slate-800 truncate" title={p.name}>
+                                  {p.name}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                {canEditResponse ? (
+                                  <select
+                                    value={response || ''}
+                                    onChange={(e) => handleUpdatePlayerResponse(p.id, e.target.value as any)}
+                                    className={`text-[10px] font-bold p-1 rounded border outline-none bg-white cursor-pointer ${
+                                      response === 'yes'
+                                        ? 'border-emerald-300 text-emerald-800 bg-emerald-50'
+                                        : response === 'no'
+                                        ? 'border-rose-300 text-rose-800 bg-rose-50'
+                                        : response === 'maybe'
+                                        ? 'border-amber-300 text-amber-800 bg-amber-50'
+                                        : 'border-slate-200 text-slate-400'
+                                    }`}
+                                  >
+                                    <option value="">Keine Antwort</option>
+                                    <option value="yes">Ja</option>
+                                    <option value="maybe">Vielleicht</option>
+                                    <option value="no">Nein</option>
+                                  </select>
+                                ) : (
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                    response === 'yes'
+                                      ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
+                                      : response === 'no'
+                                      ? 'bg-rose-50 text-rose-800 border-rose-100'
+                                      : response === 'maybe'
+                                      ? 'bg-amber-50 text-amber-800 border-amber-100'
+                                      : 'bg-slate-50 text-slate-400 border-slate-100'
+                                  }`}>
+                                    {response === 'yes' ? 'Ja' : response === 'no' ? 'Nein' : response === 'maybe' ? 'Vielleicht' : 'Keine Antwort'}
+                                  </span>
+                                )}
+
+                                {canReorder && (
+                                  <div className="flex gap-0.5 ml-1">
+                                    <button
+                                      type="button"
+                                      disabled={idx === 0}
+                                      onClick={() => movePlayer(idx, 'up')}
+                                      className="p-0.5 hover:bg-slate-100 text-slate-500 rounded disabled:opacity-30"
+                                      title="Nach oben"
+                                    >
+                                      ▲
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={idx === activeLineup.slice(0, 4).length - 1}
+                                      onClick={() => movePlayer(idx, 'down')}
+                                      className="p-0.5 hover:bg-slate-100 text-slate-500 rounded disabled:opacity-30"
+                                      title="Nach unten"
+                                    >
+                                      ▼
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                 </div>
 
