@@ -21,6 +21,23 @@ async function fetchIcsText(httpUrl: string): Promise<string> {
   let allOriginsContent = '';
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // A. Try the RAW endpoint first (most reliable, bypassing JSON/Base64 wrapping)
+    try {
+      const rawUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(httpUrl)}`;
+      const resp = await fetch(rawUrl);
+      if (resp.ok) {
+        const text = await resp.text();
+        if (text && text.includes('BEGIN:VCALENDAR')) {
+          allOriginsContent = text;
+          allOriginsSuccess = true;
+          break;
+        }
+      }
+    } catch (err: any) {
+      errors.push(`AllOrigins RAW (Attempt ${attempt}/${maxRetries}) error: ${err.message}`);
+    }
+
+    // B. Fallback to /get JSON endpoint if RAW failed
     try {
       const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(httpUrl)}`;
       const resp = await fetch(allOriginsUrl);
@@ -49,9 +66,9 @@ async function fetchIcsText(httpUrl: string): Promise<string> {
           break;
         }
       }
-      errors.push(`AllOrigins (Attempt ${attempt}/${maxRetries}) returned status ${resp.status}`);
+      errors.push(`AllOrigins /get (Attempt ${attempt}/${maxRetries}) returned status ${resp.status}`);
     } catch (err: any) {
-      errors.push(`AllOrigins (Attempt ${attempt}/${maxRetries}) error: ${err.message}`);
+      errors.push(`AllOrigins /get (Attempt ${attempt}/${maxRetries}) error: ${err.message}`);
     }
 
     if (attempt < maxRetries) {
@@ -200,6 +217,7 @@ export async function syncTeamCalendar(
           existing.description !== event.description ||
           existing.location !== event.location ||
           existing.matchday !== matchday ||
+          existing.is_home !== homeAwayInfo.isHome ||
           !existing.active;
 
         if (dateTimeChanged) {
