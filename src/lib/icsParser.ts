@@ -140,7 +140,11 @@ export function parseIcs(icsContent: string): IcsEvent[] {
 }
 
 export function extractMatchday(description: string, summary: string): number | null {
-  const match = /Spieltag:?\s*(\d+)/i.exec(description) || /Spieltag:?\s*(\d+)/i.exec(summary);
+  const match =
+    /Spieltag:?\s*(\d+)/i.exec(description) ||
+    /Spieltag:?\s*(\d+)/i.exec(summary) ||
+    /(\d+)\.\s*Spieltag/i.exec(description) ||
+    /(\d+)\.\s*Spieltag/i.exec(summary);
   if (match) {
     return parseInt(match[1], 10);
   }
@@ -160,21 +164,30 @@ export function determineHomeAway(summary: string, teamName: string, teamShortNa
     const homeCandidate = vsParts[0].trim();
     const awayCandidate = vsParts[1].trim();
 
-    const isHomeMatched =
-      homeCandidate.toLowerCase().includes(teamName.toLowerCase()) ||
-      homeCandidate.toLowerCase().includes(teamShortName.toLowerCase()) ||
-      teamName.toLowerCase().includes(homeCandidate.toLowerCase()) ||
-      teamShortName.toLowerCase().includes(homeCandidate.toLowerCase());
+    const isOurTeam = (candidate: string) => {
+      const lower = candidate.toLowerCase();
+      // Check if it contains "heiligenhaus" or "heiligenhauser" (case-insensitive)
+      if (lower.includes('heiligenhaus') || lower.includes('heiligenhauser')) {
+        return true;
+      }
+      // Or if it matches teamName / teamShortName
+      if (
+        lower.includes(teamName.toLowerCase()) ||
+        lower.includes(teamShortName.toLowerCase()) ||
+        teamName.toLowerCase().includes(lower) ||
+        teamShortName.toLowerCase().includes(lower)
+      ) {
+        return true;
+      }
+      return false;
+    };
 
-    const isAwayMatched =
-      awayCandidate.toLowerCase().includes(teamName.toLowerCase()) ||
-      awayCandidate.toLowerCase().includes(teamShortName.toLowerCase()) ||
-      teamName.toLowerCase().includes(awayCandidate.toLowerCase()) ||
-      teamShortName.toLowerCase().includes(awayCandidate.toLowerCase());
+    const isHomeOur = isOurTeam(homeCandidate);
+    const isAwayOur = isOurTeam(awayCandidate);
 
-    if (isHomeMatched && !isAwayMatched) {
+    if (isHomeOur && !isAwayOur) {
       return { isHome: true, opponent: awayCandidate };
-    } else if (isAwayMatched && !isHomeMatched) {
+    } else if (isAwayOur && !isHomeOur) {
       return { isHome: false, opponent: homeCandidate };
     } else {
       return { isHome: true, opponent: awayCandidate };

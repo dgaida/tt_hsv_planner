@@ -17,7 +17,7 @@ export default function GesamtUebersichtView() {
     setLoading(true);
     try {
       const { data: teamsData } = await supabase.from('teams').select('*').eq('active', true);
-      const activeTeams = teamsData || [];
+      const activeTeams = (teamsData || []).sort((a, b) => a.name.localeCompare(b.name));
       setTeams(activeTeams);
       const activeTeamIds = activeTeams.map((t) => t.id);
 
@@ -196,16 +196,45 @@ export default function GesamtUebersichtView() {
             const team = teams.find((t) => t.id === match.team_id);
             const isExpanded = expandedMatchId === match.id;
 
+            const teamIdx = teams.findIndex((t) => t.id === match.team_id);
+            const teamNum = teamIdx !== -1 ? teamIdx + 1 : null;
+
             const assignedPlayerIds = teamPlayers
               .filter((tp) => tp.team_id === match.team_id)
               .map((tp) => tp.player_id);
+
+            const isPlayerStamm = (playerId: string) => {
+              const prof = profiles.find((p) => p.id === playerId);
+              if (!prof) return false;
+
+              // 1. If profile is in team_players for this team
+              if (assignedPlayerIds.includes(playerId)) {
+                // If they are a club_admin or sportwart but have no team_number assigned,
+                // they are unassigned/Ersatzspieler (e.g. Admin Dummy) and not a Stammspieler.
+                if ((prof.role === 'club_admin' || prof.role === 'sportwart') && !prof.team_number) {
+                  return false;
+                }
+                return true;
+              }
+
+              // 2. If profile's team_number matches teamNum, they are definitely Stammspieler
+              if (prof.team_number && teamNum && prof.team_number === teamNum) {
+                return true;
+              }
+
+              return false;
+            };
 
             const matchAvs = availabilities.filter((av) => av.match_id === match.id && av.version_responded === match.version);
             const yesAvs = matchAvs.filter((av) => av.response === 'yes');
             const maybeAvs = matchAvs.filter((av) => av.response === 'maybe');
 
-            const stammAvail = yesAvs.filter((av) => assignedPlayerIds.includes(av.player_id));
-            const helperAvail = yesAvs.filter((av) => !assignedPlayerIds.includes(av.player_id));
+            const stammAvail = yesAvs.filter((av) => isPlayerStamm(av.player_id));
+            const helperAvail = yesAvs.filter((av) => !isPlayerStamm(av.player_id));
+
+            const opponent = match.is_home
+              ? (match.summary.split(' vs ')[1] || match.summary).trim()
+              : (match.summary.split(' vs ')[0] || match.summary).trim();
 
             return (
               <div key={match.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -223,8 +252,8 @@ export default function GesamtUebersichtView() {
                       </span>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800">
-                      {match.is_home ? '🏠 Heimspiel gegen' : '🚌 Auswärtsspiel gegen'} {match.summary.split(' vs ').find((p: string) => !p.includes(team?.name || '')) || match.summary}
+                    <h3 className={`text-base sm:text-lg font-bold ${yesAvs.length < 4 ? 'text-red-600' : 'text-gray-800'}`}>
+                      {match.is_home ? '🏠 Heimspiel gegen' : '🚌 Auswärtsspiel gegen'} {opponent}
                     </h3>
 
                     <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 pt-1">
@@ -242,6 +271,9 @@ export default function GesamtUebersichtView() {
                   </div>
 
                   <div className="flex items-center gap-3 shrink-0">
+                    {yesAvs.length < 4 && (
+                      <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" title="Weniger als 4 Zusagen!" />
+                    )}
                     <div className="text-right text-xs">
                       <p className="font-bold text-gray-700">Verfügbar: {yesAvs.length}</p>
                       <p className="text-gray-400">{helperAvail.length} Ersatzspieler</p>
