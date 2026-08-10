@@ -8,7 +8,8 @@ import GesamtUebersichtView from './components/GesamtUebersichtView';
 import AdminDashboard from './components/AdminDashboard';
 import SportwartView from './components/SportwartView';
 import AbsencesView from './components/AbsencesView';
-import { Shield, LogOut, User as UserIcon, Calendar, Grid, Award, Eye, ClipboardList } from 'lucide-react';
+import GuideView from './components/GuideView';
+import { Shield, LogOut, User as UserIcon, Calendar, Grid, Award, Eye, ClipboardList, BookOpen } from 'lucide-react';
 
 export default function App() {
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
@@ -232,6 +233,17 @@ export default function App() {
             📅 Mein Kalender
           </button>
 
+          <button
+            onClick={() => setActiveTab('guide')}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all border shrink-0 ${
+              activeTab === 'guide'
+                ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-150'
+            }`}
+          >
+            📖 Anleitung
+          </button>
+
           {(isSportwart || isClubAdmin) && (
             <button
               onClick={() => setActiveTab('sportwart')}
@@ -283,6 +295,8 @@ export default function App() {
         {activeTab === 'gesamt' && <GesamtUebersichtView />}
 
         {activeTab === 'absences' && <AbsencesView userId={profile.id} />}
+
+        {activeTab === 'guide' && <GuideView role={profile?.role} />}
 
         {activeTab === 'sportwart' && (isSportwart || isClubAdmin) && <SportwartView />}
 
