@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Plus, Edit2, Trash2, Check, X, Shield, Calendar, AlertCircle } from 'lucide-react';
 
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback UUID generator
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export default function SportwartView() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -121,9 +133,11 @@ export default function SportwartView() {
       let playerId = '';
 
       if (isEditing === 'new') {
+        const generatedId = generateUUID();
         const { data, error } = await supabase
           .from('profiles')
           .insert({
+            id: generatedId,
             name: formName.trim(),
             role: formRole,
             ttr_points: ttr,
@@ -134,7 +148,7 @@ export default function SportwartView() {
           .single();
 
         if (error) throw error;
-        playerId = data.id;
+        playerId = data?.id || generatedId;
       } else {
         const { error } = await supabase
           .from('profiles')

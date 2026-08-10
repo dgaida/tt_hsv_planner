@@ -52,6 +52,9 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ttr_points INTEGER NOT NULL
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS team_number INTEGER;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS position_number INTEGER;
 
+-- Ensure older schemas get the default UUID generator for the profiles id column
+ALTER TABLE public.profiles ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
 -- Drop legacy foreign key constraint referencing auth.users if it exists to keep profiles independent
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
 
