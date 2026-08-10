@@ -52,6 +52,9 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ttr_points INTEGER NOT NULL
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS team_number INTEGER;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS position_number INTEGER;
 
+-- Drop legacy foreign key constraint referencing auth.users if it exists to keep profiles independent
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_id_fkey;
+
 -- 3. Teams
 CREATE TABLE IF NOT EXISTS public.teams (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
