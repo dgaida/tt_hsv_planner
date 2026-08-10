@@ -15,33 +15,69 @@ export interface SyncResult {
 async function fetchIcsText(httpUrl: string): Promise<string> {
   const errors: string[] = [];
 
-  // 1. Try api.allorigins.win
-  try {
-    const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(httpUrl)}`;
-    const resp = await fetch(allOriginsUrl);
-    if (resp.ok && typeof resp.json === 'function') {
-      const json = await resp.json();
-      if (json && json.contents) {
-        if (json.contents.startsWith('data:')) {
-          const commaIdx = json.contents.indexOf(',');
-          if (commaIdx !== -1) {
-            const base64Str = json.contents.substring(commaIdx + 1);
-            const binary = atob(base64Str);
-            const bytes = new Uint8Array(binary.split('').map(c => c.charCodeAt(0)));
-            return new TextDecoder('utf-8').decode(bytes);
-          }
+  // 1. Try api.allorigins.win (with retries and delay)
+  const maxRetries = 3;
+  let allOriginsSuccess = false;
+  let allOriginsContent = '';
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // A. Try the RAW endpoint first (most reliable, bypassing JSON/Base64 wrapping)
+    try {
+      const rawUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(httpUrl)}`;
+      const resp = await fetch(rawUrl);
+      if (resp.ok) {
+        const text = await resp.text();
+        if (text && text.includes('BEGIN:VCALENDAR')) {
+          allOriginsContent = text;
+          allOriginsSuccess = true;
+          break;
         }
-        return json.contents;
       }
-    } else if (resp.ok && typeof resp.text === 'function') {
-      const text = await resp.text();
-      if (text && text.includes('BEGIN:VCALENDAR')) {
-        return text;
-      }
+    } catch (err: any) {
+      errors.push(`AllOrigins RAW (Attempt ${attempt}/${maxRetries}) error: ${err.message}`);
     }
-    errors.push(`AllOrigins returned status ${resp.status}`);
-  } catch (err: any) {
-    errors.push(`AllOrigins error: ${err.message}`);
+
+    // B. Fallback to /get JSON endpoint if RAW failed
+    try {
+      const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(httpUrl)}`;
+      const resp = await fetch(allOriginsUrl);
+      if (resp.ok && typeof resp.json === 'function') {
+        const json = await resp.json();
+        if (json && json.contents) {
+          if (json.contents.startsWith('data:')) {
+            const commaIdx = json.contents.indexOf(',');
+            if (commaIdx !== -1) {
+              const base64Str = json.contents.substring(commaIdx + 1);
+              const binary = atob(base64Str);
+              const bytes = new Uint8Array(binary.split('').map(c => c.charCodeAt(0)));
+              allOriginsContent = new TextDecoder('utf-8').decode(bytes);
+            }
+          } else {
+            allOriginsContent = json.contents;
+          }
+          allOriginsSuccess = true;
+          break;
+        }
+      } else if (resp.ok && typeof resp.text === 'function') {
+        const text = await resp.text();
+        if (text && text.includes('BEGIN:VCALENDAR')) {
+          allOriginsContent = text;
+          allOriginsSuccess = true;
+          break;
+        }
+      }
+      errors.push(`AllOrigins /get (Attempt ${attempt}/${maxRetries}) returned status ${resp.status}`);
+    } catch (err: any) {
+      errors.push(`AllOrigins /get (Attempt ${attempt}/${maxRetries}) error: ${err.message}`);
+    }
+
+    if (attempt < maxRetries) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  if (allOriginsSuccess) {
+    return allOriginsContent;
   }
 
   // 2. Try codetabs proxy as a fallback
@@ -181,6 +217,7 @@ export async function syncTeamCalendar(
           existing.description !== event.description ||
           existing.location !== event.location ||
           existing.matchday !== matchday ||
+          existing.is_home !== homeAwayInfo.isHome ||
           !existing.active;
 
         if (dateTimeChanged) {

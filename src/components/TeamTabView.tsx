@@ -238,6 +238,10 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
             const countNein = matchAvails.filter((av) => av.response === 'no' && av.version_responded === match.version).length;
             const countVielleicht = matchAvails.filter((av) => av.response === 'maybe' && av.version_responded === match.version).length;
 
+            const opponent = match.is_home
+              ? (match.summary.split(' vs ')[1] || match.summary).trim()
+              : (match.summary.split(' vs ')[0] || match.summary).trim();
+
             return (
               <div
                 key={match.id}
@@ -273,24 +277,30 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                     <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-full mb-2">
                       Spieltag {match.matchday || '-'}
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800">
-                      {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {match.summary.split(' vs ').find(p => !p.includes(teamName)) || match.summary}
+                    <h3 className={`text-base sm:text-lg font-bold ${countJa < 4 ? 'text-red-600' : 'text-gray-800'}`}>
+                      {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {opponent}
                     </h3>
                     <p className="text-sm font-semibold text-teal-700 mt-1">
                       📅 {formatGermanDate(match.dtstart)}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 text-xs sm:text-sm">
-                    <span className="flex items-center gap-1 font-semibold text-emerald-700">
-                      ✅ {countJa}
-                    </span>
-                    <span className="flex items-center gap-1 font-semibold text-amber-600">
-                      🤔 {countVielleicht}
-                    </span>
-                    <span className="flex items-center gap-1 font-semibold text-rose-600">
-                      ❌ {countNein}
-                    </span>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 text-xs sm:text-sm">
+                      <span className="flex items-center gap-1 font-semibold text-emerald-700">
+                        ✅ {countJa}
+                      </span>
+                      <span className="flex items-center gap-1 font-semibold text-amber-600">
+                        🤔 {countVielleicht}
+                      </span>
+                      <span className="flex items-center gap-1 font-semibold text-rose-600">
+                        ❌ {countNein}
+                      </span>
+                    </div>
+
+                    {countJa < 4 && (
+                      <AlertTriangle className="h-8 w-8 text-red-600 animate-pulse" title="Weniger als 4 Zusagen!" />
+                    )}
                   </div>
                 </div>
 

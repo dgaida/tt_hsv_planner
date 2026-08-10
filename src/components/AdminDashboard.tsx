@@ -85,6 +85,10 @@ export default function AdminDashboard() {
       const results = [];
       for (const team of teams) {
         if (!team.active) continue;
+        if (results.length > 0) {
+          // Add a 1.5s delay between teams to prevent concurrent proxy/target site rate-limiting
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
         const res = await syncTeamCalendar(supabase, team.id);
         results.push(res);
         if (res.status === 'success') {
@@ -399,6 +403,7 @@ export default function AdminDashboard() {
                   >
                     <option value="player">Spieler (player)</option>
                     <option value="team_manager">M-Führer (manager)</option>
+                    <option value="sportwart">Sportwart (sportwart)</option>
                     <option value="club_admin">Admin (club_admin)</option>
                   </select>
                 </div>
