@@ -39,9 +39,9 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
 * **Erkennung von Spielverlegungen (Termin-Versionierung):**
   * Verschiebt sich ein Spiel auf myTischtennis.de, wird dies über die stabile `UID` des ICS-Events erkannt.
   * Bereits abgegebene Rückmeldungen werden archiviert und im Frontend als *„erneute Antwort erforderlich“ (⚠️)* markiert, damit Spieler den neuen Termin explizit bestätigen können.
-* **Abwesenheits-Kalender (Mein Kalender & 2-Monats-Planer):**
+* **Abwesenheits-Kalender (Mein Kalender & 4-Monats-Planer):**
   * Spieler können Abwesenheiten (z. B. Urlaub, Arbeit, Krankheit) im persönlichen Kalender pflegen.
-  * Dem Sportwart steht eine visuelle 2-Monats-Abwesenheitsmatrix aller Spieler für die langfristige Planung zur Verfügung.
+  * Mannschaftsführer, Sportwarte und Admins steht eine visuelle 4-Monats-Abwesenheitsmatrix (zwei Monate nebeneinander) aller Spieler in einem eigenen Tab zur langfristigen, mannschaftsübergreifenden Planung zur Verfügung.
 * **Intelligente Ersatzspieler-Regelung (Ersatzspieler-Logik):**
   * Das System stellt automatisch die Top 4 Stammspieler eines Teams auf.
   * Fehlt ein Stammspieler oder sagt ab, rückt automatisch der am besten platzierte, verfügbare Ersatzspieler (basierend auf Vereinsrangliste: Teamnummer und Position) nach.

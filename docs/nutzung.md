@@ -37,7 +37,7 @@ Als Spieler steht für dich die schnelle Rückmeldung und deine persönliche Pla
 #### 4. Mein Kalender (Abwesenheiten)
 * Im Reiter **"Mein Kalender"** kannst du Zeiträume eintragen, an denen du generell nicht zur Verfügung stehst (Urlaub, Dienstreisen, Lehrgänge, Krankheit).
 * Gib ein Start- und Enddatum sowie einen optionalen Grund ein.
-* Diese Abwesenheiten werden dem Sportwart und den Mannschaftsführern übersichtlich in ihrer Planungsmatrix angezeigt.
+* Diese Abwesenheiten werden dem Sportwart, den Mannschaftsführern und den Admins übersichtlich in ihrem 4-Monats-Abwesenheitskalender angezeigt.
 
 ---
 
@@ -56,6 +56,9 @@ Als Mannschaftsführer bist du für die Aufstellung und Pflege deines Teams vera
 * Du erkennst sofort auf einen Blick, wer zugesagt, abgesagt, noch nicht geantwortet oder eine Bemerkung hinterlassen hat.
 * **Rückmeldungen für Ersatzspieler:** Du kannst die RSVP-Verfügbarkeiten von Ersatzspielern (Substitutes) bearbeiten, um kurzfristige Änderungen am Spieltag festzuhalten.
 
+#### 4. Abwesenheits-Kalender
+* Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate (jeweils zwei Monate nebeneinander) anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund. Das erleichtert die langfristige Suche nach Ersatzspielern erheblich.
+
 ---
 
 ### 🏓 C. Sportwart (Rolle: `sportwart`)
@@ -69,9 +72,9 @@ Als Sportwart hast du die sportliche Gesamtleitung des Vereins und planst die Au
 * Du kannst für jeden Spieler die aktuellen **TTR-Punkte** eintragen.
 * Weise den Spielern ihre feste Position im Verein zu (z. B. `team_number = 1` und `position_number = 3` für Team 1, Position 3). Dies bestimmt die automatische Nachrücker-Hierarchie bei Ersatzspielern.
 
-#### 3. 2-Monats-Abwesenheits-Planer
-* Du hast Zugriff auf eine kalendarische Übersicht der kommenden 60 Tage.
-* Alle Abwesenheiten der Spieler werden farbig in einer Tages-Matrix visualisiert.
+#### 3. 4-Monats-Abwesenheits-Planer
+* Du hast Zugriff auf eine kalendarische Übersicht der kommenden 4 Monate in einem dedizierten Reiter **"Abwesenheits-Kalender"**.
+* Alle Abwesenheiten der Spieler werden farbig in einer Tages-Matrix visualisiert (zwei Monate nebeneinander dargestellt).
 * Klickst du auf einen Tag, siehst du im Detail, wer an diesem Tag aus welchen Gründen (Urlaub, Arbeit, etc.) fehlt.
 
 #### 4. Aufstellungs-Kontrolle (Lineup)
