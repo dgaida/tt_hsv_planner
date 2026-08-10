@@ -13,16 +13,11 @@ BEGIN
 END $$;
 
 -- Ensure 'sportwart' value exists in the user_role enum (for older database schemas)
--- We insert directly into pg_enum to bypass the Postgres transaction limitation of ALTER TYPE ADD VALUE
-INSERT INTO pg_enum (enumtypid, enumlabel, enumsortorder)
-SELECT 'public.user_role'::regtype, 'sportwart', COALESCE(MAX(enumsortorder), 0) + 1
-FROM pg_enum
-WHERE enumtypid = 'public.user_role'::regtype
-  AND NOT EXISTS (
-    SELECT 1 FROM pg_enum
-    WHERE enumtypid = 'public.user_role'::regtype AND enumlabel = 'sportwart'
-  )
-GROUP BY enumtypid;
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'sportwart';
+
+-- Commit the transaction so that the new enum value 'sportwart' is registered
+-- and can be used in subsequent statements in the same script.
+COMMIT;
 
 -- 1. Club Settings (e.g., global access password)
 CREATE TABLE IF NOT EXISTS public.club_settings (
