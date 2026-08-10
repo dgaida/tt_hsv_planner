@@ -100,11 +100,15 @@ CREATE TABLE IF NOT EXISTS public.matches (
     matchday INTEGER,
     active BOOLEAN NOT NULL DEFAULT true,
     version INTEGER NOT NULL DEFAULT 1,
+    lineup JSONB,
     last_synced_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(team_id, external_uid)
 );
+
+-- Ensure lineup column exists for older schemas
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS lineup JSONB;
 
 -- 6. Availabilities
 CREATE TABLE IF NOT EXISTS public.availabilities (
