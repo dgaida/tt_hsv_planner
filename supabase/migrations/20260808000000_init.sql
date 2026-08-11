@@ -81,7 +81,7 @@ ON CONFLICT (id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS public.team_players (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     team_id UUID NOT NULL REFERENCES public.teams(id) ON DELETE CASCADE,
-    player_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    player_id UUID NOT NULL REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(team_id, player_id)
 );
@@ -114,7 +114,7 @@ ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS lineup JSONB;
 CREATE TABLE IF NOT EXISTS public.availabilities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     match_id UUID NOT NULL REFERENCES public.matches(id) ON DELETE CASCADE,
-    player_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    player_id UUID NOT NULL REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
     response public.availability_response NOT NULL,
     comment TEXT,
     version_responded INTEGER NOT NULL, -- Stores the match version at the time of the response
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS public.match_changes (
 -- 9. Absences (Abwesenheiten)
 CREATE TABLE IF NOT EXISTS public.absences (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    player_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    player_id UUID NOT NULL REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     reason TEXT,
@@ -175,15 +175,65 @@ ON CONFLICT DO NOTHING;
 -- ----------------------------------------------------
 
 -- Automatically create profile on user signup (fallback/legacy)
+-- If a player registers with a name that matches an unassociated player profile (one created by the Sportwart/Admin
+-- and not yet associated with any user in auth.users), that existing profile is used and linked to the email and new id.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 DECLARE
     default_name TEXT;
+    existing_profile_id UUID;
+    lineup_match_rec RECORD;
+    updated_lineup JSONB;
+    p_id_str TEXT;
+    new_id_str TEXT;
 BEGIN
     default_name := COALESCE(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1));
-    INSERT INTO public.profiles (id, name, role)
-    VALUES (new.id, default_name, 'player')
-    ON CONFLICT (id) DO NOTHING;
+
+    -- Check if there is an existing profile with the same name (case-insensitive and trimmed)
+    -- that does NOT exist in auth.users (meaning its id is not present in auth.users).
+    SELECT id INTO existing_profile_id
+    FROM public.profiles
+    WHERE LOWER(TRIM(name)) = LOWER(TRIM(default_name))
+      AND id NOT IN (SELECT id FROM auth.users)
+    LIMIT 1;
+
+    IF existing_profile_id IS NOT NULL THEN
+        -- Link the existing profile to the new user by updating its ID to new.id.
+        -- This updates references across team_players, availabilities, absences due to ON UPDATE CASCADE.
+        UPDATE public.profiles
+        SET id = new.id,
+            updated_at = NOW()
+        WHERE id = existing_profile_id;
+
+        -- Update any matches where this player was stored in the lineup (which is JSONB format array of UUID strings)
+        p_id_str := existing_profile_id::text;
+        new_id_str := new.id::text;
+
+        FOR lineup_match_rec IN
+            SELECT id, lineup
+            FROM public.matches
+            WHERE lineup @> jsonb_build_array(p_id_str)
+        LOOP
+            -- Reconstruct lineup array replacing the old id string with the new id string
+            SELECT jsonb_agg(
+                CASE
+                    WHEN elem = to_jsonb(p_id_str) THEN to_jsonb(new_id_str)
+                    ELSE elem
+                END
+            ) INTO updated_lineup
+            FROM jsonb_array_elements(lineup_match_rec.lineup) AS elem;
+
+            UPDATE public.matches
+            SET lineup = updated_lineup
+            WHERE id = lineup_match_rec.id;
+        END LOOP;
+    ELSE
+        -- If no matching unassociated profile exists, insert a brand new profile
+        INSERT INTO public.profiles (id, name, role)
+        VALUES (new.id, default_name, 'player')
+        ON CONFLICT (id) DO NOTHING;
+    END IF;
+
     RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -352,3 +402,17 @@ CREATE POLICY "Allow anyone to manage absences"
     ON public.absences FOR ALL
     USING (true)
     WITH CHECK (true);
+
+-- Drop and recreate existing constraints to make sure ON UPDATE CASCADE is active
+-- for databases that have already been initialized with the legacy schema.
+ALTER TABLE public.team_players DROP CONSTRAINT IF EXISTS team_players_player_id_fkey;
+ALTER TABLE public.team_players ADD CONSTRAINT team_players_player_id_fkey
+    FOREIGN KEY (player_id) REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE public.availabilities DROP CONSTRAINT IF EXISTS availabilities_player_id_fkey;
+ALTER TABLE public.availabilities ADD CONSTRAINT availabilities_player_id_fkey
+    FOREIGN KEY (player_id) REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+ALTER TABLE public.absences DROP CONSTRAINT IF EXISTS absences_player_id_fkey;
+ALTER TABLE public.absences ADD CONSTRAINT absences_player_id_fkey
+    FOREIGN KEY (player_id) REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE;

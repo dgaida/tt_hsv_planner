@@ -197,4 +197,67 @@ describe('AuthScreen', () => {
 
     alertMock.mockRestore();
   });
+
+  it('correctly retrieves and logs in the associated profile upon registration with matching name', async () => {
+    const mockOnSelectPlayer = vi.fn();
+    const mockUser = { id: 'user-789', email: 'pre_existing@example.com' };
+    const mockSession = { access_token: 'token-xyz', user: mockUser };
+
+    // This is the pre-existing unassociated profile created by the Sportwart.
+    // The trigger links it by updating its ID to the new user's ID 'user-789'.
+    const mockLinkedProfile = { id: 'user-789', name: 'Mia Musterfrau', role: 'player', ttr_points: 1500 };
+
+    const selectMockObj = {
+      order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
+      eq: vi.fn().mockImplementation((col, val) => {
+        return {
+          single: vi.fn().mockResolvedValue({ data: mockLinkedProfile, error: null }),
+        };
+      }),
+    };
+
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue(selectMockObj),
+        };
+      }
+      return {};
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    vi.mocked(supabase.auth.signUp).mockResolvedValue({
+      data: { user: mockUser, session: mockSession },
+      error: null,
+    } as any);
+
+    render(<AuthScreen onSelectPlayer={mockOnSelectPlayer} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Registrieren')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText('Registrieren'));
+
+    // Register with matching name 'Mia Musterfrau'
+    fireEvent.change(screen.getByPlaceholderText('z.B. Max Mustermann'), { target: { value: 'Mia Musterfrau' } });
+    fireEvent.change(screen.getByPlaceholderText('name@verein.de'), { target: { value: 'pre_existing@example.com' } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'mypassword123' } });
+
+    const regButtons = screen.getAllByRole('button', { name: 'Registrieren' });
+    fireEvent.click(regButtons[regButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: 'pre_existing@example.com',
+        password: 'mypassword123',
+        options: {
+          data: { name: 'Mia Musterfrau' },
+        },
+      });
+      expect(mockOnSelectPlayer).toHaveBeenCalledWith(mockLinkedProfile);
+      expect(localStorage.getItem('ttv_login_method')).toBe('password');
+      expect(localStorage.getItem('ttv_selected_player_id')).toBe('user-789');
+    });
+  });
 });
