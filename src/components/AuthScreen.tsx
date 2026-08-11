@@ -131,6 +131,23 @@ export default function AuthScreen({ onSelectPlayer }: AuthScreenProps) {
 
       if (regErr) throw regErr;
 
+      // Wenn die E-Mail-Bestätigung deaktiviert ist, erhalten wir direkt eine Session
+      if (data && data.session && data.user) {
+        // Profil abrufen
+        const { data: prof, error: profErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!profErr && prof) {
+          localStorage.setItem('ttv_login_method', 'password');
+          localStorage.setItem('ttv_selected_player_id', prof.id);
+          onSelectPlayer(prof);
+          return;
+        }
+      }
+
       alert('Registrierung erfolgreich! Bitte melde dich jetzt an.');
       setEmail(regEmail.trim());
       setActiveTab('password');

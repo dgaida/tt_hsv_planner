@@ -46,6 +46,11 @@ Die Anwendung verwendet Supabase als Backend. Um die Datenbanktabellen, Sicherhe
 2. Gehe in deinem Supabase-Dashboard zum Bereich **SQL Editor** (Symbol mit der Aufschrift `SQL` in der linken Navigationsleiste).
 3. Erstelle eine neue Abfrage ("New Query") und füge den gesamten Inhalt der Datei `supabase/migrations/20260808000000_init.sql` ein.
 4. Klicke oben rechts auf **Run**, um das Skript auszuführen.
+5. **E-Mail-Bestätigung deaktivieren (Wichtig für die Registrierung):**
+   Damit sich alle Benutzer ohne E-Mail-Bestätigung registrieren und sofort erfolgreich im Tool anmelden können, **muss** die E-Mail-Verifizierung deaktiviert werden:
+   * Navigiere im Supabase-Dashboard zu **Authentication** > **Providers** > **Email**.
+   * Deaktiviere die Option **"Confirm email"** (E-Mail bestätigen).
+   * Klicke unten auf **Save** (Speichern).
 
 ### Was macht dieses Migrationsskript?
 * **Tabellen erstellen:** Richtet Tabellen für `teams`, `profiles`, `team_players`, `matches`, `availabilities`, `absences`, `sync_runs`, `match_changes` und `club_settings` ein.

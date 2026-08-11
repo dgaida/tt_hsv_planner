@@ -67,4 +67,134 @@ describe('AuthScreen', () => {
     expect(screen.getByPlaceholderText('name@verein.de')).toBeDefined();
     expect(screen.getByPlaceholderText('••••••••')).toBeDefined();
   });
+
+  it('automatically logs in a user upon registration if a session is returned (email confirmation disabled)', async () => {
+    const mockOnSelectPlayer = vi.fn();
+    const mockUser = { id: 'user-123', email: 'test@example.com' };
+    const mockSession = { access_token: 'token-abc', user: mockUser };
+    const mockProfile = { id: 'user-123', name: 'Auto Login User', role: 'player' };
+
+    const selectMockObj = {
+      order: vi.fn().mockResolvedValue({ data: [], error: null }),
+      eq: vi.fn().mockImplementation((col, val) => {
+        return {
+          single: vi.fn().mockResolvedValue({ data: mockProfile, error: null }),
+        };
+      }),
+    };
+
+    // Mock initial profiles load (returns empty list or some profiles)
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue(selectMockObj),
+        };
+      }
+      return {};
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    // Mock signUp returning user and session
+    vi.mocked(supabase.auth.signUp).mockResolvedValue({
+      data: { user: mockUser, session: mockSession },
+      error: null,
+    } as any);
+
+    render(<AuthScreen onSelectPlayer={mockOnSelectPlayer} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Registrieren')).toBeDefined();
+    });
+
+    // Go to registration tab
+    fireEvent.click(screen.getByText('Registrieren'));
+
+    // Fill in registration form
+    fireEvent.change(screen.getByPlaceholderText('z.B. Max Mustermann'), { target: { value: 'Auto Login User' } });
+    fireEvent.change(screen.getByPlaceholderText('name@verein.de'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'securepassword123' } });
+
+    // Submit form
+    const regButtons = screen.getAllByRole('button', { name: 'Registrieren' });
+    fireEvent.click(regButtons[regButtons.length - 1]);
+
+    await waitFor(() => {
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'securepassword123',
+        options: {
+          data: { name: 'Auto Login User' },
+        },
+      });
+      expect(mockOnSelectPlayer).toHaveBeenCalledWith(mockProfile);
+      expect(localStorage.getItem('ttv_login_method')).toBe('password');
+      expect(localStorage.getItem('ttv_selected_player_id')).toBe('user-123');
+    });
+  });
+
+  it('shows an alert and redirects to the password tab upon registration if no session is returned (fallback)', async () => {
+    const mockOnSelectPlayer = vi.fn();
+    const mockUser = { id: 'user-123', email: 'test@example.com' };
+
+    // Mock window.alert
+    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    const selectMockObj = {
+      order: vi.fn().mockResolvedValue({ data: [], error: null }),
+      eq: vi.fn().mockImplementation((col, val) => {
+        return {
+          single: vi.fn().mockResolvedValue({ data: null, error: new Error('Not found') }),
+        };
+      }),
+    };
+
+    // Mock initial profiles load
+    const fromMock = vi.fn().mockImplementation((table) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue(selectMockObj),
+        };
+      }
+      return {};
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    // Mock signUp returning user but no session
+    vi.mocked(supabase.auth.signUp).mockResolvedValue({
+      data: { user: mockUser, session: null },
+      error: null,
+    } as any);
+
+    render(<AuthScreen onSelectPlayer={mockOnSelectPlayer} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Registrieren')).toBeDefined();
+    });
+
+    // Go to registration tab
+    fireEvent.click(screen.getByText('Registrieren'));
+
+    // Fill in registration form
+    fireEvent.change(screen.getByPlaceholderText('z.B. Max Mustermann'), { target: { value: 'Fallback User' } });
+    fireEvent.change(screen.getByPlaceholderText('name@verein.de'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'securepassword123' } });
+
+    // Submit form
+    const regButtonsFallback = screen.getAllByRole('button', { name: 'Registrieren' });
+    fireEvent.click(regButtonsFallback[regButtonsFallback.length - 1]);
+
+    await waitFor(() => {
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'securepassword123',
+        options: {
+          data: { name: 'Fallback User' },
+        },
+      });
+      expect(alertMock).toHaveBeenCalledWith('Registrierung erfolgreich! Bitte melde dich jetzt an.');
+      expect(mockOnSelectPlayer).not.toHaveBeenCalled();
+    });
+
+    alertMock.mockRestore();
+  });
 });
