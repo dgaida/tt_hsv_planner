@@ -219,79 +219,54 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
     // Let's gather Stammspieler. They are profiles with team_number === teamIndex and position_number in [1, 2, 3, 4]
     const stammspieler = sortedProfiles.filter((p) => p.team_number === teamIndex && p.position_number >= 1 && p.position_number <= 4);
 
-    // To handle cases where a team has fewer than four officially listed Stammspieler or any Stammspieler is unavailable (response === 'no' or 'maybe'),
-    // we need to dynamically find substitutes ("von unten weitere Spieler nachrücken, bis wieder 4 Spieler da sind, die alle können")
-    // "alle können" means response === 'yes'
-    // Let's find who CANNOT play. Stammspieler who either:
-    // - are missing (if less than 4 exist)
-    // - responded 'no' or 'maybe'
-    // Let's collect available Stammspieler first
-    const confirmedStammspieler = stammspieler.filter((p) => {
-      const av = matchAvails.find((a) => a.player_id === p.id);
-      return av && av.response === 'yes' && av.version_responded === match.version;
-    });
-
-    // Also collect Stammspieler who have 'maybe' or 'no' or no RSVP (they can't be relied upon as confirmed Stammspieler)
-    const activeLineup: any[] = [];
-    const usedIds = new Set<string>();
-
-    // Dynamic lineup building logic:
-    // We want to fill up to 4 spots.
-    // First, let's look at the first 4 stamm positions (1.1, 1.2, 1.3, 1.4)
-    // For each position, check if that stammspieler is available ('yes'). If yes, they are part of the lineup.
-    // If not available (no response, 'maybe', 'no', or player doesn't exist for that slot), we must fill this slot with a substitute!
-    // Substitutes are other players from "below" (meaning higher position_number in the same team, e.g., 1.5, or players in lower teams, i.e. team_number > teamIndex, or unassigned/others)
-    // who have explicitly RSVPed 'yes' (meaning "alle können").
-    // Let's filter potential substitutes:
-    // They must be sorted by club ranking "below" the current stamm position or team.
-    // Let's gather all possible substitutes:
-    // Any profile that:
-    // - is not one of the 4 Stammspieler
-    // - has responded 'yes' for this match.
-    // Let's sort them in club ranking order:
-    const availableSubstitutes = sortedProfiles.filter((p) => {
-      // Must not be one of the 4 Stammspieler
-      const isStamm = stammspieler.some((s) => s.id === p.id);
-      if (isStamm) return false;
-
-      // Must have RSVP 'yes'
-      const av = matchAvails.find((a) => a.player_id === p.id);
-      return av && av.response === 'yes' && av.version_responded === match.version;
-    });
-
-    let substituteIndex = 0;
-    for (let i = 1; i <= 4; i++) {
-      // Find the official stammspieler at position i
-      const stamm = stammspieler.find((s) => s.position_number === i);
-      const av = stamm ? matchAvails.find((a) => a.player_id === stamm.id) : null;
-      const isAvailable = av && av.response === 'yes' && av.version_responded === match.version;
-
-      if (stamm && isAvailable) {
-        activeLineup.push(stamm);
-        usedIds.add(stamm.id);
-      } else {
-        // Find next available substitute from the substitutes pool
-        if (substituteIndex < availableSubstitutes.length) {
-          const sub = availableSubstitutes[substituteIndex];
-          activeLineup.push(sub);
-          usedIds.add(sub.id);
-          substituteIndex++;
-        } else if (stamm) {
-          // If no substitutes are left, but we have a Stammspieler who didn't RSVP yes (or has no RSVP), we still display them as placeholder/unconfirmed Stammspieler!
-          // Wait, the requirement says "wenn eine Mannschaft keine vier Stammspieler hat oder von den ersten vier Spielern, einer nicht oder vllt. nicht kann, rücken von unten weitere Spieler nach... bis wieder 4 Spieler da sind, die alle können".
-          // If we ran out of substitutes, we should still try to show the official Stammspieler so that there are 4 entries, or show the available ones.
-          // Let's keep the official Stammspieler in their slots if they haven't been replaced.
-          activeLineup.push(stamm);
-          usedIds.add(stamm.id);
-        }
+    // Candidates pool:
+    // 1. All profiles belonging to the current team: p.team_number === teamIndex
+    // 2. Any other profile who has explicitly RSVP'd to this match
+    const candidates = sortedProfiles.filter((p) => {
+      if (p.team_number === teamIndex) {
+        return true;
       }
-    }
+      const av = matchAvails.find((a) => a.player_id === p.id);
+      return av && av.version_responded === match.version;
+    });
+
+    // RSVP priority order:
+    // 1. yes (Ja)
+    // 2. no response / null / undefined / older version (Keine Antwort)
+    // 3. maybe (Vielleicht)
+    // 4. no (Nein)
+    const getRsvppriority = (p: any) => {
+      const av = matchAvails.find((a) => a.player_id === p.id);
+      const response = av && av.version_responded === match.version ? av.response : null;
+      if (response === 'yes') return 1;
+      if (!response) return 2;
+      if (response === 'maybe') return 3;
+      if (response === 'no') return 4;
+      return 2;
+    };
+
+    // Sort candidates by RSVP priority first, then by global club ranking:
+    const orderedCandidates = [...candidates].sort((a, b) => {
+      const prioA = getRsvppriority(a);
+      const prioB = getRsvppriority(b);
+
+      if (prioA !== prioB) {
+        return prioA - prioB;
+      }
+
+      const sA = getSortValue(a);
+      const sB = getSortValue(b);
+      if (sA.teamNum !== sB.teamNum) return sA.teamNum - sB.teamNum;
+      if (sA.posNum !== sB.posNum) return sA.posNum - sB.posNum;
+      return sA.name.localeCompare(sB.name);
+    });
+
+    // Limit lineup to the top 4 candidates:
+    const activeLineup = orderedCandidates.slice(0, 4);
 
     // Sort activeLineup if there is a custom lineup saved in matches.lineup (which is an array of player UUIDs)
     if (match.lineup && Array.isArray(match.lineup)) {
       const lineupOrder = match.lineup as string[];
-      // We only sort players that are present in both the calculated lineup and the saved lineup order.
-      // Any calculated lineup players not in the lineupOrder are placed at the end in their calculated order.
       activeLineup.sort((a, b) => {
         const idxA = lineupOrder.indexOf(a.id);
         const idxB = lineupOrder.indexOf(b.id);
