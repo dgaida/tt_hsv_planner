@@ -49,7 +49,7 @@ describe('GuideView Component', () => {
     render(<GuideView role="sportwart" />);
 
     expect(screen.getByText('Funktionen für Sportwart')).toBeDefined();
-    expect(screen.getByText(/2\. 2-Monats-Abwesenheits-Planer/)).toBeDefined();
+    expect(screen.getByText(/2\. 4-Monats-Abwesenheits-Kalender/)).toBeDefined();
   });
 
   test('renders club_admin role correctly by default', () => {

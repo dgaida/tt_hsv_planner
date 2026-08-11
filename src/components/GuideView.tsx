@@ -190,7 +190,7 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                       📅 3. Abwesenheiten eintragen (Mein Kalender)
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Im Reiter <strong>"Mein Kalender"</strong> kannst du Zeiträume eintragen, an denen du generell nicht zur Verfügung stehst (Urlaub, Dienstreisen, Krankheit). Diese werden Mannschaftsführern und dem Sportwart automatisch angezeigt.
+                      Im Reiter <strong>"Mein Kalender"</strong> kannst du Zeiträume eintragen, an denen du generell nicht zur Verfügung stehst (Urlaub, Dienstreisen, Krankheit). Diese werden Mannschaftsführern, dem Sportwart und den Admins im Abwesenheits-Kalender automatisch angezeigt.
                     </p>
                   </div>
                 </div>
@@ -230,6 +230,15 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                       Du kannst Spieler fest zu deiner Mannschaft als Stammspieler zuordnen oder entfernen (in der Matrix oder im Sportwart/Admin-Reiter falls berechtigt). Außerdem hast du das Recht, die Rückmeldungen von Ersatzspielern für deine Teamspiele anzupassen, um kurzfristige Änderungen festzuhalten.
                     </p>
                   </div>
+
+                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
+                      📅 4. Abwesenheits-Kalender
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Im neuen Reiter <strong>"Abwesenheits-Kalender"</strong> siehst du die kommenden 4 Monate (2 Monate nebeneinander) an Abwesenheiten aller Vereinsmitglieder gesammelt. Klicke auf einen Tag, um Details zu sehen, wer fehlt und warum, damit du besser für Ersatz sorgen kannst.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
@@ -252,10 +261,10 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      📅 2. 2-Monats-Abwesenheits-Planer
+                      📅 2. 4-Monats-Abwesenheits-Kalender
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Du hast exklusiven Zugriff auf die langfristige Abwesenheits-Planung. Eine Tages-Matrix visualisiert farblich alle Abwesenheiten der kommenden 60 Tage. Ein Klick auf einen Tag zeigt alle Details und Gründe für Abwesenheiten.
+                      Zusammen mit den Mannschaftsführern und Admins hast du Zugriff auf den Reiter <strong>"Abwesenheits-Kalender"</strong>. Eine übersichtliche Tages-Matrix visualisiert farblich alle Abwesenheiten der kommenden 4 Monate (jeweils zwei Monate nebeneinander). Ein Klick auf einen Tag zeigt alle Details und Gründe für Abwesenheiten.
                     </p>
                   </div>
 
