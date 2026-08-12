@@ -122,6 +122,7 @@ describe('TeamTabView', () => {
       { id: 'p-3', name: 'Player C', team_number: 1, position_number: 3, role: 'player' },
       { id: 'p-4', name: 'Player D', team_number: 1, position_number: 4, role: 'player' },
       { id: 'p-5', name: 'Player E', team_number: 1, position_number: 5, role: 'player' },
+      { id: 'p-6', name: 'Player F', team_number: 1, position_number: 6, role: 'player' },
     ];
 
     const mockAvs = [
@@ -130,6 +131,7 @@ describe('TeamTabView', () => {
       { id: 'av-3', match_id: 'm-1', player_id: 'p-3', response: 'yes', version_responded: 1, profiles: { name: 'Player C' } },
       // Player D has no RSVP
       { id: 'av-5', match_id: 'm-1', player_id: 'p-5', response: 'yes', version_responded: 1, profiles: { name: 'Player E' } },
+      { id: 'av-6', match_id: 'm-1', player_id: 'p-6', response: 'no', version_responded: 1, profiles: { name: 'Player F' } },
     ];
 
     const fromMock = vi.fn().mockImplementation((table: string) => {
@@ -203,14 +205,15 @@ describe('TeamTabView', () => {
       const lineupSection = screen.getByText(/👥 Aufstellung/).closest('.w-full');
       expect(lineupSection).toBeTruthy();
 
-      // Players in Priorities 1, 2, and 3 should be in the top 4 lineup
+      // Players in Priorities 1, 2, 3, and 4 should be in the top 5 lineup
       expect(lineupSection!.textContent).toContain('Player C'); // Priority 1 (yes)
       expect(lineupSection!.textContent).toContain('Player E'); // Priority 1 (yes)
       expect(lineupSection!.textContent).toContain('Player D'); // Priority 2 (no response)
       expect(lineupSection!.textContent).toContain('Player B'); // Priority 3 (maybe)
+      expect(lineupSection!.textContent).toContain('Player A'); // Priority 4 (no) - 5th player (Ersatzspieler)
 
-      // Player A (Priority 4, "Nein") should not be in the top 4 lineup because we have 4 other preferred players
-      expect(lineupSection!.textContent).not.toContain('Player A');
+      // Player F (Priority 4, position 6, "Nein") should not be in the top 5 lineup because Player A (position 1) has higher ranking
+      expect(lineupSection!.textContent).not.toContain('Player F');
     });
   });
 });
