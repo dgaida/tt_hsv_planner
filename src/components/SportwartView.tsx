@@ -147,6 +147,7 @@ export default function SportwartView() {
         if (error) throw error;
         playerId = data?.id || generatedId;
       } else {
+        if (!isEditing) return;
         const { error } = await supabase
           .from('profiles')
           .update({

@@ -272,7 +272,9 @@ export default function GesamtUebersichtView() {
 
                   <div className="flex items-center gap-3 shrink-0">
                     {yesAvs.length < 4 && (
-                      <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" title="Weniger als 4 Zusagen!" />
+                      <span title="Weniger als 4 Zusagen!">
+                        <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" />
+                      </span>
                     )}
                     <div className="text-right text-xs">
                       <p className="font-bold text-gray-700">Verfügbar: {yesAvs.length}</p>

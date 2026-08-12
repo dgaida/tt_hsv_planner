@@ -572,7 +572,9 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                         </span>
                       </div>
                       {countJa < 4 && (
-                        <AlertTriangle className="h-5 w-5 text-red-600 animate-pulse" title="Weniger als 4 Zusagen!" />
+                        <span title="Weniger als 4 Zusagen!">
+                          <AlertTriangle className="h-5 w-5 text-red-600 animate-pulse" />
+                        </span>
                       )}
                     </div>
 
