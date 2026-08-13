@@ -66,7 +66,7 @@ describe('TeamMatrixView', () => {
     render(<TeamMatrixView teamId={mockTeamId} isManagerOrAdmin={false} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Max Mustermann')).toBeTruthy();
+      expect(screen.getByText('Max M')).toBeTruthy();
       expect(screen.getByText('✅')).toBeTruthy(); // Max is yes
       expect(screen.getByText('Summe (✅)')).toBeTruthy();
     });

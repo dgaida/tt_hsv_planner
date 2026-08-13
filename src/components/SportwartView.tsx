@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Plus, Edit2, Trash2, Check, X, Shield, Calendar, AlertCircle } from 'lucide-react';
+import { isNameMatch } from '../lib/nameUtils';
 
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -269,7 +270,7 @@ export default function SportwartView() {
           (p) => p.team_number === sp.teamNumber && p.position_number === sp.positionNumber
         );
 
-        if (existingAtPosition && existingAtPosition.name.trim().toLowerCase() === sp.name.trim().toLowerCase()) {
+        if (existingAtPosition && isNameMatch(existingAtPosition.name, sp.name)) {
           if (existingAtPosition.ttr_points === sp.ttrPoints) {
             bereitsAktuell++;
           } else {
@@ -310,7 +311,7 @@ export default function SportwartView() {
       // 4. Upsert scraped players
       for (const sp of scrapedPlayers) {
         // Check if player already exists by name
-        const existing = profiles.find(p => p.name.trim().toLowerCase() === sp.name.trim().toLowerCase());
+        const existing = profiles.find(p => isNameMatch(p.name, sp.name));
         let playerId = '';
 
         if (existing) {
@@ -318,6 +319,7 @@ export default function SportwartView() {
           const { error: updateErr } = await supabase
             .from('profiles')
             .update({
+              name: sp.name,
               team_number: sp.teamNumber,
               position_number: sp.positionNumber,
               ttr_points: sp.ttrPoints,
@@ -390,7 +392,7 @@ export default function SportwartView() {
           (p) => p.team_number === sp.teamNumber && p.position_number === sp.positionNumber
         );
 
-        if (existingAtPosition && existingAtPosition.name.trim().toLowerCase() === sp.name.trim().toLowerCase()) {
+        if (existingAtPosition && isNameMatch(existingAtPosition.name, sp.name)) {
           if (existingAtPosition.ttr_points === sp.ttrPoints) {
             bereitsAktuell++;
           } else {
@@ -428,7 +430,7 @@ export default function SportwartView() {
 
       // 4. Upsert scraped players
       for (const sp of scrapedPlayers) {
-        const existing = profiles.find(p => p.name.trim().toLowerCase() === sp.name.trim().toLowerCase());
+        const existing = profiles.find(p => isNameMatch(p.name, sp.name));
         let playerId = '';
 
         if (existing) {
@@ -436,6 +438,7 @@ export default function SportwartView() {
           const { error: updateErr } = await supabase
             .from('profiles')
             .update({
+              name: sp.name,
               team_number: sp.teamNumber,
               position_number: sp.positionNumber,
               ttr_points: sp.ttrPoints,

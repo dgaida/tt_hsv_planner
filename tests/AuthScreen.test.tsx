@@ -43,7 +43,7 @@ describe('AuthScreen', () => {
     // Renders profiles list next
     await waitFor(() => {
       expect(screen.getByText('TTV Spielplaner')).toBeDefined();
-      expect(screen.getByText('Max Mustermann (1600 TTR)')).toBeDefined();
+      expect(screen.getByText('Max M (1600 TTR)')).toBeDefined();
     });
   });
 

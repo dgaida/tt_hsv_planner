@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { syncTeamCalendar } from '../lib/syncEngine';
+import { getShortName } from '../lib/nameUtils';
 import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react';
 
 interface TeamTabViewProps {
@@ -800,8 +801,8 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                                 <span className="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.5 rounded shrink-0">
                                   {p.team_number && p.position_number ? `${p.team_number}.${p.position_number}` : 'Ersatz'}
                                 </span>
-                                <span className="font-semibold text-slate-800 truncate flex items-center gap-1" title={p.name}>
-                                  <span className="truncate">{p.name}</span>
+                                <span className="font-semibold text-slate-800 truncate flex items-center gap-1" title={getShortName(p.name)}>
+                                  <span className="truncate">{getShortName(p.name)}</span>
                                   {isSubstitute && (
                                     <span className="text-[9px] font-extrabold text-amber-700 bg-amber-100 border border-amber-200/60 px-1 py-0.5 rounded shrink-0 uppercase tracking-wider">
                                       Ersatz
@@ -892,7 +893,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                               : 'bg-amber-50 text-amber-800 border-amber-100'
                           }`}
                         >
-                          <span>{av.profiles?.name}</span>
+                          <span>{getShortName(av.profiles?.name || '')}</span>
                           <span>
                             {av.version_responded < match.version
                               ? '⚠️'

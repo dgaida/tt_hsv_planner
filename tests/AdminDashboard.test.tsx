@@ -73,7 +73,7 @@ describe('AdminDashboard', () => {
     await waitFor(() => {
       expect(screen.getByText('🛡️ Vereins-Administration')).toBeTruthy();
       expect(screen.getByText('Herren I')).toBeTruthy();
-      expect(screen.getByText('Max Mustermann')).toBeTruthy();
+      expect(screen.getByText('Max M')).toBeTruthy();
       expect(screen.getByText('Synchronisiert')).toBeTruthy();
     });
   });

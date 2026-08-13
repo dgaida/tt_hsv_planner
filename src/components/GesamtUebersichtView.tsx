@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { AlertTriangle, Clock, MapPin, User, ChevronRight, Check } from 'lucide-react';
+import { getShortName } from '../lib/nameUtils';
 
 export default function GesamtUebersichtView() {
   const [matches, setMatches] = useState<any[]>([]);
@@ -95,7 +96,7 @@ export default function GesamtUebersichtView() {
 
             list.push({
               id: `${playerId}-${matchA.id}-${matchB.id}`,
-              playerName: player.name,
+              playerName: getShortName(player.name),
               matchA,
               matchB,
               teamA,
@@ -296,7 +297,7 @@ export default function GesamtUebersichtView() {
                         <div className="space-y-2">
                           {stammAvail.map((av) => (
                             <div key={av.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-gray-150">
-                              <span className="font-semibold text-gray-800">{av.profiles?.name}</span>
+                              <span className="font-semibold text-gray-800">{getShortName(av.profiles?.name || '')}</span>
                               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-0.5">
                                 <Check className="h-3 w-3" /> Stamm
                               </span>
@@ -317,7 +318,7 @@ export default function GesamtUebersichtView() {
                           {helperAvail.map((av) => (
                             <div key={av.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-teal-100 shadow-sm">
                               <div>
-                                <span className="font-semibold text-teal-900">{av.profiles?.name}</span>
+                                <span className="font-semibold text-teal-900">{getShortName(av.profiles?.name || '')}</span>
                                 <span className="text-[10px] text-gray-400 block">Stamm: {getPlayerTeamsString(av.player_id)}</span>
                               </div>
                               <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md flex items-center gap-0.5">
@@ -335,7 +336,7 @@ export default function GesamtUebersichtView() {
                         <div className="flex flex-wrap gap-2">
                           {maybeAvs.map((av) => (
                             <div key={av.id} className="bg-white px-2.5 py-1 rounded-lg border border-gray-150 text-xs text-gray-700">
-                              <span className="font-semibold">{av.profiles?.name}</span> ({getPlayerTeamsString(av.player_id)})
+                              <span className="font-semibold">{getShortName(av.profiles?.name || '')}</span> ({getPlayerTeamsString(av.player_id)})
                               {av.comment && <span className="italic text-gray-400 block text-[10px] mt-0.5">💬 "{av.comment}"</span>}
                             </div>
                           ))}
