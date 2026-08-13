@@ -61,6 +61,115 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
     await loadData();
   };
 
+  const resolveRsvpConflicts = async (playerId: string) => {
+    try {
+      // 1. Fetch player profile to get their home team_number
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', playerId)
+        .single();
+
+      if (!profile) return;
+
+      // 2. Fetch all active teams sorted by name to find their home team ID
+      const { data: activeTeamsData } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+      const sortedTeams = activeTeamsData || [];
+
+      const homeTeamId = profile.team_number && sortedTeams[profile.team_number - 1]
+        ? sortedTeams[profile.team_number - 1].id
+        : null;
+
+      // 3. Fetch all yes availabilities for this player
+      const { data: avails, error: availsErr } = await supabase
+        .from('availabilities')
+        .select('*, matches(*)')
+        .eq('player_id', playerId)
+        .eq('response', 'yes');
+
+      if (availsErr || !avails) return;
+
+      // Filter to active matches only
+      const yesAvails = avails.filter(av => av.matches && av.matches.active);
+
+      if (yesAvails.length <= 1) return;
+
+      // 4. Group conflicts. Two matches conflict if they start within +- 1 hour (3600000ms)
+      const conflictsToResolve: Record<string, any[]> = {};
+      const processedMatchIds = new Set<string>();
+
+      for (let i = 0; i < yesAvails.length; i++) {
+        const av1 = yesAvails[i];
+        if (processedMatchIds.has(av1.match_id)) continue;
+
+        const group = [av1];
+        const t1 = new Date(av1.matches.dtstart).getTime();
+
+        for (let j = i + 1; j < yesAvails.length; j++) {
+          const av2 = yesAvails[j];
+          const t2 = new Date(av2.matches.dtstart).getTime();
+
+          if (Math.abs(t1 - t2) <= 3600000) {
+            group.push(av2);
+            processedMatchIds.add(av2.match_id);
+          }
+        }
+
+        if (group.length > 1) {
+          conflictsToResolve[av1.match_id] = group;
+          processedMatchIds.add(av1.match_id);
+        }
+      }
+
+      // 5. For each conflict group, determine which one to keep 'yes' and set others to 'no'
+      let conflictsResolved = false;
+      for (const matchId of Object.keys(conflictsToResolve)) {
+        const group = conflictsToResolve[matchId];
+
+        // Sort group by priority:
+        // A. If the match team matches their home team ID, that has highest priority
+        // B. Tie breaker: the one with the most recent updated_at timestamp
+        const sortedGroup = [...group].sort((a, b) => {
+          const aIsHomeTeam = a.matches.team_id === homeTeamId ? 1 : 0;
+          const bIsHomeTeam = b.matches.team_id === homeTeamId ? 1 : 0;
+
+          if (aIsHomeTeam !== bIsHomeTeam) {
+            return bIsHomeTeam - aIsHomeTeam; // 1 (home team) comes first
+          }
+
+          const aTime = new Date(a.updated_at || a.created_at).getTime();
+          const bTime = new Date(b.updated_at || b.created_at).getTime();
+          return bTime - aTime; // more recently updated comes first
+        });
+
+        const others = sortedGroup.slice(1);
+
+        for (const av of others) {
+          const { error: updErr } = await supabase
+            .from('availabilities')
+            .update({
+              response: 'no',
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', av.id);
+          if (!updErr) {
+            conflictsResolved = true;
+          }
+        }
+      }
+
+      if (conflictsResolved) {
+        await loadData();
+      }
+    } catch (err) {
+      console.error('Error resolving RSVP conflicts:', err);
+    }
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -140,6 +249,9 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   };
 
   useEffect(() => {
+    if (userId) {
+      resolveRsvpConflicts(userId);
+    }
     // Initial load only queries local DB to be fast
     loadData();
   }, [teamId, userId]);
@@ -186,6 +298,10 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
         .select('*, profiles(name)')
         .in('match_id', matches.map((m) => m.id));
       setAllAvailabilities(allAvail || []);
+
+      if (responseType === 'yes') {
+        await resolveRsvpConflicts(userId);
+      }
     } catch (err: any) {
       alert('Fehler beim Abgeben der Stimme: ' + err.message);
     }
@@ -478,6 +594,10 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                   .select('*, profiles(name)')
                   .in('match_id', matches.map((m) => m.id));
                 setAllAvailabilities(allAvail || []);
+
+                if (responseType === 'yes') {
+                  await resolveRsvpConflicts(playerId);
+                }
               } catch (err: any) {
                 alert('Fehler beim Aktualisieren der Verfügbarkeit: ' + err.message);
               }

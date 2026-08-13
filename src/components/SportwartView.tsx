@@ -14,6 +14,94 @@ const generateUUID = () => {
   });
 };
 
+interface ScrapedPlayer {
+  name: string;
+  teamNumber: number;
+  positionNumber: number;
+  ttrPoints: number;
+}
+
+function parseMeldungHtml(html: string): ScrapedPlayer[] {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const rows = doc.querySelectorAll('tr');
+  const scraped: ScrapedPlayer[] = [];
+
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 2) return;
+
+    // Check if one cell matches "X.Y" position format
+    let positionMatch: RegExpExecArray | null = null;
+    let positionCellIdx = -1;
+
+    for (let i = 0; i < cells.length; i++) {
+      const text = cells[i].textContent?.trim() || '';
+      // Match "1.1" or "2.3" but ignore spaces/newlines
+      const m = /^\s*(\d+)\.(\d+)\s*$/.exec(text);
+      if (m) {
+        positionMatch = m;
+        positionCellIdx = i;
+        break;
+      }
+    }
+
+    if (!positionMatch) return;
+
+    const teamNumber = parseInt(positionMatch[1], 10);
+    const positionNumber = parseInt(positionMatch[2], 10);
+
+    // Look for name. It's usually in a link inside the row or the next cell
+    let name = '';
+    const link = row.querySelector('a');
+    if (link) {
+      name = link.textContent?.trim() || '';
+    } else {
+      // Fallback: look at cells after position cell that contain comma
+      for (let i = positionCellIdx + 1; i < cells.length; i++) {
+        const txt = cells[i].textContent?.trim() || '';
+        if (txt.includes(',')) {
+          name = txt;
+          break;
+        }
+      }
+    }
+
+    if (!name) return;
+
+    // Normalize name "Lastname, Firstname" to "Firstname Lastname"
+    if (name.includes(',')) {
+      const parts = name.split(',').map(p => p.trim());
+      if (parts.length === 2) {
+        name = `${parts[1]} ${parts[0]}`;
+      }
+    }
+
+    // Look for TTR points (a 3 or 4 digit integer, usually >= 500)
+    let ttrPoints = 0;
+    for (let i = 0; i < cells.length; i++) {
+      const txt = cells[i].textContent?.trim() || '';
+      // Match a 3-4 digit number, ignore text around it if any, or must be pure number
+      const m = /^\s*(\d{3,4})\s*$/.exec(txt);
+      if (m) {
+        const val = parseInt(m[1], 10);
+        if (val >= 500 && val <= 3000) {
+          ttrPoints = val;
+        }
+      }
+    }
+
+    scraped.push({
+      name,
+      teamNumber,
+      positionNumber,
+      ttrPoints: ttrPoints || 1500, // default if not found
+    });
+  });
+
+  return scraped;
+}
+
 export default function SportwartView() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -24,6 +112,10 @@ export default function SportwartView() {
   const [registeredTeamsCount, setRegisteredTeamsCount] = useState<number>(3);
   const [savingSettings, setSavingSettings] = useState(false);
 
+  // Scraper Settings
+  const [scrapedSeason, setScrapedSeason] = useState('26--27');
+  const [scrapedRound, setScrapedRound] = useState<'vr' | 'rr'>('vr');
+
   // Player Form State
   const [isEditing, setIsEditing] = useState<string | null>(null); // 'new' or profile.id
   const [formName, setFormName] = useState('');
@@ -31,6 +123,117 @@ export default function SportwartView() {
   const [formTtrPoints, setFormTtrPoints] = useState<number>(1500);
   const [formTeamNumber, setFormTeamNumber] = useState<string>('');
   const [formPositionNumber, setFormPositionNumber] = useState<string>('');
+
+  const handleDownloadRoster = async () => {
+    if (!confirm('Achtung! Dadurch werden alle aktuell im Sportwart-Tab angegebenen Spieler durch die heruntergeladenen Spieler überschrieben. Möchtest du fortfahren?')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Fetch club number from club_settings
+      let clubNrValue = '21707';
+      try {
+        const { data: clubNrData } = await supabase
+          .from('club_settings')
+          .select('value')
+          .eq('key', 'club_nr')
+          .single();
+        if (clubNrData) clubNrValue = clubNrData.value;
+      } catch (e) {
+        console.log('No club_nr setting yet. Using default 21707.');
+      }
+
+      // 2. Build URL
+      const url = `https://www.mytischtennis.de/click-tt/WTTV/${scrapedSeason}/verein/${clubNrValue}/Heiligenhauser_SV/meldungendetails/E/${scrapedRound}`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
+      let html = '';
+      try {
+        const resp = await fetch(proxyUrl);
+        if (!resp.ok) throw new Error(`HTTP Error ${resp.status}`);
+        html = await resp.text();
+      } catch (proxyErr) {
+        // Fallback to direct fetch or codetabs proxy
+        const codetabsUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+        const resp = await fetch(codetabsUrl);
+        if (!resp.ok) throw new Error('CORS proxies failed.');
+        html = await resp.text();
+      }
+
+      const scrapedPlayers = parseMeldungHtml(html);
+      if (scrapedPlayers.length === 0) {
+        throw new Error('Keine Spieler auf der Seite gefunden. Bitte überprüfe die URL, die Saison und die Vereinsnummer.');
+      }
+
+      // 3. Clear existing team assignments & mappings
+      // Reset team_number and position_number for all existing profiles
+      const { error: resetErr } = await supabase
+        .from('profiles')
+        .update({ team_number: null, position_number: null });
+      if (resetErr) throw resetErr;
+
+      // Delete all team_players mappings
+      const { error: delErr } = await supabase
+        .from('team_players')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all rows
+      if (delErr) throw delErr;
+
+      // 4. Upsert scraped players
+      for (const sp of scrapedPlayers) {
+        // Check if player already exists by name
+        const existing = profiles.find(p => p.name.trim().toLowerCase() === sp.name.trim().toLowerCase());
+        let playerId = '';
+
+        if (existing) {
+          playerId = existing.id;
+          const { error: updateErr } = await supabase
+            .from('profiles')
+            .update({
+              team_number: sp.teamNumber,
+              position_number: sp.positionNumber,
+              ttr_points: sp.ttrPoints,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', playerId);
+          if (updateErr) throw updateErr;
+        } else {
+          playerId = generateUUID();
+          const { error: insertErr } = await supabase
+            .from('profiles')
+            .insert({
+              id: playerId,
+              name: sp.name,
+              role: 'player',
+              team_number: sp.teamNumber,
+              position_number: sp.positionNumber,
+              ttr_points: sp.ttrPoints,
+            });
+          if (insertErr) throw insertErr;
+        }
+
+        // Map to team_players
+        const targetTeam = teams[sp.teamNumber - 1];
+        if (targetTeam) {
+          const { error: mapErr } = await supabase
+            .from('team_players')
+            .insert({
+              team_id: targetTeam.id,
+              player_id: playerId,
+            });
+          if (mapErr) console.error('Error mapping to team_players:', mapErr);
+        }
+      }
+
+      alert(`Erfolgreich ${scrapedPlayers.length} Spieler heruntergeladen und importiert!`);
+      await loadData();
+    } catch (err: any) {
+      alert('Fehler beim Herunterladen der Spieler: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -271,6 +474,45 @@ export default function SportwartView() {
             className="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm"
           >
             Speichern
+          </button>
+        </div>
+      </div>
+
+      {/* Gemeldete Spieler importieren Section */}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+        <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
+          📥 Gemeldete Spieler aus click-tt importieren
+        </h3>
+        <p className="text-xs text-gray-500 max-w-xl">
+          Lade die offizielle Mannschaftsmeldung deines Vereins direkt von myTischtennis.de herunter. Alle gemeldeten Spieler, ihre Positionen und Q-TTR Punkte werden importiert und überschrieben.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end max-w-2xl">
+          <div>
+            <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Saison</label>
+            <input
+              type="text"
+              value={scrapedSeason}
+              onChange={(e) => setScrapedSeason(e.target.value)}
+              className="w-full px-3 py-2 border rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="z.B. 26--27"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-600 uppercase mb-1">Halbserie</label>
+            <select
+              value={scrapedRound}
+              onChange={(e) => setScrapedRound(e.target.value as any)}
+              className="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="vr">Vorrunde (vr)</option>
+              <option value="rr">Rückrunde (rr)</option>
+            </select>
+          </div>
+          <button
+            onClick={handleDownloadRoster}
+            className="w-full px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shrink-0"
+          >
+            📥 Spieler herunterladen
           </button>
         </div>
       </div>
