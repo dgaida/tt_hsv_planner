@@ -104,7 +104,7 @@ describe('GesamtUebersichtView', () => {
       expect(screen.getByText(/Gesamtübersicht/)).toBeTruthy();
       // Verifies conflict alert is shown because Max is 'yes' on two overlapping matches
       expect(screen.getByText(/Möglicher Terminkonflikt/)).toBeTruthy();
-      expect(screen.getAllByText('Max Mustermann').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Max M').length).toBeGreaterThan(0);
     });
 
     // Expand match to see details

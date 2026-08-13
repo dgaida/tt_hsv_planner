@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Plus, Check, Trash2 } from 'lucide-react';
+import { getShortName } from '../lib/nameUtils';
 
 interface TeamMatrixViewProps {
   teamId: string;
@@ -147,7 +148,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                 ) : (
                   teamPlayers.map((tp) => (
                     <div key={tp.id} className="flex items-center justify-between p-2.5 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-150 text-sm">
-                      <span className="font-semibold text-gray-800">{tp.profiles?.name}</span>
+                      <span className="font-semibold text-gray-800">{getShortName(tp.profiles?.name || '')}</span>
                       <button
                         onClick={() => handleRemovePlayerFromTeam(tp.id)}
                         className="p-1 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
@@ -170,7 +171,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                   .filter((p) => !teamPlayers.some((tp) => tp.player_id === p.id))
                   .map((p) => (
                     <div key={p.id} className="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-xl text-sm hover:border-teal-200 transition-all">
-                      <span className="font-medium text-gray-700">{p.name} ({p.role})</span>
+                      <span className="font-medium text-gray-700">{getShortName(p.name)} ({p.role})</span>
                       <button
                         onClick={() => handleAddPlayerToTeam(p.id)}
                         className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold rounded-lg text-xs transition-colors"
@@ -215,7 +216,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                     return (
                       <tr key={tp.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm font-semibold text-gray-800 sticky left-0 bg-white hover:bg-gray-50 z-10 border-r border-gray-150 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
-                          {player.name}
+                          {getShortName(player.name)}
                         </td>
                         {matches.map((m) => {
                           const av = availabilities.find(
@@ -236,7 +237,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
 
                                       if (val) {
                                         const enteredComment = window.prompt(
-                                          `Optionaler Kommentar für ${player.name} bei diesem Spiel:`,
+                                          `Optionaler Kommentar für ${getShortName(player.name)} bei diesem Spiel:`,
                                           comment
                                         );
                                         if (enteredComment !== null) {

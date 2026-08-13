@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { syncTeamCalendar } from '../lib/syncEngine';
+import { getShortName } from '../lib/nameUtils';
 import { RefreshCw, Shield, List, AlertCircle, Plus, Edit2, Check, X, ShieldAlert } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -447,7 +448,7 @@ export default function AdminDashboard() {
               {profiles.map((profile) => (
                 <div key={profile.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-150">
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">{profile.name}</p>
+                    <p className="text-sm font-semibold text-gray-800">{getShortName(profile.name)}</p>
                     <p className="text-[10px] text-gray-400">{profile.id.substring(0, 8)}...</p>
                   </div>
 

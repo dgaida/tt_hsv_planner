@@ -42,7 +42,7 @@ describe('AbsencesCalendarView Component', () => {
 
     // Assert months are displayed (we should have 4 months headings)
     await waitFor(() => {
-      expect(screen.getByText('Max Mustermann')).toBeDefined();
+      expect(screen.getByText('Max M')).toBeDefined();
     });
 
     // Check that we display the title

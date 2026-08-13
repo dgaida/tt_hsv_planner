@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { getShortName } from '../lib/nameUtils';
 
 interface AuthScreenProps {
   onSelectPlayer: (profile: any) => void;
@@ -235,7 +236,7 @@ export default function AuthScreen({ onSelectPlayer }: AuthScreenProps) {
                 <option value="" disabled>-- Bitte wählen --</option>
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} {p.ttr_points ? `(${p.ttr_points} TTR)` : ''}
+                    {getShortName(p.name)} {p.ttr_points ? `(${p.ttr_points} TTR)` : ''}
                   </option>
                 ))}
               </select>

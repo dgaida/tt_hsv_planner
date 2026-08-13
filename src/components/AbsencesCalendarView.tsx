@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Calendar, X, AlertCircle } from 'lucide-react';
+import { getShortName } from '../lib/nameUtils';
 
 export default function AbsencesCalendarView() {
   const [absences, setAbsences] = useState<any[]>([]);
@@ -168,7 +169,7 @@ export default function AbsencesCalendarView() {
             ) : (
               getAbsencesForDate(new Date(selectedCalendarDay)).map((abs) => (
                 <div key={abs.id} className="text-xs flex items-center justify-between p-2 bg-white rounded-lg border border-rose-100 shadow-sm">
-                  <span className="font-extrabold text-rose-800">{abs.profiles?.name}</span>
+                  <span className="font-extrabold text-rose-800">{getShortName(abs.profiles?.name || '')}</span>
                   <span className="text-gray-500 italic">
                     {abs.reason ? `💬 ${abs.reason}` : '(Kein Grund angegeben)'} (bis {new Date(abs.end_date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })})
                   </span>
@@ -193,7 +194,7 @@ export default function AbsencesCalendarView() {
               return (
                 <div key={abs.id} className="p-3 flex justify-between items-center text-xs hover:bg-gray-50 bg-white">
                   <div>
-                    <span className="font-bold text-gray-800">{abs.profiles?.name}</span>
+                    <span className="font-bold text-gray-800">{getShortName(abs.profiles?.name || '')}</span>
                     <span className="ml-2 text-rose-600 font-semibold bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded text-[10px]">
                       📅 {start === end.slice(0, 5) ? start : `${start} - ${end}`}
                     </span>
