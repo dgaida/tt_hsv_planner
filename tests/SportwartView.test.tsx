@@ -255,4 +255,123 @@ describe('SportwartView', () => {
       expect(supabase.from).toHaveBeenCalledWith('profiles');
     });
   });
+
+  it('supports pasting HTML manually as a fallback and correctly parses and displays the confirmation metrics', async () => {
+    const customProfiles = [
+      { id: 'p-1', name: 'Adrian Rink', role: 'player', ttr_points: 1555, team_number: 1, position_number: 1 },
+      { id: 'p-2', name: 'Markus Anhalt', role: 'player', ttr_points: 1500, team_number: 1, position_number: 2 },
+    ];
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: customProfiles, error: null }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+          insert: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { id: 'p-new' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'club_settings') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { key: 'registered_teams_count', value: '1' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'absences') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: mockAbsences, error: null }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          delete: vi.fn().mockReturnValue({
+            neq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+          insert: vi.fn().mockResolvedValue({ error: null }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    const htmlToPaste = `
+      <table>
+        <tbody>
+          <tr>
+            <td>1<!-- -->.<!-- -->1</td>
+            <td>1555</td>
+            <td><a href="...">Adrian Rink</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>1<!-- -->.<!-- -->2</td>
+            <td>1573</td>
+            <td><a href="...">Markus Anhalt</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const confirmSpy = vi.fn().mockReturnValue(true);
+    vi.stubGlobal('confirm', confirmSpy);
+
+    render(<SportwartView />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Sportwart-Dashboard/)).toBeTruthy();
+    });
+
+    const pasteBtn = screen.getByText(/HTML manuell einfügen/);
+    fireEvent.click(pasteBtn);
+
+    // Should render the textarea
+    const textarea = screen.getByPlaceholderText('<table ...> ... </table>');
+    expect(textarea).toBeTruthy();
+
+    fireEvent.change(textarea, { target: { value: htmlToPaste } });
+
+    const importStartBtn = screen.getByText(/Import starten/);
+    fireEvent.click(importStartBtn);
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalled();
+    });
+
+    const confirmCallMessage = confirmSpy.mock.calls[0][0];
+
+    expect(confirmCallMessage).toContain('Gefundene Spieler im HTML: 2');
+    expect(confirmCallMessage).toContain('Bereits aktuell: 1 Spieler');
+    expect(confirmCallMessage).toContain('Nur aktualisiert (Q-TTR Punkte geändert): 1 Spieler');
+    expect(confirmCallMessage).toContain('Ersetzt');
+    expect(confirmCallMessage).toContain('Q-TTR');
+
+    await waitFor(() => {
+      expect(supabase.from).toHaveBeenCalledWith('profiles');
+    });
+  });
 });

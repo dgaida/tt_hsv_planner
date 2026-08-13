@@ -136,7 +136,6 @@ function parseMeldungHtml(html: string): ScrapedPlayer[] {
     let positionCellIdx = -1;
 
     for (let i = 0; i < cells.length; i++) {
-      // Remove any HTML comments, non-breaking spaces, or whitespace
       let text = cells[i].innerHTML || '';
       text = text.replace(/<!--[\s\S]*?-->/g, ''); // remove comments
 
@@ -222,6 +221,10 @@ export default function SportwartView() {
   // Scraper Settings
   const [scrapedSeason, setScrapedSeason] = useState('26--27');
   const [scrapedRound, setScrapedRound] = useState<'vr' | 'rr'>('vr');
+
+  // Manual Paste fallback Settings
+  const [showPasteArea, setShowPasteArea] = useState(false);
+  const [manualHtml, setManualHtml] = useState('');
 
   // Player Form State
   const [isEditing, setIsEditing] = useState<string | null>(null); // 'new' or profile.id
@@ -352,7 +355,126 @@ export default function SportwartView() {
       alert(`Erfolgreich ${scrapedPlayers.length} Spieler heruntergeladen und importiert!`);
       await loadData();
     } catch (err: any) {
-      alert('Fehler beim Herunterladen der Spieler: ' + err.message);
+      alert(
+        `Fehler beim Herunterladen der Spieler: ${err.message}\n\n` +
+        `Tipp: Falls der automatische Download blockiert wurde (z.B. durch Browser-Sicherheitseinstellungen, Ad-Blocker oder Netzwerk-Einschränkungen), ` +
+        `kannst du den HTML-Code der click-tt Tabelle kopieren und über die Option "HTML manuell einfügen" direkt importieren!`
+      );
+      setShowPasteArea(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualImport = async (htmlToParse: string) => {
+    if (!htmlToParse.trim()) {
+      alert('Bitte füge zuerst den HTML-Code ein.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const scrapedPlayers = parseMeldungHtml(htmlToParse);
+      if (scrapedPlayers.length === 0) {
+        throw new Error('Keine Spieler im eingefügten HTML gefunden. Bitte stelle sicher, dass du die richtige Tabelle kopiert hast.');
+      }
+
+      // Calculate statistics before asking for confirmation
+      let bereitsAktuell = 0;
+      let nurAktualisiert = 0;
+      let ersetzt = 0;
+
+      scrapedPlayers.forEach((sp) => {
+        const existingAtPosition = profiles.find(
+          (p) => p.team_number === sp.teamNumber && p.position_number === sp.positionNumber
+        );
+
+        if (existingAtPosition && existingAtPosition.name.trim().toLowerCase() === sp.name.trim().toLowerCase()) {
+          if (existingAtPosition.ttr_points === sp.ttrPoints) {
+            bereitsAktuell++;
+          } else {
+            nurAktualisiert++;
+          }
+        } else {
+          ersetzt++;
+        }
+      });
+
+      const confirmMessage = `Achtung! Dadurch werden alle aktuell im Sportwart-Tab angegebenen Spieler durch die eingefügten Spieler überschrieben.\n\n` +
+        `Gefundene Spieler im HTML: ${scrapedPlayers.length}\n` +
+        `- Bereits aktuell: ${bereitsAktuell} Spieler (keine Änderung nötig)\n` +
+        `- Nur aktualisiert (Q-TTR Punkte geändert): ${nurAktualisiert} Spieler\n` +
+        `- Ersetzt (anderer Spielername auf Position oder neue Position): ${ersetzt} Spieler\n\n` +
+        `Möchtest du fortfahren und die Änderungen in die Datenbank übernehmen?`;
+
+      if (!confirm(confirmMessage)) {
+        setLoading(false);
+        return;
+      }
+
+      // 3. Clear existing team assignments & mappings
+      const { error: resetErr } = await supabase
+        .from('profiles')
+        .update({ team_number: null, position_number: null });
+      if (resetErr) throw resetErr;
+
+      const { error: delErr } = await supabase
+        .from('team_players')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      if (delErr) throw delErr;
+
+      // 4. Upsert scraped players
+      for (const sp of scrapedPlayers) {
+        const existing = profiles.find(p => p.name.trim().toLowerCase() === sp.name.trim().toLowerCase());
+        let playerId = '';
+
+        if (existing) {
+          playerId = existing.id;
+          const { error: updateErr } = await supabase
+            .from('profiles')
+            .update({
+              team_number: sp.teamNumber,
+              position_number: sp.positionNumber,
+              ttr_points: sp.ttrPoints,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', playerId);
+          if (updateErr) throw updateErr;
+        } else {
+          playerId = generateUUID();
+          const { error: insertErr } = await supabase
+            .from('profiles')
+            .insert({
+              id: playerId,
+              name: sp.name,
+              role: 'player',
+              team_number: sp.teamNumber,
+              position_number: sp.positionNumber,
+              ttr_points: sp.ttrPoints,
+            });
+          if (insertErr) throw insertErr;
+        }
+
+        // Map to team_players
+        const targetTeam = teams[sp.teamNumber - 1];
+        if (targetTeam) {
+          const { error: mapErr } = await supabase
+            .from('team_players')
+            .insert({
+              team_id: targetTeam.id,
+              player_id: playerId,
+            });
+          if (mapErr) console.error('Error mapping to team_players:', mapErr);
+        }
+      }
+
+      alert(`Erfolgreich ${scrapedPlayers.length} Spieler manuell importiert!`);
+      setManualHtml('');
+      setShowPasteArea(false);
+      await loadData();
+    } catch (err: any) {
+      alert('Fehler beim Importieren der Spieler: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -607,7 +729,7 @@ export default function SportwartView() {
           📥 Gemeldete Spieler aus click-tt importieren
         </h3>
         <p className="text-xs text-gray-500 max-w-xl">
-          Lade die offizielle Mannschaftsmeldung deines Vereins direkt von myTischtennis.de herunter. Alle gemeldeten Spieler, ihre Positionen und Q-TTR Punkte werden importiert und überschrieben.
+          Lade die offizielle Mannschaftsmeldung deines Vereins direkt von myTischtennis.de herunter oder füge den HTML-Code manuell ein. Alle gemeldeten Spieler, ihre Positionen und Q-TTR Punkte werden importiert und überschrieben.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end max-w-2xl">
           <div>
@@ -631,13 +753,45 @@ export default function SportwartView() {
               <option value="rr">Rückrunde (rr)</option>
             </select>
           </div>
-          <button
-            onClick={handleDownloadRoster}
-            className="w-full px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shrink-0"
-          >
-            📥 Spieler herunterladen
-          </button>
+          <div className="sm:col-span-3 flex flex-wrap gap-3 mt-2">
+            <button
+              onClick={handleDownloadRoster}
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm"
+            >
+              📥 Spieler herunterladen
+            </button>
+            <button
+              onClick={() => setShowPasteArea(!showPasteArea)}
+              className="px-4 py-2 bg-gray-150 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors shadow-sm border border-gray-250"
+            >
+              📋 HTML manuell einfügen
+            </button>
+          </div>
         </div>
+
+        {showPasteArea && (
+          <div className="border-t border-gray-150 pt-4 space-y-3">
+            <label className="block text-xs font-bold text-gray-600 uppercase">
+              HTML-Code der Tabelle oder click-tt Seite einfügen:
+            </label>
+            <p className="text-[11px] text-gray-400">
+              Kopiere den Quellcode der Tabelle auf der myTischtennis.de Seite (Meldungsdetails) und füge ihn hier ein.
+            </p>
+            <textarea
+              value={manualHtml}
+              onChange={(e) => setManualHtml(e.target.value)}
+              placeholder="<table ...> ... </table>"
+              className="w-full h-40 px-3 py-2 text-xs border rounded-xl font-mono focus:ring-2 focus:ring-teal-500 outline-none"
+            />
+            <button
+              onClick={() => handleManualImport(manualHtml)}
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors shadow-sm"
+              disabled={!manualHtml.trim()}
+            >
+              Import starten
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 2. Players Management */}
