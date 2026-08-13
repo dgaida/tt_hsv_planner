@@ -10,6 +10,8 @@ export default function AdminDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clubNr, setClubNr] = useState('21707');
+  const [savingClubNr, setSavingClubNr] = useState(false);
 
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -36,10 +38,38 @@ export default function AdminDashboard() {
         .order('started_at', { ascending: false })
         .limit(5);
       setSyncRuns(runsData || []);
+
+      try {
+        const { data: clubNrData } = await supabase
+          .from('club_settings')
+          .select('value')
+          .eq('key', 'club_nr')
+          .single();
+        if (clubNrData) {
+          setClubNr(clubNrData.value);
+        }
+      } catch (e) {
+        console.log('No club_nr setting yet.');
+      }
     } catch (err) {
       console.error('Error loading admin dashboard data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveClubNr = async () => {
+    setSavingClubNr(true);
+    try {
+      const { error } = await supabase
+        .from('club_settings')
+        .upsert({ key: 'club_nr', value: clubNr }, { onConflict: 'key' });
+      if (error) throw error;
+      alert('Vereinsnummer erfolgreich gespeichert!');
+    } catch (err: any) {
+      alert('Fehler beim Speichern der Vereinsnummer: ' + err.message);
+    } finally {
+      setSavingClubNr(false);
     }
   };
 
@@ -226,6 +256,31 @@ export default function AdminDashboard() {
               {syncFeedback}
             </p>
           )}
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+        <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
+          ⚙️ Allgemeine Vereinseinstellungen
+        </h3>
+        <div className="flex flex-col sm:flex-row items-end gap-4">
+          <div className="flex-1 max-w-xs">
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Vereinsnummer (click-tt / myTischtennis)</label>
+            <input
+              type="text"
+              value={clubNr}
+              onChange={(e) => setClubNr(e.target.value)}
+              className="w-full px-3 py-2 border rounded-xl text-sm font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="z.B. 21707"
+            />
+          </div>
+          <button
+            onClick={handleSaveClubNr}
+            disabled={savingClubNr}
+            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-colors disabled:opacity-50 shrink-0"
+          >
+            {savingClubNr ? 'Speichere...' : 'Speichern'}
+          </button>
         </div>
       </div>
 

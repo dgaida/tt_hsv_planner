@@ -3,12 +3,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamTabView from '../src/components/TeamTabView';
 import { supabase } from '../src/lib/supabaseClient';
+import { syncTeamCalendar } from '../src/lib/syncEngine';
 
 vi.mock('../src/lib/supabaseClient', () => {
   return {
     supabase: {
       from: vi.fn(),
     },
+  };
+});
+
+vi.mock('../src/lib/syncEngine', () => {
+  return {
+    syncTeamCalendar: vi.fn().mockResolvedValue({
+      status: 'success',
+      teamId: 'team-123',
+      teamName: 'Herren I',
+      message: 'Mock sync success',
+      added: 0,
+      updated: 0,
+      rescheduled: 0,
+      deactivated: 0,
+    }),
   };
 });
 
@@ -36,63 +52,43 @@ describe('TeamTabView', () => {
   ];
 
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('loads and renders team matches and user votes', async () => {
     const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: vi.fn().mockImplementation(() => queryMock),
+        insert: vi.fn().mockImplementation(() => queryMock),
+        update: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
       if (table === 'teams') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockResolvedValue({ data: [mockTeam], error: null }),
-              single: vi.fn().mockResolvedValue({ data: mockTeam, error: null }),
-            }),
-          }),
-        };
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
-              }),
-            }),
-          }),
-        };
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
       }
       if (table === 'profiles') {
-        return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: [], error: null }),
-          }),
-        };
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
       }
       if (table === 'availabilities') {
-        const queryMock = {
-          eq: vi.fn().mockReturnThis(),
-          in: vi.fn().mockResolvedValue({ data: mockUserAv, error: null }),
-          select: vi.fn().mockReturnThis(),
-        };
-        // Ensure chaining is supportable
-        queryMock.eq.mockReturnValue(queryMock);
-        return {
-          select: vi.fn().mockReturnValue(queryMock),
-        };
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockUserAv, error: null }).then(onFulfilled);
+        });
       }
-      if (table === 'match_changes') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: [], error: null }),
-              }),
-            }),
-          }),
-        };
-      }
-      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+
+      return queryMock;
     });
 
     vi.mocked(supabase.from).mockImplementation(fromMock as any);
@@ -135,57 +131,38 @@ describe('TeamTabView', () => {
     ];
 
     const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: vi.fn().mockImplementation(() => queryMock),
+        insert: vi.fn().mockImplementation(() => queryMock),
+        update: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
       if (table === 'teams') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              order: vi.fn().mockResolvedValue({ data: [mockTeam], error: null }),
-              single: vi.fn().mockResolvedValue({ data: mockTeam, error: null }),
-            }),
-          }),
-        };
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        return {
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
-              }),
-            }),
-          }),
-        };
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
       }
       if (table === 'profiles') {
-        return {
-          select: vi.fn().mockReturnValue({
-            order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
-          }),
-        };
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockProfiles, error: null });
       }
       if (table === 'availabilities') {
-        const queryMock = {
-          eq: vi.fn().mockReturnThis(),
-          in: vi.fn().mockResolvedValue({ data: mockAvs, error: null }),
-          select: vi.fn().mockReturnThis(),
-        };
-        queryMock.eq.mockReturnValue(queryMock);
-        return {
-          select: vi.fn().mockReturnValue(queryMock),
-        };
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockAvs, error: null }).then(onFulfilled);
+        });
       }
-      if (table === 'match_changes') {
-        return {
-          select: vi.fn().mockReturnValue({
-            in: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: [], error: null }),
-              }),
-            }),
-          }),
-        };
-      }
-      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+
+      return queryMock;
     });
 
     vi.mocked(supabase.from).mockImplementation(fromMock as any);
@@ -215,5 +192,131 @@ describe('TeamTabView', () => {
       // Player F (Priority 4, position 6, "Nein") should not be in the top 5 lineup because Player A (position 1) has higher ranking
       expect(lineupSection!.textContent).not.toContain('Player F');
     });
+  });
+
+  it('does NOT call syncTeamCalendar when a player clicks Aktualisieren', async () => {
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: vi.fn().mockImplementation(() => queryMock),
+        insert: vi.fn().mockImplementation(() => queryMock),
+        update: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockUserAv, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="player"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Herren I/)).toBeTruthy();
+    });
+
+    const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
+    expect(refreshBtn).toBeTruthy();
+
+    fireEvent.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Daten aus Datenbank neu geladen/)).toBeTruthy();
+    });
+
+    expect(syncTeamCalendar).not.toHaveBeenCalled();
+  });
+
+  it('calls syncTeamCalendar when a team manager clicks Aktualisieren', async () => {
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: vi.fn().mockImplementation(() => queryMock),
+        insert: vi.fn().mockImplementation(() => queryMock),
+        update: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockUserAv, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Herren I/)).toBeTruthy();
+    });
+
+    const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
+    expect(refreshBtn).toBeTruthy();
+
+    fireEvent.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erfolgreich synchronisiert! Neue Spiele: 0/)).toBeTruthy();
+    });
+
+    expect(syncTeamCalendar).toHaveBeenCalledWith(expect.anything(), mockTeamId);
   });
 });
