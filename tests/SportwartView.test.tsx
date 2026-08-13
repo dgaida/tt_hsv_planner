@@ -138,6 +138,7 @@ describe('SportwartView', () => {
           }),
           update: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({ error: null }),
+            neq: vi.fn().mockResolvedValue({ error: null }),
           }),
           insert: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({
@@ -270,6 +271,7 @@ describe('SportwartView', () => {
           }),
           update: vi.fn().mockReturnValue({
             eq: vi.fn().mockResolvedValue({ error: null }),
+            neq: vi.fn().mockResolvedValue({ error: null }),
           }),
           insert: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({

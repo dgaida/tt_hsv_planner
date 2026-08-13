@@ -296,7 +296,8 @@ export default function SportwartView() {
       // Reset team_number and position_number for all existing profiles
       const { error: resetErr } = await supabase
         .from('profiles')
-        .update({ team_number: null, position_number: null });
+        .update({ team_number: null, position_number: null })
+        .neq('id', '00000000-0000-0000-0000-000000000000');
       if (resetErr) throw resetErr;
 
       // Delete all team_players mappings
@@ -415,7 +416,8 @@ export default function SportwartView() {
       // 3. Clear existing team assignments & mappings
       const { error: resetErr } = await supabase
         .from('profiles')
-        .update({ team_number: null, position_number: null });
+        .update({ team_number: null, position_number: null })
+        .neq('id', '00000000-0000-0000-0000-000000000000');
       if (resetErr) throw resetErr;
 
       const { error: delErr } = await supabase
