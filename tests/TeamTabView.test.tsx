@@ -3,12 +3,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamTabView from '../src/components/TeamTabView';
 import { supabase } from '../src/lib/supabaseClient';
+import { syncTeamCalendar } from '../src/lib/syncEngine';
 
 vi.mock('../src/lib/supabaseClient', () => {
   return {
     supabase: {
       from: vi.fn(),
     },
+  };
+});
+
+vi.mock('../src/lib/syncEngine', () => {
+  return {
+    syncTeamCalendar: vi.fn().mockResolvedValue({
+      status: 'success',
+      teamId: 'team-123',
+      teamName: 'Herren I',
+      message: 'Mock sync success',
+      added: 0,
+      updated: 0,
+      rescheduled: 0,
+      deactivated: 0,
+    }),
   };
 });
 
@@ -36,7 +52,7 @@ describe('TeamTabView', () => {
   ];
 
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('loads and renders team matches and user votes', async () => {
@@ -215,5 +231,169 @@ describe('TeamTabView', () => {
       // Player F (Priority 4, position 6, "Nein") should not be in the top 5 lineup because Player A (position 1) has higher ranking
       expect(lineupSection!.textContent).not.toContain('Player F');
     });
+  });
+
+  it('does NOT call syncTeamCalendar when a player clicks Aktualisieren', async () => {
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: [mockTeam], error: null }),
+              single: vi.fn().mockResolvedValue({ data: mockTeam, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      if (table === 'availabilities') {
+        const queryMock = {
+          eq: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({ data: mockUserAv, error: null }),
+          select: vi.fn().mockReturnThis(),
+        };
+        queryMock.eq.mockReturnValue(queryMock);
+        return {
+          select: vi.fn().mockReturnValue(queryMock),
+        };
+      }
+      if (table === 'match_changes') {
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: [], error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="player"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Herren I/)).toBeTruthy();
+    });
+
+    const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
+    expect(refreshBtn).toBeTruthy();
+
+    fireEvent.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Daten aus Datenbank neu geladen/)).toBeTruthy();
+    });
+
+    expect(syncTeamCalendar).not.toHaveBeenCalled();
+  });
+
+  it('calls syncTeamCalendar when a team manager clicks Aktualisieren', async () => {
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: [mockTeam], error: null }),
+              single: vi.fn().mockResolvedValue({ data: mockTeam, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      if (table === 'availabilities') {
+        const queryMock = {
+          eq: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({ data: mockUserAv, error: null }),
+          select: vi.fn().mockReturnThis(),
+        };
+        queryMock.eq.mockReturnValue(queryMock);
+        return {
+          select: vi.fn().mockReturnValue(queryMock),
+        };
+      }
+      if (table === 'match_changes') {
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: [], error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Herren I/)).toBeTruthy();
+    });
+
+    const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
+    expect(refreshBtn).toBeTruthy();
+
+    fireEvent.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erfolgreich synchronisiert! Neue Spiele: 0/)).toBeTruthy();
+    });
+
+    expect(syncTeamCalendar).toHaveBeenCalledWith(expect.anything(), mockTeamId);
   });
 });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { syncTeamCalendar } from '../lib/syncEngine';
 import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react';
 
 interface TeamTabViewProps {
@@ -19,6 +20,46 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   const [teamName, setTeamName] = useState('');
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [activeTeams, setActiveTeams] = useState<any[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+
+  const handleRefresh = async () => {
+    // If the user has an elevated role (team_manager, sportwart, club_admin),
+    // we also sync their calendar with myTischtennis.de online Webcal.
+    // Standard players only reload from the local Supabase database.
+    const isElevatedRole = userRole === 'team_manager' || userRole === 'sportwart' || userRole === 'club_admin' || isClubAdmin;
+
+    if (isElevatedRole) {
+      setSyncing(true);
+      setSyncFeedback('Online-Kalender wird auf Änderungen geprüft...');
+      try {
+        const res = await syncTeamCalendar(supabase, teamId);
+        if (res.status === 'success') {
+          setSyncFeedback(
+            `Erfolgreich synchronisiert! Neue Spiele: ${res.added}, Verlegt: ${res.rescheduled}, Details geändert: ${res.updated}, Inaktiviert: ${res.deactivated}.`
+          );
+        } else {
+          setSyncFeedback(`Synchronisierung fehlgeschlagen: ${res.message}`);
+        }
+      } catch (err: any) {
+        console.error('Error syncing team calendar:', err);
+        setSyncFeedback(`Fehler bei der Synchronisierung: ${err.message}`);
+      } finally {
+        setSyncing(false);
+        // Clear feedback after 8 seconds
+        setTimeout(() => {
+          setSyncFeedback(null);
+        }, 8000);
+      }
+    } else {
+      setSyncFeedback('Daten aus Datenbank neu geladen.');
+      setTimeout(() => {
+        setSyncFeedback(null);
+      }, 4000);
+    }
+
+    await loadData();
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -99,6 +140,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   };
 
   useEffect(() => {
+    // Initial load only queries local DB to be fast
     loadData();
   }, [teamId, userId]);
 
@@ -320,19 +362,32 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div>
+        <div className="space-y-1">
           <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
             🏓 {teamName || 'Mannschaft'}
           </h2>
           <p className="text-sm text-gray-500">
             {matches.length} anstehende Spiele im Kalender
           </p>
+          {syncFeedback && (
+            <p className="text-xs text-teal-700 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-150 inline-block animate-fade-in mt-1">
+              {syncFeedback}
+            </p>
+          )}
         </div>
         <button
-          onClick={loadData}
-          className="text-sm px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold rounded-xl transition-colors self-start"
+          onClick={handleRefresh}
+          disabled={syncing}
+          className="text-sm px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold rounded-xl transition-colors self-start disabled:opacity-50 flex items-center gap-2"
         >
-          🔄 Aktualisieren
+          {syncing ? (
+            <>
+              <div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-teal-700"></div>
+              <span>Synchronisiere...</span>
+            </>
+          ) : (
+            <span>🔄 Aktualisieren</span>
+          )}
         </button>
       </div>
 
