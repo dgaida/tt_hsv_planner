@@ -21,6 +21,106 @@ interface ScrapedPlayer {
   ttrPoints: number;
 }
 
+async function fetchHtmlText(url: string): Promise<string> {
+  const errors: string[] = [];
+  const maxRetries = 3;
+
+  // 1. Try api.allorigins.win RAW endpoint with retries
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const rawUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      const resp = await fetch(rawUrl);
+      if (resp.ok) {
+        const text = await resp.text();
+        if (text && text.toLowerCase().includes('<table')) {
+          return text;
+        }
+        errors.push(`AllOrigins RAW (Versuch ${attempt}/${maxRetries}): Antwort enthält keine Tabellendaten.`);
+      } else {
+        errors.push(`AllOrigins RAW (Versuch ${attempt}/${maxRetries}): HTTP-Fehler ${resp.status}`);
+      }
+    } catch (err: any) {
+      errors.push(`AllOrigins RAW (Versuch ${attempt}/${maxRetries}) Fehler: ${err.message}`);
+    }
+    if (attempt < maxRetries) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  // 2. Try api.allorigins.win JSON /get endpoint with retries
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const resp = await fetch(allOriginsUrl);
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json && json.contents) {
+          let content = '';
+          if (json.contents.startsWith('data:')) {
+            const commaIdx = json.contents.indexOf(',');
+            if (commaIdx !== -1) {
+              const base64Str = json.contents.substring(commaIdx + 1);
+              const binary = atob(base64Str);
+              const bytes = new Uint8Array(binary.split('').map(c => c.charCodeAt(0)));
+              content = new TextDecoder('utf-8').decode(bytes);
+            }
+          } else {
+            content = json.contents;
+          }
+          if (content && content.toLowerCase().includes('<table')) {
+            return content;
+          }
+          errors.push(`AllOrigins /get (Versuch ${attempt}/${maxRetries}): Parsierter Inhalt enthält keine Tabellendaten.`);
+        } else {
+          errors.push(`AllOrigins /get (Versuch ${attempt}/${maxRetries}): 'contents'-Feld fehlt in der Antwort.`);
+        }
+      } else {
+        errors.push(`AllOrigins /get (Versuch ${attempt}/${maxRetries}): HTTP-Fehler ${resp.status}`);
+      }
+    } catch (err: any) {
+      errors.push(`AllOrigins /get (Versuch ${attempt}/${maxRetries}) Fehler: ${err.message}`);
+    }
+    if (attempt < maxRetries) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  // 3. Try codetabs proxy
+  try {
+    const codetabsUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+    const resp = await fetch(codetabsUrl);
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text && text.toLowerCase().includes('<table')) {
+        return text;
+      }
+      errors.push(`Codetabs Proxy: Antwort enthält keine Tabellendaten.`);
+    } else {
+      errors.push(`Codetabs Proxy: HTTP-Fehler ${resp.status}`);
+    }
+  } catch (err: any) {
+    errors.push(`Codetabs Proxy Fehler: ${err.message}`);
+  }
+
+  // 4. Try direct fetch
+  try {
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text && text.toLowerCase().includes('<table')) {
+        return text;
+      }
+      errors.push(`Direkter Abruf: Antwort enthält keine Tabellendaten.`);
+    } else {
+      errors.push(`Direkter Abruf: HTTP-Fehler ${resp.status}`);
+    }
+  } catch (err: any) {
+    errors.push(`Direkter Abruf Fehler: ${err.message}`);
+  }
+
+  throw new Error(`Alle Verbindungsmethoden zum Download sind fehlgeschlagen.\nDetails:\n- ${errors.join('\n- ')}`);
+}
+
 function parseMeldungHtml(html: string): ScrapedPlayer[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
@@ -36,9 +136,16 @@ function parseMeldungHtml(html: string): ScrapedPlayer[] {
     let positionCellIdx = -1;
 
     for (let i = 0; i < cells.length; i++) {
-      const text = cells[i].textContent?.trim() || '';
-      // Match "1.1" or "2.3" but ignore spaces/newlines
-      const m = /^\s*(\d+)\.(\d+)\s*$/.exec(text);
+      // Remove any HTML comments, non-breaking spaces, or whitespace
+      let text = cells[i].innerHTML || '';
+      text = text.replace(/<!--[\s\S]*?-->/g, ''); // remove comments
+
+      const parserTmp = new DOMParser();
+      const docTmp = parserTmp.parseFromString(text, 'text/html');
+      const cleanText = (docTmp.body.textContent || '').replace(/\u00a0/g, ' ').trim();
+
+      // Match "1.1" or "2.3" or "3.12" etc., possibly with whitespace
+      const m = /^\s*(\d+)\s*\.\s*(\d+)\s*$/.exec(cleanText);
       if (m) {
         positionMatch = m;
         positionCellIdx = i;
@@ -77,10 +184,10 @@ function parseMeldungHtml(html: string): ScrapedPlayer[] {
       }
     }
 
-    // Look for TTR points (a 3 or 4 digit integer, usually >= 500)
+    // Look for Q-TTR points (a 3 or 4 digit integer, usually >= 500)
     let ttrPoints = 0;
     for (let i = 0; i < cells.length; i++) {
-      const txt = cells[i].textContent?.trim() || '';
+      const txt = cells[i].textContent?.replace(/\u00a0/g, ' ').trim() || '';
       // Match a 3-4 digit number, ignore text around it if any, or must be pure number
       const m = /^\s*(\d{3,4})\s*$/.exec(txt);
       if (m) {
@@ -95,7 +202,7 @@ function parseMeldungHtml(html: string): ScrapedPlayer[] {
       name,
       teamNumber,
       positionNumber,
-      ttrPoints: ttrPoints || 1500, // default if not found
+      ttrPoints: ttrPoints || 0, // 0 means no Q-TTR points found (or not yet rated)
     });
   });
 
@@ -125,10 +232,6 @@ export default function SportwartView() {
   const [formPositionNumber, setFormPositionNumber] = useState<string>('');
 
   const handleDownloadRoster = async () => {
-    if (!confirm('Achtung! Dadurch werden alle aktuell im Sportwart-Tab angegebenen Spieler durch die heruntergeladenen Spieler überschrieben. Möchtest du fortfahren?')) {
-      return;
-    }
-
     setLoading(true);
     try {
       // 1. Fetch club number from club_settings
@@ -146,24 +249,44 @@ export default function SportwartView() {
 
       // 2. Build URL
       const url = `https://www.mytischtennis.de/click-tt/WTTV/${scrapedSeason}/verein/${clubNrValue}/Heiligenhauser_SV/meldungendetails/E/${scrapedRound}`;
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
 
-      let html = '';
-      try {
-        const resp = await fetch(proxyUrl);
-        if (!resp.ok) throw new Error(`HTTP Error ${resp.status}`);
-        html = await resp.text();
-      } catch (proxyErr) {
-        // Fallback to direct fetch or codetabs proxy
-        const codetabsUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
-        const resp = await fetch(codetabsUrl);
-        if (!resp.ok) throw new Error('CORS proxies failed.');
-        html = await resp.text();
-      }
-
+      const html = await fetchHtmlText(url);
       const scrapedPlayers = parseMeldungHtml(html);
       if (scrapedPlayers.length === 0) {
         throw new Error('Keine Spieler auf der Seite gefunden. Bitte überprüfe die URL, die Saison und die Vereinsnummer.');
+      }
+
+      // Calculate statistics before asking for confirmation
+      let bereitsAktuell = 0;
+      let nurAktualisiert = 0;
+      let ersetzt = 0;
+
+      scrapedPlayers.forEach((sp) => {
+        const existingAtPosition = profiles.find(
+          (p) => p.team_number === sp.teamNumber && p.position_number === sp.positionNumber
+        );
+
+        if (existingAtPosition && existingAtPosition.name.trim().toLowerCase() === sp.name.trim().toLowerCase()) {
+          if (existingAtPosition.ttr_points === sp.ttrPoints) {
+            bereitsAktuell++;
+          } else {
+            nurAktualisiert++;
+          }
+        } else {
+          ersetzt++;
+        }
+      });
+
+      const confirmMessage = `Achtung! Dadurch werden alle aktuell im Sportwart-Tab angegebenen Spieler durch die heruntergeladenen Spieler überschrieben.\n\n` +
+        `Online gefundene Spieler: ${scrapedPlayers.length}\n` +
+        `- Bereits aktuell: ${bereitsAktuell} Spieler (keine Änderung nötig)\n` +
+        `- Nur aktualisiert (Q-TTR Punkte geändert): ${nurAktualisiert} Spieler\n` +
+        `- Ersetzt (anderer Spielername auf Position oder neue Position): ${ersetzt} Spieler\n\n` +
+        `Möchtest du fortfahren und die Änderungen in die Datenbank übernehmen?`;
+
+      if (!confirm(confirmMessage)) {
+        setLoading(false);
+        return;
       }
 
       // 3. Clear existing team assignments & mappings
