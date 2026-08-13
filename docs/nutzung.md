@@ -39,8 +39,8 @@ Als Spieler steht für dich die schnelle Rückmeldung und deine persönliche Pla
 * Gib ein Start- und Enddatum sowie einen optionalen Grund ein.  
 * Diese Abwesenheiten werden dem Sportwart, den Mannschaftsführern und den Admins übersichtlich in ihrem 4-Monats-Abwesenheitskalender angezeigt.  
 
-#### 5. Aktualisieren-Button (Datenabgleich)
-* Wenn du im Mannschafts-Tab auf **"🔄 Aktualisieren"** klickst, wird dein lokaler Stand direkt mit der Datenbank abgeglichen. Es findet kein erneuter Abruf des Online-Kalenders von myTischtennis.de statt, was Ladezeit spart und Schnittstellen-Sperren (Rate Limits) verhindert.
+#### 5. Aktualisieren-Button (Datenabgleich)  
+* Wenn du im Mannschafts-Tab auf **"🔄 Aktualisieren"** klickst, wird dein lokaler Stand direkt mit der Datenbank abgeglichen. Es findet kein erneuter Abruf des Online-Kalenders von myTischtennis.de statt, was Ladezeit spart und Schnittstellen-Sperren (Rate Limits) verhindert.  
 
 ---
 
@@ -62,9 +62,9 @@ Als Mannschaftsführer bist du für die Aufstellung und Pflege deines Teams vera
 #### 4. Abwesenheits-Kalender  
 * Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate (jeweils zwei Monate nebeneinander) anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund. Das erleichtert die langfristige Suche nach Ersatzspielern erheblich.  
 
-#### 5. On-Demand Online-Kalendersynchronisation
-* Wenn du als Mannschaftsführer im Mannschafts-Tab auf **"🔄 Aktualisieren"** klickst, wird der Online-Kalender von myTischtennis.de für deine Mannschaft live im Hintergrund auf Änderungen, neue Spiele oder Spielabsagen geprüft.
-* Das Ergebnis wird dir direkt neben dem Button als Bestätigung angezeigt (z. B. wie viele Spiele hinzugefügt, aktualisiert oder verschoben wurden). Erst danach werden die Termine neu aus der Datenbank geladen.
+#### 5. On-Demand Online-Kalendersynchronisation  
+* Wenn du als Mannschaftsführer im Mannschafts-Tab auf **"🔄 Aktualisieren"** klickst, wird der Online-Kalender von myTischtennis.de für deine Mannschaft live im Hintergrund auf Änderungen, neue Spiele oder Spielabsagen geprüft.  
+* Das Ergebnis wird dir direkt neben dem Button als Bestätigung angezeigt (z. B. wie viele Spiele hinzugefügt, aktualisiert oder verschoben wurden). Erst danach werden die Termine neu aus der Datenbank geladen.  
 
 ---
 

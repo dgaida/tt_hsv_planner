@@ -2,7 +2,7 @@
 
 Dieses Repository enthält eine vollständige, produktionsreife und smartphone-optimierte Web-Anwendung zur Organisation der Spielbereitschaft für Tischtennis-Vereine.
 
-![Version](https://img.shields.io/badge/version-1.0.1-blue)
+[![Version](https://img.shields.io/github/v/tag/dgaida/tt_hsv_planner?label=version)](https://github.com/dgaida/tt_hsv_planner/tags)
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://dgaida.github.io/tt_hsv_planner/)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/dgaida/tt_hsv_planner/graphs/commit-activity)
 ![Last commit](https://img.shields.io/github/last-commit/dgaida/tt_hsv_planner)

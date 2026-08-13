@@ -102,9 +102,9 @@ Der Abgleich mit myTischtennis.de ist hochgradig ausfallsicher implementiert:
 3. Das System erhöht `match_version` um `1` und speichert die Änderung in `match_changes`.  
 4. Das Frontend vergleicht bei der Darstellung die `answered_version` der Rückmeldung mit der aktuellen `match_version` des Spiels. Bei einer Abweichung wird die Stimme als archiviert betrachtet, und im Frontend erscheint das Warnsymbol (⚠️) für eine erneute Bestätigung.  
 
-### On-Demand Synchronisation im Mannschafts-Tab (Rollenbasiert)
-* **Verhalten bei Spielern (`player`):** Der Klick auf den Button "🔄 Aktualisieren" ruft ausschließlich das lokale Laden der Daten über `loadData()` auf, welches die Tabellen `matches`, `profiles`, `availabilities` und `match_changes` direkt aus der Supabase-Datenbank abfragt. Dies schont Ressourcen und vermeidet API-Sperren bei häufiger Nutzung.
-* **Verhalten bei erhöhten Rollen (`team_manager`, `sportwart`, `club_admin`):** Der Klick auf den Button "🔄 Aktualisieren" führt zuerst die clientseitige Kalender-Sync-Engine `syncTeamCalendar(supabase, teamId)` für das spezifische Team aus. Diese lädt den Online-ICS-Kalender über einen CORS-Proxy live herunter, gleicht ihn mit den bestehenden Terminen in der Datenbank ab (erstellt ggf. neue Spiele oder `match_changes` bei Verlegungen) und führt erst im Anschluss das lokale `loadData()` aus. So können Mannschaftsführer und Vereinsfunktionäre Spielplan-Verschiebungen in Echtzeit und on-demand abfragen.
+### On-Demand Synchronisation im Mannschafts-Tab (Rollenbasiert)  
+* **Verhalten bei Spielern (`player`):** Der Klick auf den Button "🔄 Aktualisieren" ruft ausschließlich das lokale Laden der Daten über `loadData()` auf, welches die Tabellen `matches`, `profiles`, `availabilities` und `match_changes` direkt aus der Supabase-Datenbank abfragt. Dies schont Ressourcen und vermeidet API-Sperren bei häufiger Nutzung.  
+* **Verhalten bei erhöhten Rollen (`team_manager`, `sportwart`, `club_admin`):** Der Klick auf den Button "🔄 Aktualisieren" führt zuerst die clientseitige Kalender-Sync-Engine `syncTeamCalendar(supabase, teamId)` für das spezifische Team aus. Diese lädt den Online-ICS-Kalender über einen CORS-Proxy live herunter, gleicht ihn mit den bestehenden Terminen in der Datenbank ab (erstellt ggf. neue Spiele oder `match_changes` bei Verlegungen) und führt erst im Anschluss das lokale `loadData()` aus. So können Mannschaftsführer und Vereinsfunktionäre Spielplan-Verschiebungen in Echtzeit und on-demand abfragen.  
 
 ---
 
