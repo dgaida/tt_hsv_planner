@@ -117,4 +117,261 @@ describe('SportwartView', () => {
       expect(supabase.from).toHaveBeenCalledWith('profiles');
     });
   });
+
+  it('scrapes rosters and correctly calculates and displays metrics in the confirm dialog before proceeding', async () => {
+    // 1. Setup mocked profiles in supabase to compare with scraped players
+    // We will have "Max Mustermann" at 1.1 (1600 TTR) and "Mia Musterfrau" at 1.2 (1500 TTR)
+    // The scraped HTML will have:
+    // - 1.1 with 1600 (Max Mustermann) -> Bereits aktuell
+    // - 1.2 with 1573 (Mia Musterfrau) -> Nur aktualisiert (Q-TTR points change)
+    // - 1.3 with 1555 (Birgit Matthies) -> Ersetzt (New / different player at position)
+    const customProfiles = [
+      { id: 'p-1', name: 'Max Mustermann', role: 'player', ttr_points: 1600, team_number: 1, position_number: 1 },
+      { id: 'p-2', name: 'Mia Musterfrau', role: 'player', ttr_points: 1500, team_number: 1, position_number: 2 },
+    ];
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: customProfiles, error: null }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+          insert: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { id: 'p-new' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'club_settings') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { key: 'registered_teams_count', value: '1' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'absences') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: mockAbsences, error: null }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          delete: vi.fn().mockReturnValue({
+            neq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+          insert: vi.fn().mockResolvedValue({ error: null }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    // Mock HTML content with comments and non-breaking spaces
+    const htmlResponse = `
+      <table>
+        <thead>
+          <tr><th>Rang</th><th>QTTR</th><th>Name</th><th>A</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1<!-- -->.<!-- -->1</td>
+            <td>1600</td>
+            <td><a href="...">Max Mustermann</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>1<!-- -->.<!-- -->2</td>
+            <td>1573</td>
+            <td><a href="...">Mia Musterfrau</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>1<!-- -->.<!-- -->3</td>
+            <td>1555</td>
+            <td><a href="...">Birgit Matthies</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(htmlResponse),
+      json: vi.fn().mockResolvedValue({ contents: htmlResponse })
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const confirmSpy = vi.fn().mockReturnValue(true);
+    vi.stubGlobal('confirm', confirmSpy);
+
+    render(<SportwartView />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Sportwart-Dashboard/)).toBeTruthy();
+    });
+
+    const downloadBtn = screen.getByText('📥 Spieler herunterladen');
+    fireEvent.click(downloadBtn);
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalled();
+    });
+
+    const confirmCallMessage = confirmSpy.mock.calls[0][0];
+
+    // Assert metrics details are in the confirm message
+    expect(confirmCallMessage).toContain('Online gefundene Spieler: 3');
+    expect(confirmCallMessage).toContain('Bereits aktuell: 1 Spieler');
+    expect(confirmCallMessage).toContain('Nur aktualisiert (Q-TTR Punkte geändert): 1 Spieler');
+    expect(confirmCallMessage).toContain('Ersetzt (anderer Spielername auf Position oder neue Position): 1 Spieler');
+    expect(confirmCallMessage).toContain('Q-TTR');
+    expect(confirmCallMessage).not.toContain(' Nur aktualisiert (TTR'); // ensures we used Q-TTR not TTR
+
+    // Since confirm mock returned true, check if reset & update were called
+    await waitFor(() => {
+      // should reset profiles
+      expect(supabase.from).toHaveBeenCalledWith('profiles');
+    });
+  });
+
+  it('supports pasting HTML manually as a fallback and correctly parses and displays the confirmation metrics', async () => {
+    const customProfiles = [
+      { id: 'p-1', name: 'Adrian Rink', role: 'player', ttr_points: 1555, team_number: 1, position_number: 1 },
+      { id: 'p-2', name: 'Markus Anhalt', role: 'player', ttr_points: 1500, team_number: 1, position_number: 2 },
+    ];
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: customProfiles, error: null }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+          insert: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { id: 'p-new' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'club_settings') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { key: 'registered_teams_count', value: '1' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'absences') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: mockAbsences, error: null }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          delete: vi.fn().mockReturnValue({
+            neq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+          insert: vi.fn().mockResolvedValue({ error: null }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    const htmlToPaste = `
+      <table>
+        <tbody>
+          <tr>
+            <td>1<!-- -->.<!-- -->1</td>
+            <td>1555</td>
+            <td><a href="...">Adrian Rink</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>1<!-- -->.<!-- -->2</td>
+            <td>1573</td>
+            <td><a href="...">Markus Anhalt</a></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    const confirmSpy = vi.fn().mockReturnValue(true);
+    vi.stubGlobal('confirm', confirmSpy);
+
+    render(<SportwartView />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Sportwart-Dashboard/)).toBeTruthy();
+    });
+
+    const pasteBtn = screen.getByText(/HTML manuell einfügen/);
+    fireEvent.click(pasteBtn);
+
+    // Should render the textarea
+    const textarea = screen.getByPlaceholderText('<table ...> ... </table>');
+    expect(textarea).toBeTruthy();
+
+    fireEvent.change(textarea, { target: { value: htmlToPaste } });
+
+    const importStartBtn = screen.getByText(/Import starten/);
+    fireEvent.click(importStartBtn);
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalled();
+    });
+
+    const confirmCallMessage = confirmSpy.mock.calls[0][0];
+
+    expect(confirmCallMessage).toContain('Gefundene Spieler im HTML: 2');
+    expect(confirmCallMessage).toContain('Bereits aktuell: 1 Spieler');
+    expect(confirmCallMessage).toContain('Nur aktualisiert (Q-TTR Punkte geändert): 1 Spieler');
+    expect(confirmCallMessage).toContain('Ersetzt');
+    expect(confirmCallMessage).toContain('Q-TTR');
+
+    await waitFor(() => {
+      expect(supabase.from).toHaveBeenCalledWith('profiles');
+    });
+  });
 });
