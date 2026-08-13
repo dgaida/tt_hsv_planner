@@ -29,22 +29,22 @@ Dieser Fehler tritt meistens nach dem Ausführen einer Datenbank-Migration (z. B
 
 #### Lösungswege (der Reihe nach ausprobieren):
 
-1. **Cache-Neuaufbau erzwingen (SQL Editor):**
+1. **Cache-Neuaufbau erzwingen (SQL Editor):**  
    Führe folgenden Befehl im **SQL Editor** in Supabase aus, um den Cache manuell neu zu laden:
    ```sql
    NOTIFY pgrst, 'reload schema';
    ```
-2. **Benachrichtigungswarteschlange leeren:**
+2. **Benachrichtigungswarteschlange leeren:**  
    Sollte Schritt 1 blockiert sein, hilft dieser Befehl, um die Postgres-Queue im Hintergrund zu bereinigen:
    ```sql
    SELECT pg_notification_queue_usage();
    ```
-3. **API-Einstellung im Dashboard toggeln (Erzwingt Backend-Rebuild):**
-   * Gehe im Supabase-Dashboard auf **Project Settings** > **Data API**.
-   * Nimm eine minimale Änderung vor (z. B. kurz eine Einstellung umschalten oder ein Schema hinzufügen/entfernen) und klicke auf **Save**. Dies zwingt Supabase, den Cache komplett neu aufzubauen.
-4. **Projekt pausieren & fortsetzen (Harter Neustart):**
-   * Klicke im Supabase-Dashboard unten links auf das Zahnrad-Symbol und wähle **Pause Project**.
-   * Warte 2 Minuten und klicke dann auf **Resume Project**. Dadurch wird der gesamte Container neu gestartet und liest das Schema frisch ein.
+3. **API-Einstellung im Dashboard toggeln (Erzwingt Backend-Rebuild):**  
+   * Gehe im Supabase-Dashboard auf **Project Settings** > **Data API**.  
+   * Nimm eine minimale Änderung vor (z. B. kurz eine Einstellung umschalten oder ein Schema hinzufügen/entfernen) und klicke auf **Save**. Dies zwingt Supabase, den Cache komplett neu aufzubauen.  
+4. **Projekt pausieren & fortsetzen (Harter Neustart):**  
+   * Klicke im Supabase-Dashboard unten links auf das Zahnrad-Symbol und wähle **Pause Project**.  
+   * Warte 2 Minuten und klicke dann auf **Resume Project**. Dadurch wird der gesamte Container neu gestartet und liest das Schema frisch ein.  
 
 ---
 
@@ -53,18 +53,18 @@ Supabase verwendet für neue Projekte standardmäßig eine eingebaute E-Mail-Sch
 
 #### Lösungswege:
 
-* **Weg 1: E-Mail-Bestätigung komplett deaktivieren (Empfohlen für schnellen Start):**
-  Wenn du keine E-Mail-Verifizierung benötigst, kannst du diese einfach abschalten. Benutzer sind dann sofort nach der Registrierung aktiv und eingeloggt:
-  1. Gehe im Supabase-Dashboard auf **Authentication** > **Providers** > **Email**.
-  2. Deaktiviere die Option **"Confirm email"** und klicke auf **Save**.
-* **Weg 2: Eigenen SMTP-Server hinterlegen:**
-  Für den produktiven Betrieb solltest du einen professionellen E-Mail-Dienst (z. B. Resend, SendGrid, Mailgun) anbinden:
-  1. Gehe in Supabase zu **Project Settings** > **Auth** > **SMTP Settings**.
-  2. Trage dort die Zugangsdaten deines E-Mail-Providers ein.
+* **Weg 1: E-Mail-Bestätigung komplett deaktivieren (Empfohlen für schnellen Start):**  
+  Wenn du keine E-Mail-Verifizierung benötigst, kannst du diese einfach abschalten. Benutzer sind dann sofort nach der Registrierung aktiv und eingeloggt:  
+  1. Gehe im Supabase-Dashboard auf **Authentication** > **Providers** > **Email**.  
+  2. Deaktiviere die Option **"Confirm email"** und klicke auf **Save**.  
+* **Weg 2: Eigenen SMTP-Server hinterlegen:**  
+  Für den produktiven Betrieb solltest du einen professionellen E-Mail-Dienst (z. B. Resend, SendGrid, Mailgun) anbinden:  
+  1. Gehe in Supabase zu **Project Settings** > **Auth** > **SMTP Settings**.  
+  2. Trage dort die Zugangsdaten deines E-Mail-Providers ein.  
 
 ---
 
-### Fehler C: Webcal-Synchronisation schlägt fehl oder importiert keine Spiele
-* **CORS-Blockade im Browser (Manueller Sync):** Der clientseitige Fallback versucht, CORS-Blockaden über öffentliche Proxies zu umgehen. Wenn diese temporär überlastet sind, kann der Sync fehlschlagen. Versuche es in diesem Fall nach einigen Minuten erneut.
-* **Ungültiger Link:** Stelle sicher, dass der Webcal-Link exakt so eingetragen ist, wie von myTischtennis.de bereitgestellt. Das System korrigiert das Protokoll `webcal://` automatisch zu `https://`, aber Tippfehler in der URL verhindern den Download.
-* **Keine Spiele im Kalender:** Prüfe auf myTischtennis.de, ob für die betroffene Mannschaft und den aktuellen Zeitraum tatsächlich Spiele im Webcal-Kalender hinterlegt sind.
+### Fehler C: Webcal-Synchronisation schlägt fehl oder importiert keine Spiele  
+* **CORS-Blockade im Browser (Manueller Sync):** Der clientseitige Fallback versucht, CORS-Blockaden über öffentliche Proxies zu umgehen. Wenn diese temporär überlastet sind, kann der Sync fehlschlagen. Versuche es in diesem Fall nach einigen Minuten erneut.  
+* **Ungültiger Link:** Stelle sicher, dass der Webcal-Link exakt so eingetragen ist, wie von myTischtennis.de bereitgestellt. Das System korrigiert das Protokoll `webcal://` automatisch zu `https://`, aber Tippfehler in der URL verhindern den Download.  
+* **Keine Spiele im Kalender:** Prüfe auf myTischtennis.de, ob für die betroffene Mannschaft und den aktuellen Zeitraum tatsächlich Spiele im Webcal-Kalender hinterlegt sind.  
