@@ -319,4 +319,76 @@ describe('TeamTabView', () => {
 
     expect(syncTeamCalendar).toHaveBeenCalledWith(expect.anything(), mockTeamId);
   });
+
+  it('deletes availability record when switching back to "Keine Antwort" in lineup dropdown', async () => {
+    const mockProfiles = [
+      { id: mockUserId, name: 'Max', team_number: 1, position_number: 1, role: 'team_manager' },
+    ];
+    const mockAvs = [
+      { id: 'av-123', match_id: 'm-1', player_id: mockUserId, response: 'yes', version_responded: 1, profiles: { name: 'Max' } },
+    ];
+
+    const deleteMock = vi.fn().mockImplementation(() => ({
+      eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+    }));
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: deleteMock,
+        insert: vi.fn().mockImplementation(() => queryMock),
+        update: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockProfiles, error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockAvs, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Herren I/)).toBeTruthy();
+    });
+
+    const selectElem = screen.getByDisplayValue('Ja');
+    expect(selectElem).toBeTruthy();
+
+    fireEvent.change(selectElem, { target: { value: '' } });
+
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalled();
+    });
+  });
 });

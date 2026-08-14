@@ -564,29 +564,39 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
               handleUpdateLineupOrder(match.id, orderIds);
             };
 
-            const handleUpdatePlayerResponse = async (playerId: string, responseType: 'yes' | 'no' | 'maybe') => {
+            const handleUpdatePlayerResponse = async (playerId: string, responseType: 'yes' | 'no' | 'maybe' | '') => {
               const existingAv = matchAvails.find((a) => a.player_id === playerId);
               try {
-                if (existingAv) {
-                  const { error } = await supabase
-                    .from('availabilities')
-                    .update({
-                      response: responseType,
-                      version_responded: match.version,
-                      updated_at: new Date().toISOString(),
-                    })
-                    .eq('id', existingAv.id);
-                  if (error) throw error;
+                if (responseType) {
+                  if (existingAv) {
+                    const { error } = await supabase
+                      .from('availabilities')
+                      .update({
+                        response: responseType,
+                        version_responded: match.version,
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq('id', existingAv.id);
+                    if (error) throw error;
+                  } else {
+                    const { error } = await supabase
+                      .from('availabilities')
+                      .insert({
+                        match_id: match.id,
+                        player_id: playerId,
+                        response: responseType,
+                        version_responded: match.version,
+                      });
+                    if (error) throw error;
+                  }
                 } else {
-                  const { error } = await supabase
-                    .from('availabilities')
-                    .insert({
-                      match_id: match.id,
-                      player_id: playerId,
-                      response: responseType,
-                      version_responded: match.version,
-                    });
-                  if (error) throw error;
+                  if (existingAv) {
+                    const { error } = await supabase
+                      .from('availabilities')
+                      .delete()
+                      .eq('id', existingAv.id);
+                    if (error) throw error;
+                  }
                 }
 
                 // Refresh data
