@@ -14,15 +14,15 @@ Die gesamte Plattform ist vor unbefugtem Zugriff geschützt. Beim ersten Besuch 
 ### Registrierung & Automatische Profil-Verknüpfung
 Damit Spieler ihre Accounts registrieren können, ohne dass mühsam im Nachhinein manuell Berechtigungen, TTR-Punkte oder Mannschaftszuordnungen verknüpft werden müssen, verwendet die Plattform eine **intelligente, automatische Namenserkennung**:
 
-* **Vorarbeit durch den Verein:** Der Sportwart oder Administrator importiert bzw. pflegt die Spieler-Datenbank im Voraus (z. B. über den HTML-Kader-Import). Hierbei existieren die Spieler mit ihrem vollen Namen (z. B. `"Max Mustermann"`), werden jedoch im Tool datenschutzfreundlich abgekürzt dargestellt (z. B. `"Max M"`).
-* **Der Registrierungsprozess:**
-  * Ein Spieler registriert sich neu im System mit seiner E-Mail-Adresse, einem Passwort und seinem **vollen Namen** (z. B. `"Max Mustermann"`).
-  * Das System vergleicht diesen Namen (ohne Berücksichtigung von Groß-/Kleinschreibung und führenden/nachfolgenden Leerzeichen) mit der bereits existierenden Liste der importierten Profile.
-  * Wird eine Übereinstimmung gefunden, **verknüpft das System dieses bestehende Profil sofort und vollautomatisch mit dem neuen Benutzer-Account**.
-* **Vorteile der automatischen Verknüpfung:**
-  * **Erhalt aller Daten:** Alle historischen Rückmeldungen (RSVPs), Abwesenheiten, Mannschaftszuordnungen, TTR-Punkte und bereits vorgenommenen Aufstellungen (Lineups) bleiben nahtlos erhalten.
-  * **Kein Administrativer Aufwand:** Es muss kein Administrator manuell eingreifen, um dem neu registrierten Account sein Profil zuzuordnen.
-  * **Cascade-Sicherheit:** Durch datenbankseitige CASCADE-Regeln werden alle Tabellenreferenzen sicher auf die neue Benutzer-ID umgeschrieben.
+* **Vorarbeit durch den Verein:** Der Sportwart oder Administrator importiert bzw. pflegt die Spieler-Datenbank im Voraus (z. B. über den HTML-Kader-Import). Hierbei existieren die Spieler mit ihrem vollen Namen (z. B. `"Max Mustermann"`), werden jedoch im Tool datenschutzfreundlich abgekürzt dargestellt (z. B. `"Max M"`).  
+* **Der Registrierungsprozess:**  
+  * Ein Spieler registriert sich neu im System mit seiner E-Mail-Adresse, einem Passwort und seinem **vollen Namen** (z. B. `"Max Mustermann"`).  
+  * Das System vergleicht diesen Namen (ohne Berücksichtigung von Groß-/Kleinschreibung und führenden/nachfolgenden Leerzeichen) mit der bereits existierenden Liste der importierten Profile.  
+  * Wird eine Übereinstimmung gefunden, **verknüpft das System dieses bestehende Profil sofort und vollautomatisch mit dem neuen Benutzer-Account**.  
+* **Vorteile der automatischen Verknüpfung:**  
+  * **Erhalt aller Daten:** Alle historischen Rückmeldungen (RSVPs), Abwesenheiten, Mannschaftszuordnungen, TTR-Punkte und bereits vorgenommenen Aufstellungen (Lineups) bleiben nahtlos erhalten.  
+  * **Kein Administrativer Aufwand:** Es muss kein Administrator manuell eingreifen, um dem neu registrierten Account sein Profil zuzuordnen.  
+  * **Cascade-Sicherheit:** Durch datenbankseitige CASCADE-Regeln werden alle Tabellenreferenzen sicher auf die neue Benutzer-ID umgeschrieben.  
 
 ---
 
