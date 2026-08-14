@@ -42,14 +42,14 @@ describe('GuideView Component', () => {
     render(<GuideView role="team_manager" />);
 
     expect(screen.getByText('Funktionen für Mannschaftsführer')).toBeDefined();
-    expect(screen.getByText(/2\. Team-Matrix & Rückmeldungen/)).toBeDefined();
+    expect(screen.getByText(/2\. Spieler & Ersatzspieler zu Spielen hinzufügen/)).toBeDefined();
   });
 
   test('renders sportwart role correctly by default', () => {
     render(<GuideView role="sportwart" />);
 
     expect(screen.getByText('Funktionen für Sportwart')).toBeDefined();
-    expect(screen.getByText(/2\. 4-Monats-Abwesenheits-Kalender/)).toBeDefined();
+    expect(screen.getByText(/2\. Aufstellungs-Kontrolle & Lineups/)).toBeDefined();
   });
 
   test('renders club_admin role correctly by default', () => {
