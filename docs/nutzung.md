@@ -63,19 +63,34 @@ Als Mannschaftsführer bist du für die Aufstellung und Pflege deines Teams vera
 #### 1. Anmeldung  
 * **Wichtig:** Du musst dich zwingend mit deiner **E-Mail und deinem Passwort anmelden**, um deine erweiterten Rechte freizuschalten. Bei einer passwortlosen Anmeldung über das Dropdown wirst du vom System als normaler Spieler eingestuft!  
 
-#### 2. Kaderpflege (Spieler zuordnen)  
-* Im Admin-Bereich (oder direkt in deiner Mannschaftsansicht) kannst du festlegen, welche Spieler fest zu deiner Mannschaft gehören (Stammspieler).  
-* Du kannst Spieler zu deiner Mannschaft hinzufügen oder sie entfernen.  
+#### 2. Spieler & Ersatzspieler zu Spielen hinzufügen (RSVP-Steuerung)
+Du kannst Rückmeldungen (Zusagen/Absagen) für dein Team direkt eintragen und steuern. Dies ist ideal, wenn dir ein Spieler mündlich, per E-Mail oder per WhatsApp Bescheid gibt:
+* **Wo finde ich das?** Navigiere zum Reiter **"Mannschaften"** und wähle deine Mannschaft aus. In der Aufstellungsliste des jeweiligen Spiels ("Aufstellung (Stamm 1-4 / Ersatz)") befindet sich neben jedem Spieler ein Dropdown-Feld mit den Statuswerten "Ja", "Nein", "Vielleicht" und "Keine Antwort".
+* **Ersatzspieler hinzufügen:** Wenn ein spielberechtigter Spieler eines anderen Teams aushelfen soll, muss er entweder selbst für das Spiel zugesagt haben, oder du änderst seinen RSVP-Status auf "Ja" (bzw. lässt dies tun). Sobald er zugesagt hat, rückt er automatisch in die Aufstellung nach.
+* **Berechtigungs-Einschränkung:** Du kannst die RSVPs deiner eigenen Stammspieler jederzeit ändern. Für Ersatzspieler (Spieler anderer Mannschaften) gilt: **Nur der Mannschaftsführer ihrer jeweiligen Stamm-Mannschaft** (oder Sportwarte/Admins) kann deren Rückmelde-Status ändern. Das verhindert ungewollte RSVP-Manipulationen zwischen den Mannschaften.
 
-#### 3. Team-Matrix & Rückmelde-Status  
-* Im Reiter **"Team-Matrix"** siehst du alle Spiele deiner Mannschaft und alle deine Spieler in einer kompakten Tabelle.  
-* Du erkennst sofort auf einen Blick, wer zugesagt, abgesagt, noch nicht geantwortet oder eine Bemerkung hinterlassen hat.  
-* **Rückmeldungen für Ersatzspieler:** Du kannst die RSVP-Verfügbarkeiten von Ersatzspielern (Substitutes) bearbeiten, um kurzfristige Änderungen am Spieltag festzuhalten.  
+#### 3. Automatische Mannschaftsaufstellung & Sortier-Logik (Lineup-Engine)
+Die Aufstellung pro Spiel (maximal 5 Spieler auf dem Spielbericht) wird automatisch berechnet und sortiert:
+* **A. Kandidaten-Auswahl:** Das System sucht alle offiziellen Stammspieler deiner Mannschaft und kombiniert sie mit allen externen Spielern (Ersatzspielern), die eine Rückmeldung abgegeben haben.
+* **B. RSVP-Priorität (4-Stufen-Logik):** Die Kandidaten werden primär nach ihrer Rückmeldung sortiert:
+  1. **Ja (Zusage):** Haben höchste Priorität und wandern ganz nach oben.
+  2. **Keine Antwort (unentschieden):** Werden nachrangig aufgeführt.
+  3. **Vielleicht:** Stehen an dritter Stelle.
+  4. **Nein (Absage):** Werden ans Ende der Liste einsortiert.
+* **C. Vereinsrangfolge (Tie-Breaker):** Haben mehrere Spieler denselben RSVP-Status (z. B. vier Spieler haben "Ja" zugesagt), entscheidet die feste Rangfolge im Verein (bestimmt durch den Sportwart):
+  * **Team-Nummer** aufsteigend ➔ **Positions-Nummer** aufsteigend ➔ **Name** alphabetisch.
+  * Dadurch rücken bei Ausfällen automatisch die stärksten/nächstbesten verfügbaren Spieler des Vereins nach.
+* **D. Der Kader (4 Stamm + 1 Ersatz):** Aus der sortierten Liste werden die Top 5 Spieler genommen. Die ersten 4 Spieler bilden die Stammaufstellung des Spiels. Der 5. Spieler wird deutlich als **"Ersatz"** (mit amberfarbener Markierung und "Ersatz"-Badge) dargestellt.
+* **E. Manuelle Reihenfolge (Reorder):** Du kannst diese Standard-Berechnung manuell überschreiben, indem du die Schaltflächen **▲** (nach oben) und **▼** (nach unten) neben dem Namen des Spielers verwendest. Dies ist ideal für taktische Aufstellungen. Die geänderte Reihenfolge wird sofort für das Spiel in der Datenbank hinterlegt.
 
-#### 4. Abwesenheits-Kalender  
+#### 4. Team-Matrix
+* Im Reiter **"Team-Matrix"** siehst du alle Spiele deiner Mannschaft und alle deine Spieler in einer kompakten Tabelle.
+* Du erkennst sofort auf einen Blick, wer zugesagt, abgesagt, noch nicht geantwortet oder eine Bemerkung hinterlassen hat.
+
+#### 5. Abwesenheits-Kalender
 * Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate (jeweils zwei Monate nebeneinander) anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund. Das erleichtert die langfristige Suche nach Ersatzspielern erheblich.  
 
-#### 5. On-Demand Online-Kalendersynchronisation  
+#### 6. On-Demand Online-Kalendersynchronisation
 * Wenn du als Mannschaftsführer im Mannschafts-Tab auf **"🔄 Aktualisieren"** klickst, wird der Online-Kalender von myTischtennis.de für deine Mannschaft live im Hintergrund auf Änderungen, neue Spiele oder Spielabsagen geprüft.  
 * Das Ergebnis wird dir direkt neben dem Button als Bestätigung angezeigt (z. B. wie viele Spiele hinzugefügt, aktualisiert oder verschoben wurden). Erst danach werden die Termine neu aus der Datenbank geladen.  
 
@@ -92,14 +107,22 @@ Als Sportwart hast du die sportliche Gesamtleitung des Vereins und planst die Au
 * Du kannst für jeden Spieler die aktuellen **TTR-Punkte** eintragen.  
 * Weise den Spielern ihre feste Position im Verein zu (z. B. `team_number = 1` und `position_number = 3` für Team 1, Position 3). Dies bestimmt die automatische Nachrücker-Hierarchie bei Ersatzspielern.  
 
-#### 3. 4-Monats-Abwesenheits-Planer  
+#### 3. HTML-Kader-Import & Abgleich
+* Über die Import-Funktion im Sportwart-Reiter kannst du die Mannschaftsmeldung (HTML-Kopie von myTischtennis.de) einfügen.
+* Das System führt im Hintergrund einen intelligenten Abgleich durch und zeigt farblich gruppiert an:
+  * **Bereits aktuell:** Keine Änderungen erforderlich.
+  * **Nur aktualisiert:** TTR-Punkte oder Positionen haben sich geändert.
+  * **Ersetzt:** Spieler wurden ersetzt oder neu hinzugefügt.
+* Erst nach deiner ausdrücklichen Bestätigung werden die Daten übernommen.
+
+#### 4. 4-Monats-Abwesenheits-Planer
 * Du hast Zugriff auf eine kalendarische Übersicht der kommenden 4 Monate in einem dedizierten Reiter **"Abwesenheits-Kalender"**.  
 * Alle Abwesenheiten der Spieler werden farbig in einer Tages-Matrix visualisiert (zwei Monate nebeneinander dargestellt).  
 * Klickst du auf einen Tag, siehst du im Detail, wer an diesem Tag aus welchen Gründen (Urlaub, Arbeit, etc.) fehlt.  
 
-#### 4. Aufstellungs-Kontrolle (Lineup)  
+#### 5. Aufstellungs-Kontrolle & mannschaftsübergreifendes Lineup
 * In der Gesamtübersicht siehst du für jedes Spiel die automatisch berechnete Aufstellung (Top 4 Stammspieler, ergänzt durch die am besten platzierten Ersatzspieler mit Zusage).  
-* Du kannst die berechnete Aufstellung manuell überschreiben, um taktische Aufstellungen festzulegen.  
+* Als Sportwart hast du das Recht, **die Aufstellungen aller Mannschaften manuell zu sortieren (▲/▼) oder die Rückmeldungen (RSVP) von beliebigen Spielern direkt über die Aufstellungsliste im Mannschafts-Reiter zu bearbeiten**, um Ausfälle mannschaftsübergreifend optimal zu koordinieren.
 
 ---
 

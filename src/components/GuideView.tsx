@@ -215,7 +215,67 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      📊 2. Team-Matrix & Rückmeldungen
+                      🏓 2. Spieler & Ersatzspieler zu Spielen hinzufügen (RSVP-Steuerung)
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Du kannst die Rückmeldungen für Spiele deiner Mannschaft direkt steuern. Das ist besonders nützlich, wenn ein Spieler dir mündlich oder per WhatsApp zusagt:
+                    </p>
+                    <ul className="list-disc pl-4 mt-1.5 space-y-1 text-xs text-gray-500">
+                      <li>
+                        <strong>Wo:</strong> Navigiere zum Reiter <strong>"Mannschaften"</strong> und wähle deine Mannschaft aus. In der Aufstellungs-Liste ("Aufstellung (Stamm 1-4 / Ersatz)") des jeweiligen Spiels findest du neben den Spielern ein <strong>Dropdown-Auswahlfeld</strong> (z.B. mit "Ja", "Nein", "Vielleicht", "Keine Antwort").
+                      </li>
+                      <li>
+                        <strong>Ersatzspieler hinzufügen:</strong> Wenn ein externer Spieler (Ersatzspieler) aushelfen möchte, muss dieser entweder selbst für das Spiel zugestimmt haben, oder du änderst seinen Status in der Liste auf "Ja". Sobald er eine Zusage hat, wird er automatisch in das Lineup deines Spiels aufgenommen.
+                      </li>
+                      <li>
+                        <strong>Berechtigungsregel:</strong> Du kannst die Rückmeldungen all deiner Stammspieler ändern. Für Ersatzspieler gilt: Nur der Mannschaftsführer <strong>seiner registrierten Stamm-Mannschaft</strong> (oder Sportwarte/Admins) kann dessen RSVP-Status ändern. So wird verhindert, dass andere Teams unerlaubt über die Verfügbarkeit fremder Spieler bestimmen.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
+                      ⚙️ 3. Logik der Mannschaftsaufstellung (Lineup-Engine)
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Die Aufstellungsliste pro Spiel (Kader von maximal 5 Spielern) wird vollautomatisch nach einer klaren Logik berechnet und sortiert:
+                    </p>
+                    <div className="space-y-2 mt-2 pl-2 border-l-2 border-teal-500 text-xs text-gray-500">
+                      <p>
+                        <strong>A. Pool der Kandidaten:</strong> Der Pool besteht aus allen fest zugeordneten Stammspielern deines Teams sowie allen externen Spielern (Ersatzspielern), die eine Rückmeldung für dieses Spiel abgegeben haben.
+                      </p>
+                      <p>
+                        <strong>B. RSVP-Priorität (4-Stufen-Logik):</strong> Alle Kandidaten werden zuerst nach ihrer Rückmeldung für dieses Spiel gruppiert und priorisiert:
+                      </p>
+                      <ol className="list-decimal pl-4 space-y-0.5">
+                        <li><strong className="text-emerald-700">Ja (Zusage):</strong> Haben die höchste Priorität und rücken ganz nach oben.</li>
+                        <li><strong>Keine Antwort:</strong> Werden als Standby behandelt und folgen danach.</li>
+                        <li><strong className="text-amber-700">Vielleicht:</strong> Stehen an dritter Stelle.</li>
+                        <li><strong className="text-rose-700">Nein (Absage):</strong> Rutschen ganz ans Ende.</li>
+                      </ol>
+                      <p>
+                        <strong>C. Vereinsrangfolge (Tie-Breaker):</strong> Haben mehrere Spieler denselben RSVP-Status (z. B. drei Spieler mit "Ja"), entscheidet die offizielle Rangfolge im Verein. Diese ist sortiert nach:
+                        <br />
+                        <span className="font-mono bg-gray-100 px-1 py-0.2 rounded text-[10px]">Mannschaftsnummer aufsteigend ➔ Positionsnummer aufsteigend ➔ Name alphabetisch</span>
+                        <br />
+                        Dadurch rücken bei Ausfällen automatisch die nächstbesten, verfügbaren Spieler des Vereins nach.
+                      </p>
+                      <p>
+                        <strong>D. Die "Top 5" & der Ersatzspieler-Status:</strong> Das System wählt die besten 5 Spieler aus dieser sortierten Liste aus:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        <li>Die ersten <strong>vier Spieler</strong> (Index 1 bis 4) bilden die Kern-Aufstellung.</li>
+                        <li>Der <strong>fünfte Spieler</strong> (Index 5) wird deutlich sichtbar als <strong>"Ersatz"</strong> markiert (warme gelbe Hintergrundfarbe & Ersatz-Badge).</li>
+                      </ul>
+                      <p>
+                        <strong>E. Manuelle Sortierung (Reorder):</strong> Als Mannschaftsführer kannst du diese Standard-Reihenfolge mit den Schaltflächen <strong className="text-slate-700">▲</strong> und <strong className="text-slate-700">▼</strong> auf der rechten Seite der Spielerzeile manuell anpassen (z.B. für taktische Aufstellungen). Diese manuelle Reihenfolge wird sofort in der Datenbank gespeichert und überschreibt die Standardberechnung.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
+                      📊 4. Team-Matrix
                     </h4>
                     <p className="text-xs text-gray-500">
                       Unterhalb der Spieleliste deiner Mannschaft siehst du die <strong>Team-Matrix</strong>. Hier erkennst du auf einen Blick, wer zugesagt, abgesagt, noch nicht geantwortet oder eine Bemerkung hinterlassen hat.
@@ -224,19 +284,10 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      ⚙️ 3. Kader verwalten & Ersatzspieler-RSVP
+                      📅 5. Abwesenheits-Kalender
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Du kannst Spieler fest zu deiner Mannschaft als Stammspieler zuordnen oder entfernen (in der Matrix oder im Sportwart/Admin-Reiter falls berechtigt). Außerdem hast du das Recht, die Rückmeldungen von Ersatzspielern für deine Teamspiele anzupassen, um kurzfristige Änderungen festzuhalten.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
-                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      📅 4. Abwesenheits-Kalender
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      Im neuen Reiter <strong>"Abwesenheits-Kalender"</strong> siehst du die kommenden 4 Monate (2 Monate nebeneinander) an Abwesenheiten aller Vereinsmitglieder gesammelt. Klicke auf einen Tag, um Details zu sehen, wer fehlt und warum, damit du besser für Ersatz sorgen kannst.
+                      Im Reiter <strong>"Abwesenheits-Kalender"</strong> siehst du die kommenden 4 Monate (2 Monate nebeneinander) an Abwesenheiten aller Vereinsmitglieder gesammelt. Klicke auf einen Tag, um Details zu sehen, wer fehlt und warum, damit du besser für Ersatz sorgen kannst.
                     </p>
                   </div>
                 </div>
@@ -255,25 +306,34 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                       🛠️ 1. Spieler & TTR-Punkte verwalten
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Im Reiter <strong>"Sportwart"</strong> kannst du neue Spielerprofile anlegen (ohne dass diese ein Supabase-Konto benötigen), TTR-Punkte aktualisieren und ihre Vereinsrangfolge (Team- & Positionsnummer) festlegen. Diese Rangfolge steuert die automatische Nachrücker-Hierarchie bei Ersatzspielern.
+                      Im Reiter <strong>"Sportwart"</strong> kannst du neue Spielerprofile anlegen (ohne dass diese ein Supabase-Konto benötigen), TTR-Punkte aktualisieren und ihre Vereinsrangfolge (Team- & Positionsnummer, z.B. 1.1, 1.2, etc.) festlegen. Diese Rangfolge steuert die automatische Nachrücker-Hierarchie bei Ersatzspielern.
                     </p>
                   </div>
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      📅 2. 4-Monats-Abwesenheits-Kalender
+                      HTML-Kader-Import & Abgleich
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Du kannst die Mannschaftsmeldung (HTML-Tabelle von myTischtennis.de) kopieren und über die Import-Funktion einfügen. Das System vergleicht die Daten automatisch und zeigt übersichtlich an, welche Spieler neu sind, wessen TTR-Punkte sich geändert haben oder wer ersetzt wurde, bevor du die Änderungen bestätigst.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
+                      🏓 2. Aufstellungs-Kontrolle & Lineups (mannschaftsübergreifend)
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      In der Gesamtübersicht und in den Teamansichten siehst du die berechnete Aufstellung (Top 4 Stammspieler + 5. Ersatzspieler basierend auf der 4-Stufen RSVP-Logik und Rangfolge). Als Sportwart hast du das Recht, <strong>die Aufstellungen aller Mannschaften manuell zu sortieren (▲/▼) oder die Rückmeldungen (RSVP) von beliebigen Spielern direkt zu bearbeiten</strong>, um Ausfälle mannschaftsübergreifend optimal zu koordinieren.
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
+                      📅 3. 4-Monats-Abwesenheits-Kalender
                     </h4>
                     <p className="text-xs text-gray-500">
                       Zusammen mit den Mannschaftsführern und Admins hast du Zugriff auf den Reiter <strong>"Abwesenheits-Kalender"</strong>. Eine übersichtliche Tages-Matrix visualisiert farblich alle Abwesenheiten der kommenden 4 Monate (jeweils zwei Monate nebeneinander). Ein Klick auf einen Tag zeigt alle Details und Gründe für Abwesenheiten.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
-                    <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      🏓 3. Aufstellungs-Kontrolle & Lineups
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      In der Gesamtübersicht und in den Teamansichten siehst du die berechnete Aufstellung (Top 4 Stammspieler, ergänzt durch bestplatzierte verfügbare Nachrücker). Du kannst diese Aufstellung jederzeit manuell überschreiben, um die Aufstellung taktisch anzupassen.
                     </p>
                   </div>
                 </div>
@@ -298,10 +358,10 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      👥 2. Rollenverteilung
+                      👥 2. Rollenverteilung & globale Aufstellungskontrolle
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Du kannst die Benutzerrollen aller registrierten Vereinsmitglieder ändern (z. B. einen Spieler zum Mannschaftsführer, Sportwart oder Admin ernennen).
+                      Du kannst die Benutzerrollen aller registrierten Vereinsmitglieder ändern (z. B. einen Spieler zum Mannschaftsführer, Sportwart oder Admin ernennen). Zudem besitzt du uneingeschränkte Rechte zur Bearbeitung aller Aufstellungsreihenfolgen und RSVPs.
                     </p>
                   </div>
 
