@@ -124,7 +124,28 @@ Um die Aufstellung eines Spieltages zu visualisieren, nutzt das System eine auto
 
 ---
 
-## 🔒 5. Sicherheitskonzept (RLS-Richtlinien)
+## 🔒 5. Automatische Profil-Verknüpfung bei Registrierung
+
+Um den Registrierungsprozess für die Spieler so einfach wie möglich zu gestalten und den administrativen Aufwand zu minimieren, verfügt das System über eine integrierte, automatische Profil-Verknüpfung:
+
+### Technische Funktionsweise
+1. **Unabhängiges Profil-Konzept:**
+   Die Profile-Tabelle (`public.profiles`) ist vollkommen von `auth.users` entkoppelt. Das bedeutet, dass der Sportwart über den HTML-Kader-Import oder die manuelle Eingabe Spieler-Profile mit einem zufälligen UUID-Hauptschlüssel anlegen kann (`id = gen_random_uuid()`).
+2. **Der `public.handle_new_user()` Trigger:**
+   Sobald sich ein Spieler mit E-Mail, Passwort und seinem **vollen Namen** (`name`) registriert, wird in der Supabase-Datenbank ein After-Insert-Trigger auf der Tabelle `auth.users` ausgeführt. Dieser führt die Funktion `public.handle_new_user()` aus:
+   * **Namens-Matching:** Die Funktion sucht nach einem existierenden Profil, bei dem der Name (bereinigt um Whitespaces und case-insensitive) mit dem Registrierungs-Namen übereinstimmt:
+     `LOWER(TRIM(profiles.name)) = LOWER(TRIM(default_name))`
+     und das Profil noch nicht mit einem Auth-Benutzer verknüpft ist (d. h. die Profil-ID existiert noch nicht in `auth.users`).
+   * **ID-Umschreibung (ID Mapping):**
+     Wird ein Treffer erzielt, wird die ID des existierenden Profils in `public.profiles` auf die neu generierte ID des registrierten Benutzers (`new.id`) aktualisiert.
+   * **Kaskadierende Aktualisierungen (`ON UPDATE CASCADE`):**
+     Um die Integrität aller verknüpften Daten zu wahren, sind die Fremdschlüsselbeziehungen auf den Tabellen `team_players`, `availabilities` und `absences` mit `ON UPDATE CASCADE` konfiguriert. Durch das Umschreiben der Profil-ID werden somit alle Mannschaftszuordnungen, Rückmeldungen und Abwesenheiten automatisch im selben Moment auf die neue ID aktualisiert.
+   * **Lineup-JSONB-Aktualisierung:**
+     Zusätzlich durchläuft die Trigger-Funktion alle Einträge in `public.matches`, in denen die alte Profil-ID im `lineup` (JSONB-Array von UUIDs) enthalten ist, rekonstruiert das JSON-Array und ersetzt die alte ID-Zeichenkette durch die neue ID-Zeichenkette des Benutzers.
+
+---
+
+## 🔒 6. Sicherheitskonzept (RLS-Richtlinien)
 
 Die Datenbank verwendet PostgreSQL Row Level Security (RLS) zur Absicherung aller Schreib- und Lesevorgänge:
 
