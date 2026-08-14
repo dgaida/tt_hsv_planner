@@ -52,9 +52,10 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
   * Das System stellt automatisch die Top 4 Stammspieler eines Teams auf.  
   * Fehlt ein Stammspieler oder sagt ab, rückt automatisch der am besten platzierte, verfügbare Ersatzspieler (basierend auf Vereinsrangliste: Teamnummer und Position) nach.  
 * **Automatische Terminkonflikt-Erkennung:** Ist ein Spieler zeitgleich bei zwei Spielen als verfügbar eingetragen, wird die Vereinsleitung sofort optisch gewarnt.  
-* **Zweigeteiltes Login-Verfahren:**  
+* **Zweigeteiltes Login-Verfahren & Automatische Verknüpfung:**
   * **Passwortloser Login:** Spieler können sich für schnelle Rückmeldungen direkt über ein Namens-Dropdown einloggen (erhält standardmäßig die Rolle `player`).  
   * **Passwort-Login:** Um administrative Rollen (Mannschaftsführer, Sportwart, Admin) freizuschalten, ist eine Anmeldung mit E-Mail und Passwort erforderlich.  
+  * **Automatische Profil-Verknüpfung:** Registriert sich ein Spieler mit seinem vollen Namen (z. B. `"Max Mustermann"`, im Tool dargestellt als `"Max M"`), verknüpft das System dieses neue Benutzerkonto automatisch mit dem bereits existierenden, vom Sportwart/Admin importierten Profil. Alle bestehenden RSVPs, TTR-Punkte, Mannschaftszuordnungen und bereits gesetzten Lineups bleiben vollkommen erhalten.
 * **Smartphone-Optimierung:** Konsequentes Mobile-First-Design mit großen, berührungsfreundlichen Schaltflächen für eine reibungslose Bedienung auf jedem Smartphone.  
 * **Globale Passwort-Sperre:** Schutz aller Vereinsdaten durch ein globales Passwort. Unterstützt URL-Bypass per Parameter (`?pw=Passwort`), um Mitgliedern den direkten Zugriff zu erleichtern.  
 
