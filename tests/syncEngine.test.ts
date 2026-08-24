@@ -159,7 +159,7 @@ LOCATION:Heiligenhaus
 DESCRIPTION:Spieltag: 1
 END:VEVENT
 END:VCALENDAR`;
-    const base64Ics = typeof btoa !== 'undefined' ? btoa(rawIcs) : Buffer.from(rawIcs).toString('base64');
+    const base64Ics = typeof btoa !== 'undefined' ? btoa(rawIcs) : globalThis.btoa(rawIcs);
 
     const mockFetch = vi.fn().mockImplementation(async (url: string) => {
       if (url.includes('api.allorigins.win/raw')) {
