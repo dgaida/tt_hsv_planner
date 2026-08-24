@@ -463,4 +463,108 @@ describe('TeamTabView', () => {
       ).toBeTruthy();
     });
   });
+
+  it('handles voting, comment saving, and lineup reordering', async () => {
+    const mockProfiles = [
+      { id: mockUserId, name: 'Max Mustermann', team_number: 1, position_number: 1, role: 'team_manager' },
+      { id: 'p-2', name: 'Erika Muster', team_number: 1, position_number: 2, role: 'player' },
+    ];
+
+    const insertMock = vi.fn().mockImplementation(() => ({
+      select: vi.fn().mockImplementation(() => ({
+        single: vi.fn().mockResolvedValue({
+          data: { id: 'av-new', match_id: 'm-1', player_id: mockUserId, response: 'yes', comment: 'Test Comment', version_responded: 1 },
+          error: null,
+        }),
+      })),
+    }));
+
+    const updateMock = vi.fn().mockImplementation(() => ({
+      select: vi.fn().mockImplementation(() => ({
+        single: vi.fn().mockResolvedValue({
+          data: { id: 'av-123', match_id: 'm-1', player_id: mockUserId, response: 'yes', comment: 'Test Comment', version_responded: 1 },
+          error: null,
+        }),
+      })),
+      eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+    }));
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: vi.fn().mockImplementation(() => queryMock),
+        insert: insertMock,
+        update: updateMock,
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max Mustermann', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockProfiles, error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Herren I/)).toBeTruthy();
+    });
+
+    // 1. Click Ja button
+    const jaBtn = screen.getByRole('button', { name: /Ja/ });
+    fireEvent.click(jaBtn);
+    await waitFor(() => {
+      expect(insertMock).toHaveBeenCalled();
+    });
+
+    // 2. Type comment and click Speichern
+    const commentInput = screen.getByPlaceholderText(/Bemerkung/);
+    fireEvent.change(commentInput, { target: { value: 'Test Comment' } });
+
+    const saveCommentBtn = screen.getByRole('button', { name: /Speichern/ });
+    fireEvent.click(saveCommentBtn);
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Bemerkung'));
+    });
+
+    // 3. Reorder lineup (move player down)
+    const moveDownBtns = screen.getAllByTitle('Nach unten');
+    if (moveDownBtns.length > 0) {
+      fireEvent.click(moveDownBtns[0]);
+      await waitFor(() => {
+        expect(updateMock).toHaveBeenCalled();
+      });
+    }
+  });
 });

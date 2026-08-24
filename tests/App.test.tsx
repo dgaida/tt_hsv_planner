@@ -92,4 +92,32 @@ describe('App Component', () => {
       expect(screen.getByText('Sportwart')).toBeTruthy();
     });
   });
+
+  it('allows tab navigation and user logout', async () => {
+    localStorage.setItem('club_password', 'valid-pw');
+    localStorage.setItem('ttv_selected_player_id', 'p-1');
+    localStorage.setItem('ttv_login_method', 'password');
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('TTV Spielplaner')).toBeTruthy();
+    });
+
+    // Switch tab to 'overview' (Gesamtübersicht)
+    const overviewTabBtn = screen.getByText(/Gesamtübersicht/);
+    overviewTabBtn.click();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Gesamtübersicht/)).toBeTruthy();
+    });
+
+    // Test logout button
+    const logoutBtn = screen.getByTitle('Abmelden');
+    logoutBtn.click();
+
+    await waitFor(() => {
+      expect(screen.getByText('Anmeldung für Vereinsmitglieder')).toBeTruthy();
+    });
+  });
 });

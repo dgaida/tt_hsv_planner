@@ -146,4 +146,113 @@ END:VCALENDAR`;
     expect(syncRes.status).toBe('success');
     expect(syncRes.updated).toBe(1);
   });
+
+  it('handles AllOrigins /get base64 encoded response fallback', async () => {
+    const rawIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:uid-existing-1
+DTSTART;TZID=Europe/Berlin:20260912T180000
+DTEND;TZID=Europe/Berlin:20260912T210000
+SUMMARY:Herren III vs TV Klaswipper III
+LOCATION:Heiligenhaus
+DESCRIPTION:Spieltag: 1
+END:VEVENT
+END:VCALENDAR`;
+    const base64Ics = typeof btoa !== 'undefined' ? btoa(rawIcs) : Buffer.from(rawIcs).toString('base64');
+
+    const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('api.allorigins.win/raw')) {
+        return { ok: false, status: 500 };
+      }
+      if (url.includes('api.allorigins.win/get')) {
+        return {
+          ok: true,
+          json: async () => ({ contents: `data:text/calendar;base64,${base64Ics}` }),
+        };
+      }
+      return { ok: false };
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const res = await syncTeamCalendar(mockSupabase, 'team-3');
+    expect(res.status).toBe('success');
+  });
+
+  it('falls back to Codetabs proxy and then direct fetch if AllOrigins fails', async () => {
+    const rawIcs = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:uid-existing-1
+DTSTART;TZID=Europe/Berlin:20260912T180000
+DTEND;TZID=Europe/Berlin:20260912T210000
+SUMMARY:Herren III vs TV Klaswipper III
+LOCATION:Heiligenhaus
+DESCRIPTION:Spieltag: 1
+END:VEVENT
+END:VCALENDAR`;
+
+    const mockFetchCodetabs = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes('api.allorigins.win')) {
+        throw new Error('AllOrigins down');
+      }
+      if (url.includes('api.codetabs.com')) {
+        return {
+          ok: true,
+          text: async () => rawIcs,
+        };
+      }
+      return { ok: false };
+    });
+    vi.stubGlobal('fetch', mockFetchCodetabs);
+
+    const res = await syncTeamCalendar(mockSupabase, 'team-3');
+    expect(res.status).toBe('success');
+  });
+
+  it('returns failed status when all fetch methods fail or webcal_url is empty', async () => {
+    // 1. Missing webcal_url
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: vi.fn().mockResolvedValue({
+                data: { id: 'team-no-url', name: 'No URL Team', webcal_url: '' },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [] }) }) };
+    });
+
+    const resNoUrl = await syncTeamCalendar(mockSupabase, 'team-no-url');
+    expect(resNoUrl.status).toBe('failed');
+    expect(resNoUrl.message).toContain('Webcal URL is missing');
+
+    // 2. All fetch methods fail
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: vi.fn().mockResolvedValue({
+                data: { id: 'team-3', name: 'Herren III', webcal_url: 'webcal://example.com/cal.ics' },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return { select: () => ({ eq: () => Promise.resolve({ data: [] }) }) };
+    });
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network offline')));
+
+    const resFetchFail = await syncTeamCalendar(mockSupabase, 'team-3');
+    expect(resFetchFail.status).toBe('failed');
+    expect(resFetchFail.message).toContain('Alle Verbindungsmethoden zum Kalender-Download sind fehlgeschlagen');
+  });
 });
