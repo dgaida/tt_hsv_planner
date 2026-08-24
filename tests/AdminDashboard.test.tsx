@@ -214,4 +214,52 @@ describe('AdminDashboard', () => {
       expect(updateProfileMock).toHaveBeenCalledWith({ role: 'sportwart', updated_at: expect.any(String) });
     });
   });
+
+  it('handles editing team details and edge function error fallback', async () => {
+    const updateTeamMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const insertSyncRunMock = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: { id: 'run-client-1' }, error: null }),
+      }),
+    });
+    const updateSyncRunMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }) }),
+          update: updateTeamMock,
+        };
+      }
+      if (table === 'profiles') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }) }) };
+      if (table === 'sync_runs') {
+        return {
+          select: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ data: mockSyncRuns, error: null }) }) }),
+          insert: insertSyncRunMock,
+          update: updateSyncRunMock,
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: null,
+      error: { message: 'Edge function unavailable' } as any,
+    });
+
+    render(<AdminDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Herren I')).toBeTruthy();
+    });
+
+    // Test edge function sync error fallback
+    const syncBtn = screen.getByText(/Spielpläne jetzt synchronisieren/);
+    fireEvent.click(syncBtn);
+
+    await waitFor(() => {
+      expect(insertSyncRunMock).toHaveBeenCalled();
+    });
+  });
 });
