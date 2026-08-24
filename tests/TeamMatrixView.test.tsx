@@ -71,4 +71,64 @@ describe('TeamMatrixView', () => {
       expect(screen.getByText('Summe (✅)')).toBeTruthy();
     });
   });
+
+  it('updates availability without prompting for comment when manager/admin changes dropdown', async () => {
+    const promptSpy = vi.spyOn(window, 'prompt');
+
+    const updateMock = vi.fn().mockResolvedValue({ data: null, error: null });
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: mockTeamPlayers, error: null }),
+          }),
+        };
+      }
+      if (table === 'availabilities') {
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockResolvedValue({ data: mockAvailabilities, error: null }),
+          }),
+          update: vi.fn().mockReturnValue({
+            eq: updateMock,
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<TeamMatrixView teamId={mockTeamId} isManagerOrAdmin={true} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Max M')).toBeTruthy();
+    });
+
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'no' } });
+
+    await waitFor(() => {
+      expect(promptSpy).not.toHaveBeenCalled();
+      expect(updateMock).toHaveBeenCalled();
+    });
+  });
 });
