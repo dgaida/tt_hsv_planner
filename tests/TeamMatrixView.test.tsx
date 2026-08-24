@@ -131,4 +131,80 @@ describe('TeamMatrixView', () => {
       expect(updateMock).toHaveBeenCalled();
     });
   });
+
+  it('allows manager/admin to open manage players view and add/remove players', async () => {
+    vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    const deleteMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+
+    const allProfilesMock = [
+      { id: 'p-1', name: 'Max Mustermann', role: 'player' },
+      { id: 'p-2', name: 'Erika Musterfrau', role: 'player' },
+    ];
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: mockTeamPlayers, error: null }),
+          }),
+          insert: insertMock,
+          delete: deleteMock,
+        };
+      }
+      if (table === 'availabilities') {
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockResolvedValue({ data: mockAvailabilities, error: null }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: allProfilesMock, error: null }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<TeamMatrixView teamId={mockTeamId} isManagerOrAdmin={true} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Spieler verwalten')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText('Spieler verwalten'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Erika M (player)')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Hinzufügen/ }));
+
+    await waitFor(() => {
+      expect(insertMock).toHaveBeenCalledWith({ team_id: mockTeamId, player_id: 'p-2' });
+    });
+
+    const removeBtn = screen.getByTitle('Spieler entfernen');
+    fireEvent.click(removeBtn);
+
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalled();
+    });
+  });
 });

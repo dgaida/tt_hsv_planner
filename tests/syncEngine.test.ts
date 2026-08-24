@@ -108,4 +108,42 @@ END:VCALENDAR`;
     expect(syncRes.deactivated).toBe(1);
     expect(syncRes.updated).toBe(0);
   });
+
+  it('handles error when team is not found or webcal URL is missing', async () => {
+    mockSupabase.from.mockImplementation(() => ({
+      select: () => ({
+        eq: () => ({
+          single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        }),
+      }),
+    }));
+
+    const res = await syncTeamCalendar(mockSupabase, 'invalid-team');
+    expect(res.status).toBe('failed');
+    expect(res.message).toContain('Team not found');
+  });
+
+  it('updates match details when other details change without date/time change', async () => {
+    const mockIcsText = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:uid-existing-1
+DTSTART;TZID=Europe/Berlin:20260912T180000
+DTEND;TZID=Europe/Berlin:20260912T210000
+SUMMARY:Herren III vs TV Klaswipper III (Updated Title)
+LOCATION:Heiligenhaus New Gym
+DESCRIPTION:Spieltag: 1
+END:VEVENT
+END:VCALENDAR`;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(mockIcsText),
+    }));
+
+    const syncRes = await syncTeamCalendar(mockSupabase, 'team-3');
+
+    expect(syncRes.status).toBe('success');
+    expect(syncRes.updated).toBe(1);
+  });
 });

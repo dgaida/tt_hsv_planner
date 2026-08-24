@@ -376,4 +376,77 @@ describe('SportwartView', () => {
       expect(supabase.from).toHaveBeenCalledWith('profiles');
     });
   });
+
+  it('allows editing and deleting a player', async () => {
+    vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
+    const updateMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const deleteMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }),
+          }),
+          update: updateMock,
+          delete: deleteMock,
+        };
+      }
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'club_settings') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({ data: { key: 'registered_teams_count', value: '1' }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'absences') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: mockAbsences, error: null }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<SportwartView />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Max Mustermann')).toBeTruthy();
+    });
+
+    const editBtns = screen.getAllByTitle('Bearbeiten');
+    fireEvent.click(editBtns[0]);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Max Mustermann')).toBeTruthy();
+    });
+
+    const submitBtn = screen.getAllByText('Speichern')[1];
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(updateMock).toHaveBeenCalled();
+    });
+
+    const deleteBtns = screen.getAllByTitle('Löschen');
+    fireEvent.click(deleteBtns[0]);
+
+    await waitFor(() => {
+      expect(deleteMock).toHaveBeenCalled();
+    });
+  });
 });

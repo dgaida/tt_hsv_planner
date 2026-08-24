@@ -99,4 +99,119 @@ describe('AdminDashboard', () => {
       expect(screen.getByText('Sync complete')).toBeTruthy();
     });
   });
+
+  it('saves club_nr on button click', async () => {
+    const upsertMock = vi.fn().mockResolvedValue({ error: null });
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }) }) };
+      if (table === 'profiles') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }) }) };
+      if (table === 'sync_runs') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ data: mockSyncRuns, error: null }) }) }) };
+      if (table === 'club_settings') {
+        return {
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: vi.fn().mockResolvedValue({ data: { value: '21707' }, error: null }) }) }),
+          upsert: upsertMock,
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<AdminDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Speichern')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText('Speichern'));
+
+    await waitFor(() => {
+      expect(upsertMock).toHaveBeenCalledWith({ key: 'club_nr', value: '21707' }, { onConflict: 'key' });
+    });
+  });
+
+  it('handles adding a new team', async () => {
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }) }),
+          insert: insertMock,
+        };
+      }
+      if (table === 'profiles') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }) }) };
+      if (table === 'sync_runs') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ data: mockSyncRuns, error: null }) }) }) };
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<AdminDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Neue Mannschaft/)).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText(/Neue Mannschaft/));
+
+    const inputs = screen.getAllByRole('textbox');
+    const nameInput = screen.getByPlaceholderText('Mannschaftsname (z.B. Herren IV)');
+    const shortNameInput = screen.getByPlaceholderText('Kurzname (z.B. Herren 4)');
+    const webcalInput = screen.getByPlaceholderText('webcal://www.mytischtennis.de/community/...');
+
+    fireEvent.change(nameInput, { target: { value: 'Herren II' } });
+    fireEvent.change(shortNameInput, { target: { value: 'Herren 2' } });
+    fireEvent.change(webcalInput, { target: { value: 'webcal://test' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }));
+
+    await waitFor(() => {
+      expect(insertMock).toHaveBeenCalledWith({
+        name: 'Herren II',
+        short_name: 'Herren 2',
+        webcal_url: 'webcal://test',
+        active: true,
+      });
+    });
+  });
+
+  it('toggles team active state and changes profile role', async () => {
+    const updateTeamMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const updateProfileMock = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockTeams, error: null }) }),
+          update: updateTeamMock,
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({ order: vi.fn().mockResolvedValue({ data: mockProfiles, error: null }) }),
+          update: updateProfileMock,
+        };
+      }
+      if (table === 'sync_runs') return { select: vi.fn().mockReturnValue({ order: vi.fn().mockReturnValue({ limit: vi.fn().mockResolvedValue({ data: mockSyncRuns, error: null }) }) }) };
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<AdminDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Deaktivieren')).toBeTruthy();
+    });
+
+    fireEvent.click(screen.getByText('Deaktivieren'));
+
+    await waitFor(() => {
+      expect(updateTeamMock).toHaveBeenCalledWith({ active: false, updated_at: expect.any(String) });
+    });
+
+    const roleSelect = screen.getByRole('combobox');
+    fireEvent.change(roleSelect, { target: { value: 'sportwart' } });
+
+    await waitFor(() => {
+      expect(updateProfileMock).toHaveBeenCalledWith({ role: 'sportwart', updated_at: expect.any(String) });
+    });
+  });
 });

@@ -23,6 +23,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   const [activeTeams, setActiveTeams] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const [userAllYesAvailabilities, setUserAllYesAvailabilities] = useState<any[]>([]);
 
   const handleRefresh = async () => {
     // If the user has an elevated role (team_manager, sportwart, club_admin),
@@ -242,6 +243,21 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
         }
         setMatchChanges(changesMap);
       }
+
+      if (userId) {
+        const { data: userYesAvails } = await supabase
+          .from('availabilities')
+          .select('*, matches(*, teams(name))')
+          .eq('player_id', userId)
+          .eq('response', 'yes');
+
+        if (userYesAvails) {
+          const activeYes = userYesAvails.filter(
+            (av) => av.matches && av.matches.active && av.version_responded === av.matches.version
+          );
+          setUserAllYesAvailabilities(activeYes);
+        }
+      }
     } catch (err) {
       console.error('Error loading team tab data:', err);
     } finally {
@@ -302,6 +318,21 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
 
       if (responseType === 'yes') {
         await resolveRsvpConflicts(userId);
+      }
+
+      if (userId) {
+        const { data: userYesAvails } = await supabase
+          .from('availabilities')
+          .select('*, matches(*, teams(name))')
+          .eq('player_id', userId)
+          .eq('response', 'yes');
+
+        if (userYesAvails) {
+          const activeYes = userYesAvails.filter(
+            (av) => av.matches && av.matches.active && av.version_responded === av.matches.version
+          );
+          setUserAllYesAvailabilities(activeYes);
+        }
       }
     } catch (err: any) {
       alert('Fehler beim Abgeben der Stimme: ' + err.message);
@@ -675,9 +706,30 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
 
                       {/* Vote/Response section integrated into Left Column */}
                       <div className="space-y-4 pt-4 border-t border-gray-100 border-dashed">
-                        <p className="text-xs sm:text-sm font-semibold text-gray-700">
-                          Kannst du bei diesem Spiel mitspielen?
-                        </p>
+                        {(() => {
+                          const matchTime = new Date(match.dtstart).getTime();
+                          const conflictingAv = userAllYesAvailabilities.find((av) => {
+                            if (!av.matches || !av.matches.active) return false;
+                            if (av.match_id === match.id) return false;
+                            if (av.version_responded !== av.matches.version) return false;
+                            const otherTime = new Date(av.matches.dtstart).getTime();
+                            return Math.abs(otherTime - matchTime) <= 3600000;
+                          });
+
+                          const conflictingTeamName = conflictingAv
+                            ? (conflictingAv.matches.teams?.name ||
+                               activeTeams.find((t) => t.id === conflictingAv.matches.team_id)?.name)
+                            : null;
+
+                          return (
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700">
+                              Kannst du bei diesem Spiel mitspielen
+                              {conflictingTeamName
+                                ? ` (du hast bereits bei Mannschaft ${conflictingTeamName} zugesagt)`
+                                : ''}?
+                            </p>
+                          );
+                        })()}
                         <div className="grid grid-cols-3 gap-2.5 max-w-md">
                           <button
                             type="button"
