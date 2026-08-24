@@ -233,17 +233,9 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                                     value={av ? av.response : ''}
                                     onChange={async (e) => {
                                       const val = e.target.value;
-                                      let comment = av?.comment || '';
+                                      const comment = av?.comment || '';
 
                                       if (val) {
-                                        const enteredComment = window.prompt(
-                                          `Optionaler Kommentar für ${getShortName(player.name)} bei diesem Spiel:`,
-                                          comment
-                                        );
-                                        if (enteredComment !== null) {
-                                          comment = enteredComment;
-                                        }
-
                                         if (av) {
                                           const { error } = await supabase
                                             .from('availabilities')
