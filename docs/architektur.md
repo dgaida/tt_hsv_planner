@@ -45,7 +45,7 @@ Speichert die Stammdaten aller Vereinsmitglieder.
   * `id`: `UUID` (Primary Key)  
   * `name`: `TEXT`  
   * `role`: `user_role` (`'player'`, `'team_manager'`, `'sportwart'`, `'club_admin'`)  
-  * `team_number`: `INT` (Vereinsmannschaft, z. B. `1` für Erwachsene I)
+  * `team_number`: `INT` (Vereinsmannschaft, z. B. `1` für Erwachsene I)  
   * `position_number`: `INT` (Listenposition im Verein, z. B. `3` für Position 3)  
   * `ttr_points`: `INT` (Tischtennis-Rating)  
 
