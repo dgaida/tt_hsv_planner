@@ -14,15 +14,15 @@ vi.mock('../src/lib/supabaseClient', () => {
 
 describe('GesamtUebersichtView', () => {
   const mockTeams = [
-    { id: 't-1', name: 'Herren I', short_name: 'Herren 1', active: true },
-    { id: 't-2', name: 'Herren II', short_name: 'Herren 2', active: true },
+    { id: 't-1', name: 'Erwachsene I', short_name: 'Erwachsene 1', active: true },
+    { id: 't-2', name: 'Erwachsene II', short_name: 'Erwachsene 2', active: true },
   ];
 
   const mockMatches = [
     {
       id: 'm-1',
       team_id: 't-1',
-      summary: 'Herren I vs TV Klaswipper',
+      summary: 'Erwachsene I vs TV Klaswipper',
       dtstart: '2026-08-12T18:00:00.000Z',
       dtend: '2026-08-12T21:00:00.000Z',
       is_home: true,
@@ -32,7 +32,7 @@ describe('GesamtUebersichtView', () => {
     {
       id: 'm-2',
       team_id: 't-2',
-      summary: 'Herren II vs TV Klaswipper II',
+      summary: 'Erwachsene II vs TV Klaswipper II',
       dtstart: '2026-08-12T18:00:00.000Z',
       dtend: '2026-08-12T21:00:00.000Z',
       is_home: true,
@@ -42,7 +42,7 @@ describe('GesamtUebersichtView', () => {
   ];
 
   const mockTeamPlayers = [
-    { team_id: 't-1', player_id: 'p-1', teams: { name: 'Herren I' } },
+    { team_id: 't-1', player_id: 'p-1', teams: { name: 'Erwachsene I' } },
   ];
 
   const mockAvailabilities = [

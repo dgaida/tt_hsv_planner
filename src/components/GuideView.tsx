@@ -92,33 +92,37 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
             </h3>
 
             <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Key className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Passwort-Gate</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed mt-1">
-                    Die gesamte Anwendung ist durch ein globales Vereinspasswort vor unbefugtem Zugriff von außen geschützt.
-                  </p>
-                </div>
-              </div>
+              {selectedRole !== 'player' && (
+                <>
+                  <div className="flex gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <Key className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Passwort-Gate</h4>
+                      <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                        Die gesamte Anwendung ist durch ein globales Vereinspasswort vor unbefugtem Zugriff von außen geschützt.
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Info className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Bypass-Link</h4>
-                  <p className="text-xs text-gray-500 leading-relaxed mt-1">
-                    Um die Eingabe zu überspringen, kannst du das Passwort an die URL anhängen:
-                    <code className="block bg-gray-100 text-[10px] p-1.5 rounded border border-gray-200 mt-1.5 font-mono overflow-x-auto whitespace-pre-wrap">
-                      ?pw=DeinPasswort
-                    </code>
-                    Ideal, um den Link als Lesezeichen zu speichern oder in WhatsApp-Gruppen zu teilen!
-                  </p>
-                </div>
-              </div>
+                  <div className="flex gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <Info className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Bypass-Link</h4>
+                      <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                        Um die Eingabe zu überspringen, kannst du das Passwort an die URL anhängen:
+                        <code className="block bg-gray-100 text-[10px] p-1.5 rounded border border-gray-200 mt-1.5 font-mono overflow-x-auto whitespace-pre-wrap">
+                          ?pw=DeinPasswort
+                        </code>
+                        Ideal, um den Link als Lesezeichen zu speichern oder in WhatsApp-Gruppen zu teilen!
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="flex gap-3">
                 <div className="h-8 w-8 rounded-lg bg-teal-50 border border-teal-100 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">

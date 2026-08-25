@@ -19,7 +19,7 @@ describe('SportwartView', () => {
   ];
 
   const mockTeams = [
-    { id: 't-1', name: 'Herren I', short_name: 'Herren 1', webcal_url: 'webcal://foo', active: true },
+    { id: 't-1', name: 'Erwachsene I', short_name: 'Erwachsene 1', active: true },
   ];
 
   const mockAbsences = [

@@ -72,9 +72,9 @@ CREATE TABLE IF NOT EXISTS public.teams (
 -- Seed 3 teams initially
 INSERT INTO public.teams (id, name, short_name, webcal_url, active)
 VALUES
-  ('11111111-1111-1111-1111-111111111111', 'Herren I', 'Herren 1', 'webcal://www.mytischtennis.de/community/exportICSCalendar?teamIds=1111111', true),
-  ('22222222-2222-2222-2222-222222222222', 'Herren II', 'Herren 2', 'webcal://www.mytischtennis.de/community/exportICSCalendar?teamIds=2222222', true),
-  ('33333333-3333-3333-3333-333333333333', 'Herren III', 'Herren 3', 'webcal://www.mytischtennis.de/community/exportICSCalendar?teamIds=3142285', true)
+  ('11111111-1111-1111-1111-111111111111', 'Erwachsene I', 'Erwachsene 1', 'webcal://www.mytischtennis.de/community/exportICSCalendar?teamIds=1111111', true),
+  ('22222222-2222-2222-2222-222222222222', 'Erwachsene II', 'Erwachsene 2', 'webcal://www.mytischtennis.de/community/exportICSCalendar?teamIds=2222222', true),
+  ('33333333-3333-3333-3333-333333333333', 'Erwachsene III', 'Erwachsene 3', 'webcal://www.mytischtennis.de/community/exportICSCalendar?teamIds=3142285', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. Team Players (Many-to-Many map players to teams they can play for or are assigned to)

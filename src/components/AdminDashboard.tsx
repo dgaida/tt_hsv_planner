@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
-                    placeholder="Mannschaftsname (z.B. Herren IV)"
+                    placeholder="Mannschaftsname (z.B. Erwachsene IV)"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     className="px-3 py-2 border rounded-xl text-sm"
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
                   />
                   <input
                     type="text"
-                    placeholder="Kurzname (z.B. Herren 4)"
+                    placeholder="Kurzname (z.B. Erwachsene 4)"
                     value={newShortName}
                     onChange={(e) => setNewShortName(e.target.value)}
                     className="px-3 py-2 border rounded-xl text-sm"

@@ -323,11 +323,13 @@ export default function App() {
       <footer className="bg-white border-t border-gray-150 py-4 text-center text-xs text-gray-400 mt-auto">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} TTV Spielbereitschafts-Planer</p>
-          <div className="flex gap-4">
-            <button onClick={clearClubPassword} className="hover:text-rose-600 font-semibold underline">
-              Sicherheit: Passwort-Gate zurücksetzen
-            </button>
-          </div>
+          {isClubAdmin && (
+            <div className="flex gap-4">
+              <button onClick={clearClubPassword} className="hover:text-rose-600 font-semibold underline">
+                Sicherheit: Passwort-Gate zurücksetzen
+              </button>
+            </div>
+          )}
         </div>
       </footer>
     </div>

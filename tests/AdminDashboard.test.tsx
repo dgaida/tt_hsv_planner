@@ -17,7 +17,7 @@ vi.mock('../src/lib/supabaseClient', () => {
 
 describe('AdminDashboard', () => {
   const mockTeams = [
-    { id: 't-1', name: 'Herren I', short_name: 'Herren 1', webcal_url: 'webcal://foo', active: true },
+    { id: 't-1', name: 'Erwachsene I', short_name: 'Erwachsene 1', webcal_url: 'webcal://foo', active: true },
   ];
 
   const mockProfiles = [
@@ -72,7 +72,7 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('🛡️ Vereins-Administration')).toBeTruthy();
-      expect(screen.getByText('Herren I')).toBeTruthy();
+      expect(screen.getByText('Erwachsene I')).toBeTruthy();
       expect(screen.getByText('Max M')).toBeTruthy();
       expect(screen.getByText('Synchronisiert')).toBeTruthy();
     });
@@ -153,20 +153,20 @@ describe('AdminDashboard', () => {
     fireEvent.click(screen.getByText(/Neue Mannschaft/));
 
     const inputs = screen.getAllByRole('textbox');
-    const nameInput = screen.getByPlaceholderText('Mannschaftsname (z.B. Herren IV)');
-    const shortNameInput = screen.getByPlaceholderText('Kurzname (z.B. Herren 4)');
+    const nameInput = screen.getByPlaceholderText('Mannschaftsname (z.B. Erwachsene IV)');
+    const shortNameInput = screen.getByPlaceholderText('Kurzname (z.B. Erwachsene 4)');
     const webcalInput = screen.getByPlaceholderText('webcal://www.mytischtennis.de/community/...');
 
-    fireEvent.change(nameInput, { target: { value: 'Herren II' } });
-    fireEvent.change(shortNameInput, { target: { value: 'Herren 2' } });
+    fireEvent.change(nameInput, { target: { value: 'Erwachsene II' } });
+    fireEvent.change(shortNameInput, { target: { value: 'Erwachsene 2' } });
     fireEvent.change(webcalInput, { target: { value: 'webcal://test' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Hinzufügen' }));
 
     await waitFor(() => {
       expect(insertMock).toHaveBeenCalledWith({
-        name: 'Herren II',
-        short_name: 'Herren 2',
+        name: 'Erwachsene II',
+        short_name: 'Erwachsene 2',
         webcal_url: 'webcal://test',
         active: true,
       });
@@ -251,7 +251,7 @@ describe('AdminDashboard', () => {
     render(<AdminDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText('Herren I')).toBeTruthy();
+      expect(screen.getByText('Erwachsene I')).toBeTruthy();
     });
 
     // Test edge function sync error fallback

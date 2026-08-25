@@ -18,7 +18,7 @@ vi.mock('../src/lib/syncEngine', () => {
     syncTeamCalendar: vi.fn().mockResolvedValue({
       status: 'success',
       teamId: 'team-123',
-      teamName: 'Herren I',
+      teamName: 'Erwachsene I',
       message: 'Mock sync success',
       added: 0,
       updated: 0,
@@ -32,13 +32,13 @@ describe('TeamTabView', () => {
   const mockTeamId = 'team-123';
   const mockUserId = 'user-456';
 
-  const mockTeam = { id: 'team-123', name: 'Herren I' };
+  const mockTeam = { id: 'team-123', name: 'Erwachsene I' };
 
   const mockMatches = [
     {
       id: 'm-1',
       team_id: mockTeamId,
-      summary: 'Herren I vs TV Klaswipper',
+      summary: 'Erwachsene I vs TV Klaswipper',
       dtstart: '2026-08-12T18:00:00.000Z',
       is_home: true,
       active: true,
@@ -53,6 +53,69 @@ describe('TeamTabView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('hides "Aktuelle Rückmeldungen:" for player role and displays it for team_manager role', async () => {
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockUserAv, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    const { rerender } = render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="player"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
+      expect(screen.queryByText('Aktuelle Rückmeldungen:')).toBeNull();
+    });
+
+    rerender(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Aktuelle Rückmeldungen:')).toBeTruthy();
+    });
   });
 
   it('loads and renders team matches and user votes', async () => {
@@ -103,7 +166,7 @@ describe('TeamTabView', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Herren I/)).toBeTruthy();
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
       expect(screen.getByText(/gegen TV Klaswipper/)).toBeTruthy();
     });
 
@@ -178,7 +241,7 @@ describe('TeamTabView', () => {
 
     // Wait for the tab to load and render the matches and lineups
     await waitFor(() => {
-      expect(screen.getByText(/Herren I/)).toBeTruthy();
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
       const lineupSection = screen.getByText(/👥 Aufstellung/).closest('.w-full');
       expect(lineupSection).toBeTruthy();
 
@@ -242,7 +305,7 @@ describe('TeamTabView', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Herren I/)).toBeTruthy();
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
     });
 
     const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
@@ -305,7 +368,7 @@ describe('TeamTabView', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Herren I/)).toBeTruthy();
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
     });
 
     const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
@@ -379,7 +442,7 @@ describe('TeamTabView', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Herren I/)).toBeTruthy();
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
     });
 
     const selectElem = screen.getByDisplayValue('Ja');
@@ -406,7 +469,7 @@ describe('TeamTabView', () => {
           dtstart: '2026-08-12T18:30:00.000Z', // within 1 hr of 18:00
           active: true,
           version: 1,
-          teams: { name: 'Herren II' },
+          teams: { name: 'Erwachsene II' },
         },
       },
     ];
@@ -459,7 +522,7 @@ describe('TeamTabView', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Kannst du bei diesem Spiel mitspielen \(du hast bereits bei Mannschaft Herren II zugesagt\)\?/)
+        screen.getByText(/Kannst du bei diesem Spiel mitspielen \(du hast bereits bei Mannschaft Erwachsene II zugesagt\)\?/)
       ).toBeTruthy();
     });
   });
@@ -537,7 +600,7 @@ describe('TeamTabView', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Herren I/)).toBeTruthy();
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
     });
 
     // 1. Click Ja button

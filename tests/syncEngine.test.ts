@@ -19,8 +19,8 @@ describe('syncTeamCalendar Tests', () => {
                     single: vi.fn().mockResolvedValue({
                       data: {
                         id: val,
-                        name: 'Herren III',
-                        short_name: 'Herren 3',
+                        name: 'Erwachsene III',
+                        short_name: 'Erwachsene 3',
                         webcal_url: 'webcal://example.com/calendar.ics',
                       },
                       error: null,
@@ -37,7 +37,7 @@ describe('syncTeamCalendar Tests', () => {
                       id: 'm-existing-1',
                       team_id: 'team-3',
                       external_uid: 'uid-existing-1',
-                      summary: 'Herren III vs TV Klaswipper III',
+                      summary: 'Erwachsene III vs TV Klaswipper III',
                       dtstart: '2026-09-12T16:00:00.000Z',
                       dtend: '2026-09-12T19:00:00.000Z',
                       is_home: true,
@@ -48,7 +48,7 @@ describe('syncTeamCalendar Tests', () => {
                       id: 'm-existing-2',
                       team_id: 'team-3',
                       external_uid: 'uid-to-deactivate',
-                      summary: 'Some cancelled opponent vs Herren III',
+                      summary: 'Some cancelled opponent vs Erwachsene III',
                       dtstart: '2026-09-26T16:00:00.000Z',
                       dtend: '2026-09-26T19:00:00.000Z',
                       is_home: false,
@@ -80,7 +80,7 @@ BEGIN:VEVENT
 UID:uid-existing-1
 DTSTART;TZID=Europe/Berlin:20260913T180000
 DTEND;TZID=Europe/Berlin:20260913T210000
-SUMMARY:Herren III vs TV Klaswipper III
+SUMMARY:Erwachsene III vs TV Klaswipper III
 LOCATION:Heiligenhaus
 DESCRIPTION:Spieltag: 1
 END:VEVENT
@@ -88,7 +88,7 @@ BEGIN:VEVENT
 UID:uid-new
 DTSTART;TZID=Europe/Berlin:20260919T180000
 DTEND;TZID=Europe/Berlin:20260919T210000
-SUMMARY:VfL Engelskirchen vs Herren III
+SUMMARY:VfL Engelskirchen vs Erwachsene III
 LOCATION:Engelskirchen
 DESCRIPTION:Spieltag: 2
 END:VEVENT
@@ -130,7 +130,7 @@ BEGIN:VEVENT
 UID:uid-existing-1
 DTSTART;TZID=Europe/Berlin:20260912T180000
 DTEND;TZID=Europe/Berlin:20260912T210000
-SUMMARY:Herren III vs TV Klaswipper III (Updated Title)
+SUMMARY:Erwachsene III vs TV Klaswipper III (Updated Title)
 LOCATION:Heiligenhaus New Gym
 DESCRIPTION:Spieltag: 1
 END:VEVENT
@@ -154,7 +154,7 @@ BEGIN:VEVENT
 UID:uid-existing-1
 DTSTART;TZID=Europe/Berlin:20260912T180000
 DTEND;TZID=Europe/Berlin:20260912T210000
-SUMMARY:Herren III vs TV Klaswipper III
+SUMMARY:Erwachsene III vs TV Klaswipper III
 LOCATION:Heiligenhaus
 DESCRIPTION:Spieltag: 1
 END:VEVENT
@@ -186,7 +186,7 @@ BEGIN:VEVENT
 UID:uid-existing-1
 DTSTART;TZID=Europe/Berlin:20260912T180000
 DTEND;TZID=Europe/Berlin:20260912T210000
-SUMMARY:Herren III vs TV Klaswipper III
+SUMMARY:Erwachsene III vs TV Klaswipper III
 LOCATION:Heiligenhaus
 DESCRIPTION:Spieltag: 1
 END:VEVENT
@@ -239,7 +239,7 @@ END:VCALENDAR`;
           select: () => ({
             eq: () => ({
               single: vi.fn().mockResolvedValue({
-                data: { id: 'team-3', name: 'Herren III', webcal_url: 'webcal://example.com/cal.ics' },
+                data: { id: 'team-3', name: 'Erwachsene III', webcal_url: 'webcal://example.com/cal.ics' },
                 error: null,
               }),
             }),

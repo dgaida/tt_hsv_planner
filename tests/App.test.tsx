@@ -19,7 +19,7 @@ vi.mock('../src/lib/supabaseClient', () => {
 describe('App Component', () => {
   const mockProfile = { id: 'p-1', name: 'Max Mustermann', role: 'sportwart', team_number: 1 };
   const mockTeams = [
-    { id: 't-1', name: 'Herren I', short_name: 'Herren 1', active: true },
+    { id: 't-1', name: 'Erwachsene I', short_name: 'Erwachsene 1', active: true },
   ];
 
   beforeEach(() => {
@@ -90,6 +90,19 @@ describe('App Component', () => {
       expect(screen.getByText('Max Mustermann')).toBeTruthy();
       // Role is preserved as 'Sportwart'
       expect(screen.getByText('Sportwart')).toBeTruthy();
+    });
+  });
+
+  it('only shows reset password gate button for club admin', async () => {
+    localStorage.setItem('club_password', 'valid-pw');
+    localStorage.setItem('ttv_selected_player_id', 'p-1');
+    localStorage.setItem('ttv_login_method', 'passwordless'); // player role
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('TTV Spielplaner')).toBeTruthy();
+      expect(screen.queryByText('Sicherheit: Passwort-Gate zurücksetzen')).toBeNull();
     });
   });
 

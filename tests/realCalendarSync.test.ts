@@ -37,8 +37,8 @@ END:VCALENDAR`;
     const events = parseIcs(realIcsContent);
     expect(events).toHaveLength(2);
 
-    const teamName = "Herren III";
-    const teamShortName = "Herren 3";
+    const teamName = "Erwachsene III";
+    const teamShortName = "Erwachsene 3";
 
     // Event 1: Heiligenhauser SV III vs TV Klaswipper III (Home Game)
     const event1 = events[0];

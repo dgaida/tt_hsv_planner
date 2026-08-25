@@ -10,10 +10,10 @@ describe('GuideView Component', () => {
     // Check heading
     expect(screen.getByText('📖 Handbuch & Bedienungsanleitung')).toBeDefined();
 
-    // Check general instructions
+    // Check general instructions (Passwort-Gate & Bypass-Link are hidden for players)
     expect(screen.getByText('Anmeldung & Sicherheit')).toBeDefined();
-    expect(screen.getByText('Passwort-Gate')).toBeDefined();
-    expect(screen.getByText('?pw=DeinPasswort')).toBeDefined();
+    expect(screen.queryByText('Passwort-Gate')).toBeNull();
+    expect(screen.queryByText('?pw=DeinPasswort')).toBeNull();
 
     // Check default active role (player) info
     expect(screen.getByText('Funktionen für Spieler')).toBeDefined();
