@@ -124,4 +124,4 @@ Damit GitHub Pages das Frontend bauen und hosten kann, müssen in den **Settings
 ## 🔄 6. Automatischer Kalender-Sync (Cronjob)
 
 Die Datei `.github/workflows/sync-calendars.yml` enthält eine geplante GitHub Action, die **einmal täglich um 04:00 Uhr UTC** (05:00/06:00 Uhr deutsche Zeit) ausgeführt wird.
-Diese sendet einen HTTP-POST-Aufruf mit dem `VITE_SYNC_SECRET` im Header an deine bereitgestellte Edge Function, um alle Kalender im Hintergrund zu aktualisieren. Du musst dafür nichts weiter konfigurieren – der Wecker läuft vollautomatisch über GitHub!
+Diese sendet einen HTTP-POST-Aufruf mit dem `VITE_SYNC_SECRET` sowie den `Authorization`- und `apikey`-Headern (`VITE_SUPABASE_ANON_KEY`) an deine bereitgestellte Edge Function, um das Supabase API Gateway (Kong) zu passieren und alle Kalender im Hintergrund zu aktualisieren. Stelle sicher, dass `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` und `VITE_SYNC_SECRET` in den GitHub Repository Secrets hinterlegt sind.
