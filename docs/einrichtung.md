@@ -124,4 +124,6 @@ Damit GitHub Pages das Frontend bauen und hosten kann, müssen in den **Settings
 ## 🔄 6. Automatischer Kalender-Sync (Cronjob)
 
 Die Datei `.github/workflows/sync-calendars.yml` enthält eine geplante GitHub Action, die **einmal täglich um 04:00 Uhr UTC** (05:00/06:00 Uhr deutsche Zeit) ausgeführt wird.
-Diese sendet einen HTTP-POST-Aufruf mit dem `VITE_SYNC_SECRET` im Header an deine bereitgestellte Edge Function, um alle Kalender im Hintergrund zu aktualisieren. Du musst dafür nichts weiter konfigurieren – der Wecker läuft vollautomatisch über GitHub!
+Dieser Workflow stößt automatisch die serverseitige Supabase Edge Function `sync-calendars` an, welche alle aktiven Webcal-ICS-Links von myTischtennis.de im Hintergrund abruft und mit der Datenbank abgleicht. Dies stellt sicher, dass kurzfristige Spielverlegungen, neue Termine oder Absagen völlig ohne manuelles Zutun der Mannschaftsführer oder Admins erkannt werden. Zudem werden bei Terminverlegungen betroffene Rückmeldungen der Spieler automatisch als neu zu bestätigen (⚠️) markiert, sodass die Kaderplanung stets auf dem neuesten Stand bleibt.
+
+Der Workflow sendet einen HTTP-POST-Aufruf mit dem `VITE_SYNC_SECRET` sowie den `Authorization`- und `apikey`-Headern (`VITE_SUPABASE_ANON_KEY`) an die Edge Function, um das Supabase API Gateway (Kong) zu passieren. Stelle sicher, dass `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` und `VITE_SYNC_SECRET` in den GitHub Repository Secrets hinterlegt sind.
