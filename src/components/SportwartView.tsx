@@ -870,7 +870,7 @@ export default function SportwartView() {
                   type="number"
                   min="1"
                   max={registeredTeamsCount}
-                  placeholder="z.B. 1 für Herren I"
+                  placeholder="z.B. 1 für Erwachsene I"
                   value={formTeamNumber}
                   onChange={(e) => setFormTeamNumber(e.target.value)}
                   className="w-full px-4 py-2.5 border rounded-xl bg-white text-sm outline-none focus:ring-2 focus:ring-teal-500"
@@ -920,7 +920,7 @@ export default function SportwartView() {
               <div key={teamNum} className="border border-gray-150 rounded-2xl overflow-hidden bg-white">
                 <div className="bg-gray-50 border-b border-gray-150 px-4 py-3 flex items-center justify-between">
                   <h4 className="text-sm font-black text-gray-800">
-                    🏅 Mannschaft {teamNum} ({teams[idx]?.name || `Herren ${teamNum}`})
+                    🏅 Mannschaft {teamNum} ({teams[idx]?.name || `Erwachsene ${teamNum}`})
                   </h4>
                   <span className="text-xs bg-teal-50 text-teal-800 border border-teal-200 font-bold px-2.5 py-0.5 rounded-full">
                     {players.length} Spieler gemeldet

@@ -9,7 +9,7 @@ Dieses Dokument beschreibt die funktionalen und nicht-funktionalen Anforderungen
 ### 1.1. Mannschaftsverwaltung (Teams)  
 * **FA-1.1.1:** Das System muss standardmäßig mindestens drei Tischtennis-Mannschaften unterstützen.  
 * **FA-1.1.2:** Administratoren müssen in der Lage sein, neue Mannschaften hinzuzufügen, bestehende Mannschaften zu deaktivieren und deren zugehörige Webcal-Kalender-Links zu pflegen.  
-* **FA-1.1.3:** Mannschaften müssen eine eindeutige ID, einen Namen (z. B. "Herren I", "Herren II") und ein Flag zur Aktivierung/Deaktivierung besitzen.  
+* **FA-1.1.3:** Mannschaften müssen eine eindeutige ID, einen Namen (z. B. "Erwachsene I", "Erwachsene II") und ein Flag zur Aktivierung/Deaktivierung besitzen.
 
 ### 1.2. Kalender-Synchronisation & Terminverwaltung (Calendar Sync & Match Management)  
 * **FA-1.2.1:** Das System muss Spieltermine automatisch aus den bereitgestellten Webcal-Kalendern von myTischtennis.de auslesen.  

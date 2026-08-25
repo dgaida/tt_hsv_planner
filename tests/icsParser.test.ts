@@ -42,7 +42,7 @@ describe('ICS Parser tests', () => {
     expect(extractMatchday(desc1, "")).toBe(5);
 
     const desc2 = "Some description text without matchday";
-    const summary2 = "Herren III Spieltag 12";
+    const summary2 = "Erwachsene III Spieltag 12";
     expect(extractMatchday(desc2, summary2)).toBe(12);
 
     expect(extractMatchday("no numbers here", "nor here")).toBeNull();

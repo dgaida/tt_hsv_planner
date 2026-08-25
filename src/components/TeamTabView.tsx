@@ -938,7 +938,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                   </div>
                 </div>
 
-                {matchAvails.length > 0 && (
+                {userRole !== 'player' && matchAvails.length > 0 && (
                   <div className="mt-5 pt-4 border-t border-gray-50">
                     <p className="text-xs font-semibold text-gray-500 mb-2">Aktuelle Rückmeldungen:</p>
                     <div className="flex flex-wrap gap-2">
