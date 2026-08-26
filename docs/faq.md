@@ -42,8 +42,8 @@ Dieser Fehler tritt meistens nach dem Ausführen einer Datenbank-Migration auf. 
    ```sql
    SELECT pg_notification_queue_usage();
    ```
-3. **API-Einstellung im Dashboard toggeln:**
-   Gehe im Supabase-Dashboard auf **Project Settings** > **Data API**, ändere kurz eine Einstellung (oder speichere sie erneut ab), um den Cache-Rebuild zu erzwingen.
+3. **API-Einstellung im Dashboard toggeln:**  
+   Gehe im Supabase-Dashboard auf **Project Settings** > **Data API**, ändere kurz eine Einstellung (oder speichere sie erneut ab), um den Cache-Rebuild zu erzwingen.  
 4. **Projekt pausieren & fortsetzen (Harter Neustart):**  
    Pausiere das Projekt in Supabase und starte es nach 2 Minuten neu.
 
@@ -72,14 +72,14 @@ Setze nach der Befehlszeile `ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS
 ### Fehler D: Ich erhalte keine Bestätigungs-E-Mail nach der Registrierung
 Supabase verwendet für neue Projekte eine eingebaute E-Mail-Schnittstelle mit sehr strikten Limits.
 
-#### Lösungswege:
-* **E-Mail-Bestätigung deaktivieren (Empfohlen):**
-  Gehe in Supabase zu **Authentication** > **Providers** > **Email**, deaktiviere **"Confirm email"** und klicke auf **Save**.
-* **Eigenen SMTP-Server hinterlegen:**
+#### Lösungswege:  
+* **E-Mail-Bestätigung deaktivieren (Empfohlen):**  
+  Gehe in Supabase zu **Authentication** > **Providers** > **Email**, deaktiviere **"Confirm email"** und klicke auf **Save**.  
+* **Eigenen SMTP-Server hinterlegen:**  
   Trage unter **Project Settings** > **Auth** > **SMTP Settings** Zugangsdaten eines E-Mail-Providers (z. B. Resend, Mailgun) ein.
 
 ---
 
-### Fehler E: HTML-Kader-Import bricht ab oder schlägt fehl
-* **Automatischer Proxy-Fetch blockiert:** Wenn Adblocker oder CORS-Proxies den automatischen HTML-Abruf von myTischtennis.de verhindern, verwende die eingebaute Option **"HTML manuell einfügen"** (Kopieren des Quelltextes der Mannschaftsmeldung auf myTischtennis.de und Einfügen in das Textfeld).
-* **Namensänderungen:** Das System klassifiziert Eingaben transparent in *„Bereits aktuell“*, *„Nur aktualisiert“* oder *„Ersetzt“*, damit Vor- und Nachnamen vor dem Speichern geprüft werden können.
+### Fehler E: HTML-Kader-Import bricht ab oder schlägt fehl  
+* **Automatischer Proxy-Fetch blockiert:** Wenn Adblocker oder CORS-Proxies den automatischen HTML-Abruf von myTischtennis.de verhindern, verwende die eingebaute Option **"HTML manuell einfügen"** (Kopieren des Quelltextes der Mannschaftsmeldung auf myTischtennis.de und Einfügen in das Textfeld).  
+* **Namensänderungen:** Das System klassifiziert Eingaben transparent in *„Bereits aktuell“*, *„Nur aktualisiert“* oder *„Ersetzt“*, damit Vor- und Nachnamen vor dem Speichern geprüft werden können.  

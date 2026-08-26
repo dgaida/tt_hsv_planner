@@ -9,8 +9,8 @@ Dieses Handbuch beschreibt die Nutzung des TTV Spielplaners aus der Sicht der vi
 ### Das globale Vereinspasswort (Password Gate)
 Die gesamte Plattform ist vor unbefugtem Zugriff geschützt. Beim ersten Besuch der Seite wirst du aufgefordert, das **Vereinspasswort** einzugeben.  
 * **Tipp für Bequemlichkeit (Bypass-Link):** Du kannst das Passwort in der URL mitsenden, um den Passworteingabebildschirm komplett zu überspringen (z. B. ideal zum Abspeichern als Lesezeichen oder zum Teilen in WhatsApp-Gruppen):  
-  `https://deinverein.github.io/spielplaner/?pw=DasVereinsPasswort` oder `?password=DasVereinsPasswort`.
-* **Passwort-Gate zurücksetzen:** Administratoren können in der Fußzeile der Anwendung über den Button *"Sicherheit: Passwort-Gate zurücksetzen"* das gespeicherte Passwort aus dem lokalen Speicher entfernen.
+  `https://deinverein.github.io/spielplaner/?pw=DasVereinsPasswort` oder `?password=DasVereinsPasswort`.  
+* **Passwort-Gate zurücksetzen:** Administratoren können in der Fußzeile der Anwendung über den Button *"Sicherheit: Passwort-Gate zurücksetzen"* das gespeicherte Passwort aus dem lokalen Speicher entfernen.  
 
 ### Registrierung & Automatische Profil-Verknüpfung
 Damit Spieler ihre Accounts registrieren können, ohne dass mühsam im Nachhinein manuell Berechtigungen, Q-TTR-Punkte oder Mannschaftszuordnungen verknüpft werden müssen, verwendet die Plattform eine **intelligente, automatische Namenserkennung**:
@@ -23,7 +23,7 @@ Damit Spieler ihre Accounts registrieren können, ohne dass mühsam im Nachhinei
 * **Vorteile der automatischen Verknüpfung:**  
   * **Erhalt aller Daten:** Alle historischen Rückmeldungen (RSVPs), Abwesenheiten, Mannschaftszuordnungen, TTR-Punkte und bereits vorgenommenen Aufstellungen (Lineups) bleiben nahtlos erhalten.  
   * **Kein Administrativer Aufwand:** Es muss kein Administrator manuell eingreifen, um dem neu registrierten Account sein Profil zuzuordnen.  
-  * **Cascade-Sicherheit:** Durch datenbankseitige `ON UPDATE CASCADE`-Regeln sowie automatische JSONB-Lineup-Remappings werden alle Tabellenreferenzen sicher auf die neue Benutzer-ID umgeschrieben.
+  * **Cascade-Sicherheit:** Durch datenbankseitige `ON UPDATE CASCADE`-Regeln sowie automatische JSONB-Lineup-Remappings werden alle Tabellenreferenzen sicher auf die neue Benutzer-ID umgeschrieben.  
 
 ---
 
@@ -38,12 +38,12 @@ Als Spieler steht für dich die schnelle Rückmeldung und deine persönliche Pla
 
 #### 2. Spielbereitschaft zurückmelden (RSVP)  
 * Im Reiter **"Mannschaften"** siehst du die anstehenden Spiele deines Teams.  
-* Unter den Spieldetails findest du in der linken Spalte das Abgabeformular mit berührungsfreundlichen Schaltflächen:
+* Unter den Spieldetails findest du in der linken Spalte das Abgabeformular mit berührungsfreundlichen Schaltflächen:  
   * **Zusage (Grün):** Du bist spielbereit und stehst zur Verfügung.  
   * **Absage (Rot):** Du kannst an diesem Termin nicht spielen.  
   * **Unsicher (Gelb):** Du weißt es noch nicht genau (z. B. wegen Schichtarbeit).  
 * Du kannst zu jeder Rückmeldung eine **Bemerkung** hinzufügen (z. B. "Kann erst ab 19:30 Uhr" oder "Fahre direkt zum Auswärtsspiel").  
-* **Datenschutz & Übersicht:** Um Verwirrung zu vermeiden, ist die detaillierte Feedback-Liste ("Aktuelle Rückmeldungen:") im Mannschafts-Tab für reine Spieler-Accounts ausgeblendet.
+* **Datenschutz & Übersicht:** Um Verwirrung zu vermeiden, ist die detaillierte Feedback-Liste ("Aktuelle Rückmeldungen:") im Mannschafts-Tab für reine Spieler-Accounts ausgeblendet.  
 
 #### 3. Ersatzspieler-Meldung (Mannschaftsübergreifend)  
 * Du möchtest in einer anderen Mannschaft als Ersatzspieler aushelfen? Navigiere einfach zu dem entsprechenden Team und klicke auf ein Spiel.  
@@ -71,22 +71,22 @@ Du kannst Rückmeldungen (Zusagen/Absagen) für dein Team direkt eintragen und s
 
 #### 3. Automatische Mannschaftsaufstellung & Sortier-Logik (Lineup-Engine)
 Die Aufstellung pro Spiel (maximal 5 Spieler auf dem Spielbericht) wird automatisch berechnet und sortiert:  
-* **A. RSVP-Priorität (4-Stufen-Logik):**
+* **A. RSVP-Priorität (4-Stufen-Logik):**  
   1. **Ja (Zusage):** Haben höchste Priorität und wandern ganz nach oben.  
-  2. **Keine Antwort (unentschieden / null):** Werden an zweiter Stelle aufgeführt.
+  2. **Keine Antwort (unentschieden / null):** Werden an zweiter Stelle aufgeführt.  
   3. **Vielleicht:** Stehen an dritter Stelle.  
   4. **Nein (Absage):** Werden ans Ende der Liste einsortiert.  
-* **B. Vereinsrangfolge (Tie-Breaker):** Haben mehrere Spieler denselben RSVP-Status, entscheidet die feste Rangfolge im Verein:
+* **B. Vereinsrangfolge (Tie-Breaker):** Haben mehrere Spieler denselben RSVP-Status, entscheidet die feste Rangfolge im Verein:  
   * **Team-Nummer** aufsteigend ➔ **Positions-Nummer** aufsteigend ➔ **Name** alphabetisch.  
-* **C. Der Kader (4 Stamm + 1 Ersatz):** Aus der sortierten Liste werden die Top 5 Spieler genommen. Die ersten 4 Spieler bilden die Stammaufstellung des Spiels. Der 5. Spieler wird deutlich als **"Ersatz"** (mit amberfarbener Markierung und "Ersatz"-Badge) dargestellt.
-* **D. Manuelle Reihenfolge (Reorder):** Du kannst diese Standard-Berechnung manuell überschreiben, indem du die Schaltflächen **▲** (nach oben) und **▼** (nach unten) neben dem Namen des Spielers verwendest. Die individuelle Reihenfolge wird als `lineup` JSONB-Array direkt am Spiel gespeichert.
+* **C. Der Kader (4 Stamm + 1 Ersatz):** Aus der sortierten Liste werden die Top 5 Spieler genommen. Die ersten 4 Spieler bilden die Stammaufstellung des Spiels. Der 5. Spieler wird deutlich als **"Ersatz"** (mit amberfarbener Markierung und "Ersatz"-Badge) dargestellt.  
+* **D. Manuelle Reihenfolge (Reorder):** Du kannst diese Standard-Berechnung manuell überschreiben, indem du die Schaltflächen **▲** (nach oben) und **▼** (nach unten) neben dem Namen des Spielers verwendest. Die individuelle Reihenfolge wird als `lineup` JSONB-Array direkt am Spiel gespeichert.  
 
 #### 4. Team-Matrix  
 * Im Reiter **"Team-Matrix"** siehst du alle Spiele deiner Mannschaft und alle deine Spieler in einer kompakten Tabelle.  
-* Änderungen an Verfügbarkeiten in der Matrix aktualisieren die Datenbank direkt ohne zusätzliche Bestätigungs-Popups.
+* Änderungen an Verfügbarkeiten in der Matrix aktualisieren die Datenbank direkt ohne zusätzliche Bestätigungs-Popups.  
 
 #### 5. Abwesenheits-Kalender  
-* Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate in einem kompakten **2x2-Grid** anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund.
+* Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate in einem kompakten **2x2-Grid** anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund.  
 
 #### 6. On-Demand Online-Kalendersynchronisation  
 * Wenn du als Mannschaftsführer im Mannschafts-Tab auf **"🔄 Aktualisieren"** klickst, wird der Online-Kalender von myTischtennis.de für deine Mannschaft live im Hintergrund auf Änderungen, neue Spiele oder Spielabsagen geprüft.  
@@ -99,26 +99,26 @@ Als Sportwart hast du die sportliche Gesamtleitung des Vereins und planst die Au
 #### 1. Anmeldung  
 * Melde dich mit deiner **E-Mail und deinem Passwort** an.  
 
-#### 2. Spieler & Q-TTR-Punkte verwalten
+#### 2. Spieler & Q-TTR-Punkte verwalten  
 * Im Reiter **"Sportwart"** kannst du neue Spielerprofile anlegen (vollkommen unabhängig von einem registrierten Supabase-Konto).  
-* Du kannst für jeden Spieler die aktuellen **Q-TTR-Punkte** eintragen.
-* Weise den Spielern ihre feste Position im Verein zu (`team_number` und `position_number`). Dies bestimmt die automatische Nachrücker-Hierarchie bei Ersatzspielern.
+* Du kannst für jeden Spieler die aktuellen **Q-TTR-Punkte** eintragen.  
+* Weise den Spielern ihre feste Position im Verein zu (`team_number` und `position_number`). Dies bestimmt die automatische Nachrücker-Hierarchie bei Ersatzspielern.  
 
-#### 3. HTML-Kader-Import & Abgleich Engine
-* Über den Kader-Import kannst du die Mannschaftsmeldung von myTischtennis.de einpflegen.
-* **Multi-Layer Fetch & Fallback:** Das System versucht zunächst, den HTML-Kader automatisch über CORS-Proxies abzurufen. Sollte dies z. B. durch Adblocker blockiert werden, steht dir ein manuelle Kopier-Fallback ("HTML manuell einfügen") zur Verfügung.
-* **Transparenter Datenabgleich:** Nach dem Parsen vergleicht das System den HTML-Kader mit der Datenbank und gruppiert die Ergebnisse vor der Übernahme transparent:
-  * **Bereits aktuell:** Keinerlei Änderungen erforderlich.
-  * **Nur aktualisiert:** Positionen oder Q-TTR-Punkte haben sich geändert.
-  * **Ersetzt:** Spieler wurden ersetzt, umbenannt oder neu hinzugefügt.
+#### 3. HTML-Kader-Import & Abgleich Engine  
+* Über den Kader-Import kannst du die Mannschaftsmeldung von myTischtennis.de einpflegen.  
+* **Multi-Layer Fetch & Fallback:** Das System versucht zunächst, den HTML-Kader automatisch über CORS-Proxies abzurufen. Sollte dies z. B. durch Adblocker blockiert werden, steht dir ein manuelle Kopier-Fallback ("HTML manuell einfügen") zur Verfügung.  
+* **Transparenter Datenabgleich:** Nach dem Parsen vergleicht das System den HTML-Kader mit der Datenbank und gruppiert die Ergebnisse vor der Übernahme transparent:  
+  * **Bereits aktuell:** Keinerlei Änderungen erforderlich.  
+  * **Nur aktualisiert:** Positionen oder Q-TTR-Punkte haben sich geändert.  
+  * **Ersetzt:** Spieler wurden ersetzt, umbenannt oder neu hinzugefügt.  
 
 #### 4. 4-Monats-Abwesenheits-Planer  
-* Du hast Zugriff auf den **Abwesenheits-Kalender** (2x2 Grid für die kommenden 4 Monate).
-* Klickst du auf einen Tag, siehst du im Detail, wer an diesem Tag aus welchen Gründen fehlt.
+* Du hast Zugriff auf den **Abwesenheits-Kalender** (2x2 Grid für die kommenden 4 Monate).  
+* Klickst du auf einen Tag, siehst du im Detail, wer an diesem Tag aus welchen Gründen fehlt.  
 
 #### 5. Aufstellungs-Kontrolle & mannschaftsübergreifendes Lineup  
-* In der Gesamtübersicht und im Mannschafts-Tab siehst du für jedes Spiel die automatisch berechnete Aufstellung (4 Stamm + 1 Ersatz).
-* Als Sportwart kannst du die Aufstellung aller Teams manuell verschieben (▲/▼) oder die RSVPs beliebig anpassen.
+* In der Gesamtübersicht und im Mannschafts-Tab siehst du für jedes Spiel die automatisch berechnete Aufstellung (4 Stamm + 1 Ersatz).  
+* Als Sportwart kannst du die Aufstellung aller Teams manuell verschieben (▲/▼) oder die RSVPs beliebig anpassen.  
 
 ---
 
@@ -129,14 +129,14 @@ Als Administrator hast du vollen Zugriff auf alle technischen Einstellungen des 
 * Melde dich mit deiner **E-Mail und deinem Passwort** an.  
 
 #### 2. Mannschafts- & Webcal-Verwaltung  
-* Im Reiter **"Admin"** kannst du neue Mannschaften erstellen (z. B. "Erwachsene IV").
+* Im Reiter **"Admin"** kannst du neue Mannschaften erstellen (z. B. "Erwachsene IV").  
 * Hinterlege oder ändere die **Webcal-Kalender-Links von myTischtennis.de** für jede Mannschaft.  
 * Du kannst Mannschaften aktiv oder inaktiv schalten.  
 
-#### 3. Globale Rollenverteilung & Sicherheit
-* Du kannst die Berechtigungen aller Benutzer im Verein anpassen.
-* In der Fußzeile der Anwendung kannst du das globale Passwort-Gate zurücksetzen.
+#### 3. Globale Rollenverteilung & Sicherheit  
+* Du kannst die Berechtigungen aller Benutzer im Verein anpassen.  
+* In der Fußzeile der Anwendung kannst du das globale Passwort-Gate zurücksetzen.  
 
 #### 4. Manuelle Synchronisation & Berichte  
-* Anstoß des Spieltermin-Imports für alle Teams direkt im Browser mit gestaffelten Verzögerungen (1500ms Pausen zwischen Teams).
-* Einsicht in detaillierte Synchronisationsberichte.
+* Anstoß des Spieltermin-Imports für alle Teams direkt im Browser mit gestaffelten Verzögerungen (1500ms Pausen zwischen Teams).  
+* Einsicht in detaillierte Synchronisationsberichte.  
