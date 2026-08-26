@@ -7,8 +7,7 @@ Dieses Repository enthält eine vollständige, produktionsreife und smartphone-o
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/dgaida/tt_hsv_planner/graphs/commit-activity)
 ![Last commit](https://img.shields.io/github/last-commit/dgaida/tt_hsv_planner)
 
-
-Die Anwendung liest Spieltermine automatisch aus den jeweiligen **Webcal-Kalendern von myTischtennis.de** ein und bietet eine gemeinsame Plattform zur unkomplizierten Rückmeldung und Organisation der Spieltage.
+Die Anwendung liest Spieltermine automatisch aus den jeweiligen **Webcal-Kalendern von myTischtennis.de** ein und bietet eine gemeinsame Plattform zur unkomplizierten Rückmeldung, Aufstellungsplanung und Organisation von Spieltagen und Abwesenheiten.
 
 ---
 
@@ -17,47 +16,53 @@ Die Anwendung liest Spieltermine automatisch aus den jeweiligen **Webcal-Kalende
 Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokumentation im Ordner [`docs/`](./docs/) hinterlegt:
 
 1. 🚀 **[Erst-Einrichtung & Installation](./docs/einrichtung.md)**  
-   * Lokale Entwicklung einrichten (`npm run dev`)  
-   * Supabase-Datenbank-Setup (Tabellen, RLS, RPCs)  
+   * Lokale Entwicklung einrichten (`npm run dev`, `npm run test`)
+   * Supabase-Datenbank-Setup (Tabellen, RLS, RPCs, schlüssellose Profile & Idempotenz)
    * Bereitstellung der Edge Function (`sync-calendars`)  
-   * CI/CD via GitHub Actions (Hosting & automatisierter Cronjob-Sync)  
+   * CI/CD via GitHub Actions (Hosting, Code Quality Checks, Test-Automatisierung, Version-Badges & automatisierter Cronjob-Sync)
 2. 🧑‍💻 **[Nutzung & Benutzerhandbuch](./docs/nutzung.md)**  
-   * **Spieler:** Abwesenheitskalender, Zu- und Absagen (RSVP), passwortloser Login  
-   * **Mannschaftsführer:** Stammspieler-Verwaltung, Teamzuordnungen  
-   * **Sportwart:** Spielerverwaltung, TTR-Punkte, Aufstellungen (Lineups), Abwesenheitsmatrix (60 Tage)  
-   * **Administrator:** Teampflege, Webcal-Links, Rollenzuweisungen, Synchronisationsberichte  
+   * **Spieler:** Persönlicher Abwesenheitskalender, Zu- und Absagen (RSVP), passwortloser Login, Ersatzspieler-Anmeldung
+   * **Mannschaftsführer:** Stammspieler- & Ersatzspieler-Verwaltung, manuelle Aufstellungsanpassung (▲/▼)
+   * **Sportwart:** Spielerverwaltung, Q-TTR-Punkte, automatischer HTML-Kader-Import mit Kopier-Fallback, 4-Monats-Abwesenheitsmatrix
+   * **Administrator:** Teampflege, Webcal-Links, Rollenzuweisungen, Synchronisationsberichte, Passwort-Gate Zurücksetzen
 3. 🏗️ **[Technische Architektur](./docs/architektur.md)**  
-   * Technologiestack (React, Vite, TypeScript, Tailwind, Supabase)  
-   * Datenmodell & Datenbankschema (Lineup JSONB, Absences, etc.)  
-   * Kalender-Synchronisations-Engine (Proxy-Bypass, Edge-Function-Logik)  
-   * Ersatzspieler-Nachrückerlogik & Berechtigungskonzept (RLS)  
+   * Technologiestack (React, Vite, TypeScript, Tailwind CSS, Vitest, Supabase)
+   * Datenmodell & Datenbankschema (Lineup JSONB, Absences, decoupled Profiles)
+   * Automatische Profil-Verknüpfung via `handle_new_user()` (mit `ON UPDATE CASCADE` & Lineup JSONB Remapping)
+   * Kalender-Synchronisations-Engine (Proxy-Bypass, Staggered Delays, Edge-Function-Logik)
+   * Ersatzspieler-Nachrückerlogik (Priorisierung: Ja > Keine Antwort > Vielleicht > Nein & Vereinsrangliste)
 4. ❓ **[FAQ & Fehlerbehebung](./docs/faq.md)**  
    * Fehlerbehebung beim PostgREST-Cache (`NOTIFY pgrst, 'reload schema'`)  
+   * Behandlung von Blanket-Updates (`.neq('id', '00000000-0000-0000-0000-000000000000')`)
    * Globale Passwort-Sperre & URL-Bypass-Links  
-   * Probleme beim E-Mail-Versand oder Webcal-Import  
+   * Probleme beim E-Mail-Versand, Webcal-Import oder HTML-Kader-Import
 
 ---
 
 ## 🚀 Kern-Features im Überblick
 
-* **Mehrere Mannschaften verwalten:** Mannschaften können flexibel über das Admin-Panel oder direkt in der Datenbank angelegt, aktiviert/deaktiviert und mit eigenen Webcal-Kalendern verknüpft werden.  
-* **Automatischer & Manueller Sync:** Kalender synchronisieren sich vollautomatisch einmal täglich (via GitHub Actions Cronjob). Alternativ können Administratoren oder Sportwarte die Synchronisation direkt im Frontend auslösen.  
+* **Mehrere Mannschaften verwalten:** Mannschaften (z. B. "Erwachsene I", "Erwachsene II") können flexibel über das Admin-Panel oder direkt in der Datenbank angelegt, aktiviert/deaktiviert und mit eigenen Webcal-Kalendern verknüpft werden.
+* **Automatischer & Manueller Sync:** Kalender synchronisieren sich vollautomatisch einmal täglich via GitHub Actions Cronjob. Mannschaftsführer, Sportwarte und Admins können die Synchronisation direkt im Frontend auslösen (reguläre Spieler aktualisieren nur den lokalen Stand).
 * **Erkennung von Spielverlegungen (Termin-Versionierung):**  
   * Verschiebt sich ein Spiel auf myTischtennis.de, wird dies über die stabile `UID` des ICS-Events erkannt.  
-  * Bereits abgegebene Rückmeldungen werden archiviert und im Frontend als *„erneute Antwort erforderlich“ (⚠️)* markiert, damit Spieler den neuen Termin explizit bestätigen können.  
+  * Bereits abgegebene Rückmeldungen werden archiviert und im Frontend als *„erneute Antwort erforderlich“ (⚠️)* markiert.
 * **Abwesenheits-Kalender (Mein Kalender & 4-Monats-Planer):**  
-  * Spieler können Abwesenheiten (z. B. Urlaub, Arbeit, Krankheit) im persönlichen Kalender pflegen.  
-  * Mannschaftsführer, Sportwarte und Admins steht eine visuelle 4-Monats-Abwesenheitsmatrix (zwei Monate nebeneinander) aller Spieler in einem eigenen Tab zur langfristigen, mannschaftsübergreifenden Planung zur Verfügung.  
-* **Intelligente Ersatzspieler-Regelung (Ersatzspieler-Logik):**  
-  * Das System stellt automatisch die Top 4 Stammspieler eines Teams auf.  
-  * Fehlt ein Stammspieler oder sagt ab, rückt automatisch der am besten platzierte, verfügbare Ersatzspieler (basierend auf Vereinsrangliste: Teamnummer und Position) nach.  
-* **Automatische Terminkonflikt-Erkennung:** Ist ein Spieler zeitgleich bei zwei Spielen als verfügbar eingetragen, wird die Vereinsleitung sofort optisch gewarnt.  
+  * Spieler tragen Abwesenheiten (Urlaub, Arbeit, Krankheit) im persönlichen Kalender ein.
+  * Für Mannschaftsführer, Sportwarte und Admins steht ein dedizierter **4-Monats-Abwesenheits-Kalender** (2x2 Grid) bereit.
+* **Intelligente Aufstellungs- & Ersatzspieler-Logik:**
+  * **Kader-Struktur:** Ein Spielkader besteht aus 4 Stammspielern und 1 Ersatzspieler (hervorgehoben mit amberfarbenem Badge).
+  * **Priorisierung:** Verfügbarkeiten werden primär nach RSVP-Status (`Ja` > `Keine Antwort` > `Vielleicht` > `Nein`) und sekundär nach Vereinsrangfolge (Team-Nummer ➔ Position ➔ Name) einsortiert.
+  * **Manuelle Anpassung:** Reihenfolgen können über Buttons (▲ / ▼) individuell angepasst und als `lineup` JSONB in der Datenbank gespeichert werden.
+* **HTML-Kader-Import & Abgleich Engine:**
+  * Der Sportwart kann den Vereinskader von myTischtennis.de automatisch über CORS-Proxies abrufen oder per Kopieren/Einfügen als HTML verarbeiten.
+  * Das System vergleicht die Daten und klassifiziert Änderungen transparent in *„Bereits aktuell“*, *„Nur aktualisiert“* (z. B. Q-TTR) oder *„Ersetzt“*.
+* **Automatische Terminkonflikt-Erkennung:** Zusage bei zwei zeitgleichen Spielen (±1 Stunde) erzeugt Warnungen und Hinweise im Frontend.
 * **Zweigeteiltes Login-Verfahren & Automatische Verknüpfung:**  
-  * **Passwortloser Login:** Spieler können sich für schnelle Rückmeldungen direkt über ein Namens-Dropdown einloggen (erhält standardmäßig die Rolle `player`).  
-  * **Passwort-Login:** Um administrative Rollen (Mannschaftsführer, Sportwart, Admin) freizuschalten, ist eine Anmeldung mit E-Mail und Passwort erforderlich.  
-  * **Automatische Profil-Verknüpfung:** Registriert sich ein Spieler mit seinem vollen Namen (z. B. `"Max Mustermann"`, im Tool dargestellt als `"Max M"`), verknüpft das System dieses neue Benutzerkonto automatisch mit dem bereits existierenden, vom Sportwart/Admin importierten Profil. Alle bestehenden RSVPs, TTR-Punkte, Mannschaftszuordnungen und bereits gesetzten Lineups bleiben vollkommen erhalten.  
-* **Smartphone-Optimierung:** Konsequentes Mobile-First-Design mit großen, berührungsfreundlichen Schaltflächen für eine reibungslose Bedienung auf jedem Smartphone.  
-* **Globale Passwort-Sperre:** Schutz aller Vereinsdaten durch ein globales Passwort. Unterstützt URL-Bypass per Parameter (`?pw=Passwort`), um Mitgliedern den direkten Zugriff zu erleichtern.  
+  * **Passwortloser Login:** Namensauswahl für schnelle Spielerrückmeldungen (Rolle `player`).
+  * **Passwort-Login:** Freischaltung erweiterter Rollen (`team_manager`, `sportwart`, `club_admin`).
+  * **Automatische Profil-Verknüpfung:** Bei der Registrierung wird das Profil per Namensabgleich nahtlos mit `auth.users` verknüpft – inkl. automatischer Kaskadierung auf Zusagen, Abwesenheiten und JSONB-Lineups.
+* **Integrierte Benutzeranleitung:** Direkt im Frontend aufrufbarer "Anleitung"-Tab (`GuideView.tsx`) mit rollenspezifischen Hinweisen.
+* **Smartphone-Optimierung & Passwort-Gate:** Mobile-First-Design für Smartphones, geschützt durch ein globales Passwort (unterstützt URL-Bypass `?pw=...`).
 
 ---
 
@@ -76,7 +81,7 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
    Die Anwendung öffnet sich unter `http://localhost:5173`.  
 3. **Automatisierte Tests ausführen:**  
    ```bash
-   npm run test
+   npm test
    ```
 
 Für die komplette Anleitung zur Anbindung von Supabase und dem Deployment auf GitHub Pages siehe **[Erst-Einrichtung & Installation](./docs/einrichtung.md)**.

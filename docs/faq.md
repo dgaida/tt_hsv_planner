@@ -20,51 +20,66 @@ Um deine erweiterten administrativen Rechte zu nutzen, musst du dich zwingend ü
 ### Q4: Warum wird der Spieltitel in der Übersicht rot dargestellt?
 **Antwort:** Wenn ein Spiel weniger als **4 positive Zusagen ('yes')** aufweist, färbt das System den Spieltitel rot ein und zeigt ein Warndreieck (`AlertTriangle`) an. Dies dient als visuelle Warnung für die Mannschaftsführer und den Sportwart, dass für dieses Spiel noch nicht genügend Spieler zur Verfügung stehen.
 
+### Q5: Wie unterscheidet das System Stamm- und Ersatzspieler im Aufstellungs-Kader?
+**Antwort:** Das System stellt automatisch einen 5er-Kader zusammen (4 Stammspieler + 1 Ersatzspieler). Der 5. Spieler wird als Ersatzspieler mit einem deutlichen amberfarbenen Hintergrund und einem `"Ersatz"`-Badge gekennzeichnet.
+
 ---
 
 ## 🛠️ 2. Technische Fehlerbehebung
 
 ### Fehler A: "Could not find column or table in the schema cache" (PostgREST-Fehler)
-Dieser Fehler tritt meistens nach dem Ausführen einer Datenbank-Migration (z. B. nach einem Update des Repositories) auf. Supabase (bzw. die API-Schnittstelle PostgREST) hat dann seinen internen Cache für das Tabellenschema noch nicht aktualisiert.
+Dieser Fehler tritt meistens nach dem Ausführen einer Datenbank-Migration auf. Supabase (bzw. die API-Schnittstelle PostgREST) hat dann seinen internen Cache für das Tabellenschema noch nicht aktualisiert.
 
 #### Lösungswege (der Reihe nach ausprobieren):
 
 1. **Cache-Neuaufbau erzwingen (SQL Editor):**  
-   Führe folgenden Befehl im **SQL Editor** in Supabase aus, um den Cache manuell neu zu laden:
+   Führe folgenden Befehl im **SQL Editor** in Supabase aus:
    ```sql
    NOTIFY pgrst, 'reload schema';
    ```
 2. **Benachrichtigungswarteschlange leeren:**  
-   Sollte Schritt 1 blockiert sein, hilft dieser Befehl, um die Postgres-Queue im Hintergrund zu bereinigen:
+   Sollte Schritt 1 blockiert sein, hilft dieser Befehl:
    ```sql
    SELECT pg_notification_queue_usage();
    ```
-3. **API-Einstellung im Dashboard toggeln (Erzwingt Backend-Rebuild):**  
-   * Gehe im Supabase-Dashboard auf **Project Settings** > **Data API**.  
-   * Nimm eine minimale Änderung vor (z. B. kurz eine Einstellung umschalten oder ein Schema hinzufügen/entfernen) und klicke auf **Save**. Dies zwingt Supabase, den Cache komplett neu aufzubauen.  
+3. **API-Einstellung im Dashboard toggeln:**
+   Gehe im Supabase-Dashboard auf **Project Settings** > **Data API**, ändere kurz eine Einstellung (oder speichere sie erneut ab), um den Cache-Rebuild zu erzwingen.
 4. **Projekt pausieren & fortsetzen (Harter Neustart):**  
-   * Klicke im Supabase-Dashboard unten links auf das Zahnrad-Symbol und wähle **Pause Project**.  
-   * Warte 2 Minuten und klicke dann auf **Resume Project**. Dadurch wird der gesamte Container neu gestartet und liest das Schema frisch ein.  
+   Pausiere das Projekt in Supabase und starte es nach 2 Minuten neu.
 
 ---
 
-### Fehler B: Ich erhalte keine Bestätigungs-E-Mail nach der Registrierung
-Supabase verwendet für neue Projekte standardmäßig eine eingebaute E-Mail-Schnittstelle, die jedoch sehr restriktiven Limits unterliegt (z. B. maximal 3 E-Mails pro Stunde für das gesamte Projekt) und unzuverlässig zustellt.
+### Fehler B: PostgREST-Fehler `UPDATE requires a WHERE clause` bei Blanket-Updates
+Tritt auf, wenn eine Supabase-Abfrage alle Zeilen einer Tabelle auf einmal aktualisieren oder zurücksetzen möchte (z. B. beim Zurücksetzen von Mannschaftszuordnungen).
+
+#### Lösung:
+Ergänze in der Query stets eine explizite Dummy-Bedingung wie:
+```typescript
+.neq('id', '00000000-0000-0000-0000-000000000000')
+```
+Dadurch wird die PostgREST-Sicherheitsregel für unbedingte Updates erfüllt.
+
+---
+
+### Fehler C: PostgreSQL `ERROR 55P04 (unsafe use of new enum value)`
+Tritt auf, wenn in derselben Transaktion ein neuer Wert zu einer Enum hinzugefügt und direkt im folgenden Befehl verwendet wird.
+
+#### Lösung:
+Setze nach der Befehlszeile `ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'sportwart';` ein explizites `COMMIT;`, um die Transaktion abzuschließen, bevor nachfolgende Anweisungen die neue Enum verwenden.
+
+---
+
+### Fehler D: Ich erhalte keine Bestätigungs-E-Mail nach der Registrierung
+Supabase verwendet für neue Projekte eine eingebaute E-Mail-Schnittstelle mit sehr strikten Limits.
 
 #### Lösungswege:
-
-* **Weg 1: E-Mail-Bestätigung komplett deaktivieren (Empfohlen für schnellen Start):**  
-  Wenn du keine E-Mail-Verifizierung benötigst, kannst du diese einfach abschalten. Benutzer sind dann sofort nach der Registrierung aktiv und eingeloggt:  
-  1. Gehe im Supabase-Dashboard auf **Authentication** > **Providers** > **Email**.  
-  2. Deaktiviere die Option **"Confirm email"** und klicke auf **Save**.  
-* **Weg 2: Eigenen SMTP-Server hinterlegen:**  
-  Für den produktiven Betrieb solltest du einen professionellen E-Mail-Dienst (z. B. Resend, SendGrid, Mailgun) anbinden:  
-  1. Gehe in Supabase zu **Project Settings** > **Auth** > **SMTP Settings**.  
-  2. Trage dort die Zugangsdaten deines E-Mail-Providers ein.  
+* **E-Mail-Bestätigung deaktivieren (Empfohlen):**
+  Gehe in Supabase zu **Authentication** > **Providers** > **Email**, deaktiviere **"Confirm email"** und klicke auf **Save**.
+* **Eigenen SMTP-Server hinterlegen:**
+  Trage unter **Project Settings** > **Auth** > **SMTP Settings** Zugangsdaten eines E-Mail-Providers (z. B. Resend, Mailgun) ein.
 
 ---
 
-### Fehler C: Webcal-Synchronisation schlägt fehl oder importiert keine Spiele  
-* **CORS-Blockade im Browser (Manueller Sync):** Der clientseitige Fallback versucht, CORS-Blockaden über öffentliche Proxies zu umgehen. Wenn diese temporär überlastet sind, kann der Sync fehlschlagen. Versuche es in diesem Fall nach einigen Minuten erneut.  
-* **Ungültiger Link:** Stelle sicher, dass der Webcal-Link exakt so eingetragen ist, wie von myTischtennis.de bereitgestellt. Das System korrigiert das Protokoll `webcal://` automatisch zu `https://`, aber Tippfehler in der URL verhindern den Download.  
-* **Keine Spiele im Kalender:** Prüfe auf myTischtennis.de, ob für die betroffene Mannschaft und den aktuellen Zeitraum tatsächlich Spiele im Webcal-Kalender hinterlegt sind.  
+### Fehler E: HTML-Kader-Import bricht ab oder schlägt fehl
+* **Automatischer Proxy-Fetch blockiert:** Wenn Adblocker oder CORS-Proxies den automatischen HTML-Abruf von myTischtennis.de verhindern, verwende die eingebaute Option **"HTML manuell einfügen"** (Kopieren des Quelltextes der Mannschaftsmeldung auf myTischtennis.de und Einfügen in das Textfeld).
+* **Namensänderungen:** Das System klassifiziert Eingaben transparent in *„Bereits aktuell“*, *„Nur aktualisiert“* oder *„Ersetzt“*, damit Vor- und Nachnamen vor dem Speichern geprüft werden können.
