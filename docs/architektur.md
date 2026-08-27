@@ -38,7 +38,7 @@ Die Anwendung ist als moderne, serverlose Single-Page-Application (SPA) konzipie
 
 ## 🗄️ 2. Datenmodell & Schema
 
-Das relationale Datenbankschema ist in `supabase/migrations/20260808000000_init.sql` definiert. Die wichtigsten Tabellen im Überblick:
+Das relationale Datenbankschema ist in `supabase/migrations/20260808000000_init.sql` definiert. Eine vollständige, spaltenweise Referenz aller 9 Tabellen befindet sich in **[`docs/datenbank.md`](./datenbank.md)**. Die wichtigsten Tabellen im Überblick:
 
 ### `profiles` (Benutzerprofile)
 Speichert die Stammdaten aller Vereinsmitglieder.  
