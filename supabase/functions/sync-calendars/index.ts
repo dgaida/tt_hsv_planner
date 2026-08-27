@@ -419,28 +419,37 @@ serve(async (req: Request) => {
           }
         }
 
-        for (const [uid, existing] of existingMap.entries()) {
-          if (!processedUids.has(uid) && existing.active) {
-            const { error: deacErr } = await supabase
-              .from('matches')
-              .update({
-                active: false,
-                updated_at: new Date().toISOString(),
-              })
-              .eq('id', existing.id);
+        const activeExistingMatches = Array.from(existingMap.values()).filter((m) => m.active);
 
-            if (deacErr) {
-              console.error(`Deactivate error match ${existing.id}:`, deacErr);
-            } else {
-              teamDetail.deactivated++;
-              totalDeactivated++;
+        // Safety check: Do not deactivate matches if 0 events were parsed when active matches existed
+        if (events.length === 0 && activeExistingMatches.length > 0) {
+          teamDetail.status = 'warning';
+          teamDetail.error = `Sicherheitssperre: 0 Termine im ICS gefunden, obwohl ${activeExistingMatches.length} aktive Spiele existieren. Inaktivierung blockiert.`;
+          finalStatus = 'warning';
+        } else {
+          for (const [uid, existing] of existingMap.entries()) {
+            if (!processedUids.has(uid) && existing.active) {
+              const { error: deacErr } = await supabase
+                .from('matches')
+                .update({
+                  active: false,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', existing.id);
 
-              await supabase
-                .from('match_changes')
-                .insert({
-                  match_id: existing.id,
-                  change_type: 'cancelled',
-                });
+              if (deacErr) {
+                console.error(`Deactivate error match ${existing.id}:`, deacErr);
+              } else {
+                teamDetail.deactivated++;
+                totalDeactivated++;
+
+                await supabase
+                  .from('match_changes')
+                  .insert({
+                    match_id: existing.id,
+                    change_type: 'cancelled',
+                  });
+              }
             }
           }
         }

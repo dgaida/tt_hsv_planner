@@ -73,7 +73,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -139,7 +146,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -213,7 +227,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -278,7 +299,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -341,7 +369,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -415,7 +450,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -494,7 +536,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
@@ -572,7 +621,14 @@ describe('TeamTabView', () => {
         queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
       }
       if (table === 'matches') {
-        queryMock.order = vi.fn().mockResolvedValue({ data: mockMatches, error: null });
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
       }
       if (table === 'profiles') {
         queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max Mustermann', team_number: 1 }, error: null });

@@ -13,6 +13,7 @@ interface TeamTabViewProps {
 
 export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: TeamTabViewProps) {
   const [matches, setMatches] = useState<any[]>([]);
+  const [cancelledMatches, setCancelledMatches] = useState<any[]>([]);
   const [availabilities, setAvailabilities] = useState<Record<string, any>>({});
   const [matchChanges, setMatchChanges] = useState<Record<string, any[]>>({});
   const [allAvailabilities, setAllAvailabilities] = useState<any[]>([]);
@@ -187,6 +188,15 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
 
       const fetchedMatches = matchesData || [];
       setMatches(fetchedMatches);
+
+      const { data: inactiveMatchesData } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('team_id', teamId)
+        .eq('active', false)
+        .order('dtstart', { ascending: true });
+
+      setCancelledMatches(inactiveMatchesData || []);
 
       const { data: activeTeamsData } = await supabase
         .from('teams')
@@ -538,6 +548,30 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
           )}
         </button>
       </div>
+
+      {cancelledMatches.length > 0 && (
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs sm:text-sm text-rose-900 space-y-2">
+          <div className="flex items-center gap-2 font-bold text-rose-800">
+            <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0" />
+            <span>🚫 Abgesagte / Inaktive Spiele ({cancelledMatches.length})</span>
+          </div>
+          <p className="text-rose-700">
+            Die folgenden Spiele wurden im Kalender als abgesagt oder inaktiv markiert:
+          </p>
+          <div className="space-y-1.5 pt-1">
+            {cancelledMatches.map((m) => (
+              <div key={m.id} className="bg-white/80 p-2.5 rounded-xl border border-rose-100 flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                <span className="font-semibold text-gray-800">
+                  {m.summary} ({formatGermanDate(m.dtstart)})
+                </span>
+                <span className="text-[10px] font-bold text-rose-700 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full shrink-0 self-start sm:self-auto">
+                  🚫 Abgesagt / Inaktiv
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {matches.length === 0 ? (

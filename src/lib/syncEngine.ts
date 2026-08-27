@@ -124,6 +124,8 @@ export async function syncTeamCalendar(
     deactivated: 0,
   };
 
+  let syncRunId: string | null = null;
+
   try {
     const { data: team, error: teamErr } = await supabase
       .from('teams')
@@ -136,6 +138,25 @@ export async function syncTeamCalendar(
     }
 
     result.teamName = team.name;
+
+    // Log start of sync run in sync_runs table
+    try {
+      const insertQuery = supabase
+        .from('sync_runs')
+        .insert({
+          status: 'pending',
+          summary_text: `Synchronisierung für ${team.name} gestartet...`,
+        });
+
+      if (typeof insertQuery?.select === 'function') {
+        const { data: runRecord } = await insertQuery.select('id').single();
+        if (runRecord) {
+          syncRunId = runRecord.id;
+        }
+      }
+    } catch (runErr) {
+      // Ignore if supabase client mock doesn't support .select() on .insert()
+    }
 
     if (!team.webcal_url) {
       throw new Error('Webcal URL is missing for this team.');
@@ -283,35 +304,60 @@ export async function syncTeamCalendar(
       }
     }
 
-    for (const [uid, existing] of existingMap.entries()) {
-      if (!processedUids.has(uid) && existing.active) {
-        const { error: deacErr } = await supabase
-          .from('matches')
-          .update({
-            active: false,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id);
+    const activeExistingMatches = Array.from(existingMap.values()).filter((m) => m.active);
 
-        if (deacErr) {
-          console.error(`Error deactivating match ${existing.id}:`, deacErr);
-        } else {
-          result.deactivated++;
+    // Safety Check: If the parsed ICS contains 0 events but active matches exist in the database,
+    // do NOT deactivate all matches! This prevents accidental mass cancellation due to empty/malformed ICS responses.
+    if (events.length === 0 && activeExistingMatches.length > 0) {
+      result.status = 'failed';
+      result.message = `Sicherheitssperre: Der Kalender lieferte 0 Termine, obwohl ${activeExistingMatches.length} aktive Spiele in der Datenbank existieren. Aus Sicherheitsgründen wurden keine Spiele inaktiviert.`;
+    } else {
+      for (const [uid, existing] of existingMap.entries()) {
+        if (!processedUids.has(uid) && existing.active) {
+          const { error: deacErr } = await supabase
+            .from('matches')
+            .update({
+              active: false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
 
-          await supabase
-            .from('match_changes')
-            .insert({
-              match_id: existing.id,
-              change_type: 'cancelled',
-            });
+          if (deacErr) {
+            console.error(`Error deactivating match ${existing.id}:`, deacErr);
+          } else {
+            result.deactivated++;
+
+            await supabase
+              .from('match_changes')
+              .insert({
+                match_id: existing.id,
+                change_type: 'cancelled',
+              });
+          }
         }
       }
-    }
 
-    result.message = `Erfolgreich synchronisiert. ${result.added} neue Spiele, ${result.rescheduled} verschoben, ${result.updated} Details geändert, ${result.deactivated} inaktiv gesetzt.`;
+      result.message = `Erfolgreich synchronisiert (${team.name}). ${result.added} neue Spiele, ${result.rescheduled} verschoben, ${result.updated} Details geändert, ${result.deactivated} inaktiv gesetzt.`;
+    }
   } catch (err: any) {
     result.status = 'failed';
     result.message = err.message || 'Unknown sync error';
+  }
+
+  // Update sync_runs table with completion status
+  if (syncRunId) {
+    try {
+      await supabase
+        .from('sync_runs')
+        .update({
+          status: result.status,
+          completed_at: new Date().toISOString(),
+          summary_text: result.message,
+        })
+        .eq('id', syncRunId);
+    } catch (updateRunErr) {
+      console.warn('Failed to update sync_runs record:', updateRunErr);
+    }
   }
 
   return result;
