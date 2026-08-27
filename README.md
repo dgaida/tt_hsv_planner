@@ -31,11 +31,11 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
    * Automatische Profil-Verknüpfung via `handle_new_user()` (mit `ON UPDATE CASCADE` & Lineup JSONB Remapping)  
    * Kalender-Synchronisations-Engine (Proxy-Bypass, Staggered Delays, Edge-Function-Logik)  
    * Ersatzspieler-Nachrückerlogik (Priorisierung: Ja > Keine Antwort > Vielleicht > Nein & Vereinsrangliste)  
-4. 🗄️ **[Datenbank & Spalten-Referenz](./docs/datenbank.md)**
-   * Detaillierte spaltenweise Erklärung aller 9 Datenbanktabellen
-   * Lifecycle von Spielen bei Terminverlegungen & Datums-/Uhrzeitänderungen
-   * Erkennung veralteter Zu-/Absagen & Verlegungs-Warnung (⚠️)
-5. ❓ **[FAQ & Fehlerbehebung](./docs/faq.md)**
+4. 🗄️ **[Datenbank & Spalten-Referenz](./docs/datenbank.md)**  
+   * Detaillierte spaltenweise Erklärung aller 9 Datenbanktabellen  
+   * Lifecycle von Spielen bei Terminverlegungen & Datums-/Uhrzeitänderungen  
+   * Erkennung veralteter Zu-/Absagen & Verlegungs-Warnung (⚠️)  
+5. ❓ **[FAQ & Fehlerbehebung](./docs/faq.md)**  
    * Fehlerbehebung beim PostgREST-Cache (`NOTIFY pgrst, 'reload schema'`)  
    * Behandlung von Blanket-Updates (`.neq('id', '00000000-0000-0000-0000-000000000000')`)  
    * Globale Passwort-Sperre & URL-Bypass-Links  

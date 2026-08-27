@@ -6,22 +6,22 @@ Dieses Dokument bietet eine vollständige, spaltenweise Aufschlüsselung aller T
 
 ## 📑 Inhaltsverzeichnis
 
-1. [Übersicht aller Tabellen](#-1-übersicht-aller-tabellen)
-2. [Spaltenweise Erläuterung aller Tabellen](#-2-spaltenweise-erläuterung-aller-tabellen)
-   - [1. `club_settings`](#1-club_settings-globale-vereinseinstellungen)
-   - [2. `profiles`](#2-profiles-benutzer--spielerprofile)
-   - [3. `teams`](#3-teams-mannschaften)
-   - [4. `team_players`](#4-team_players-mannschaftszuordnungen)
-   - [5. `matches`](#5-matches-spieltermine)
-   - [6. `availabilities`](#6-availabilities-rückmeldungen--verfügbarkeiten)
-   - [7. `sync_runs`](#7-sync_runs-synchronisations-protokoll)
-   - [8. `match_changes`](#8-match_changes-spieländerungs-historie)
-   - [9. `absences`](#9-absences-abwesenheiten)
-3. [Was passiert bei einer Spieländerung? (Erklärung & Lifecycle)](#-3-was-passiert-bei-einer-spieländerung-erklärung--lifecycle)
-   - [Erhält das Spiel eine neue ID?](#erhält-das-spiel-eine-neue-id)
-   - [Warum schienen Zu-/Absagen nach einer Aktualisierung zu verschwinden?](#warum-schienen-zu-absagen-nach-einer-aktualisierung-zu-verschwinden)
-   - [Wie bleiben Zu-/Absagen erhalten und wie funktioniert die Warnung?](#wie-bleiben-zu-absagen-erhalten-und-wie-funktioniert-die-warnung)
-   - [Protokollierung in `match_changes`](#protokollierung-in-match_changes)
+1. [Übersicht aller Tabellen](#-1-übersicht-aller-tabellen)  
+2. [Spaltenweise Erläuterung aller Tabellen](#-2-spaltenweise-erläuterung-aller-tabellen)  
+   - [1. `club_settings`](#1-club_settings-globale-vereinseinstellungen)  
+   - [2. `profiles`](#2-profiles-benutzer--spielerprofile)  
+   - [3. `teams`](#3-teams-mannschaften)  
+   - [4. `team_players`](#4-team_players-mannschaftszuordnungen)  
+   - [5. `matches`](#5-matches-spieltermine)  
+   - [6. `availabilities`](#6-availabilities-rückmeldungen--verfügbarkeiten)  
+   - [7. `sync_runs`](#7-sync_runs-synchronisations-protokoll)  
+   - [8. `match_changes`](#8-match_changes-spieländerungs-historie)  
+   - [9. `absences`](#9-absences-abwesenheiten)  
+3. [Was passiert bei einer Spieländerung? (Erklärung & Lifecycle)](#-3-was-passiert-bei-einer-spieländerung-erklärung--lifecycle)  
+   - [Erhält das Spiel eine neue ID?](#erhält-das-spiel-eine-neue-id)  
+   - [Warum schienen Zu-/Absagen nach einer Aktualisierung zu verschwinden?](#warum-schienen-zu-absagen-nach-einer-aktualisierung-zu-verschwinden)  
+   - [Wie bleiben Zu-/Absagen erhalten und wie funktioniert die Warnung?](#wie-bleiben-zu-absagen-erhalten-und-wie-funktioniert-die-warnung)  
+   - [Protokollierung in `match_changes`](#protokollierung-in-match_changes)  
 
 ---
 
@@ -206,8 +206,8 @@ In der Praxis verschieben sich Tischtennis-Spiele häufiger (z. B. Verlegung von
 
 **Nein!** Das Spiel behält exakt dieselbe primäre Schlüssel-ID (`matches.id`) und dieselbe `external_uid` in der Datenbank.
 
-* **Grund:** Die `external_uid` stammt direkt aus dem `.ics`-Kalendereintrag von myTischtennis.de (z. B. `match-12345@mytischtennis.de`). Sie bleibt über die gesamte Saison hinweg konstant, egal wie oft ein Spiel verlegt oder umbenannt wird.
-* Beim Sync führt die Engine ein SQL `UPDATE` auf den bestehenden Datensatz aus, anstatt den Eintrag zu löschen und neu anzulegen.
+* **Grund:** Die `external_uid` stammt direkt aus dem `.ics`-Kalendereintrag von myTischtennis.de (z. B. `match-12345@mytischtennis.de`). Sie bleibt über die gesamte Saison hinweg konstant, egal wie oft ein Spiel verlegt oder umbenannt wird.  
+* Beim Sync führt die Engine ein SQL `UPDATE` auf den bestehenden Datensatz aus, anstatt den Eintrag zu löschen und neu anzulegen.  
 
 ---
 
@@ -215,15 +215,15 @@ In der Praxis verschieben sich Tischtennis-Spiele häufiger (z. B. Verlegung von
 
 Das Phänomen, dass Zu- oder Absagen nach einer Verlegung scheinbar "weg" oder "nicht mehr sichtbar" waren, liegt an der **Versions-Filterung der Benutzeroberfläche**:
 
-1. Jedes Spiel in `matches` besitzt ein Feld `version` (Standard bei Erstellung: `1`).
-2. Jede Rückmeldung in `availabilities` speichert in `version_responded` den Versionsstand des Spiels, für den der Spieler abgestimmt hat.
-3. Verschiebt sich die Uhrzeit oder der Tag eines Spiels:
-   - Die Sync-Engine erkennt die Terminänderung (`oldStart !== newStart || oldEnd !== newEnd`).
-   - Die Sync-Engine erhöht `matches.version` um `1` (z. B. von `1` auf `2`).
-   - Die bisherigen Einträge in `availabilities` bleiben in der Datenbank **vollständig erhalten**, tragen jedoch weiterhin `version_responded = 1`.
-4. **Verhalten in der Benutzeroberfläche:**
-   - In Summenzählern (z. B. `✅ 4`) und der Live-Aufstellungsberechnung berücksichtigt die Anwendung nur Antworten mit `version_responded === match.version`.
-   - Dadurch sah es für den Benutzer im ersten Moment so aus, als wären die Stimmen gelöscht worden. In Wahrheit wurden sie lediglich als **veraltet** eingestuft, damit eine Zusage für einen alten Termin nicht fälschlicherweise für einen völlig neuen Spieltermin gewertet wird.
+1. Jedes Spiel in `matches` besitzt ein Feld `version` (Standard bei Erstellung: `1`).  
+2. Jede Rückmeldung in `availabilities` speichert in `version_responded` den Versionsstand des Spiels, für den der Spieler abgestimmt hat.  
+3. Verschiebt sich die Uhrzeit oder der Tag eines Spiels:  
+   - Die Sync-Engine erkennt die Terminänderung (`oldStart !== newStart || oldEnd !== newEnd`).  
+   - Die Sync-Engine erhöht `matches.version` um `1` (z. B. von `1` auf `2`).  
+   - Die bisherigen Einträge in `availabilities` bleiben in der Datenbank **vollständig erhalten**, tragen jedoch weiterhin `version_responded = 1`.  
+4. **Verhalten in der Benutzeroberfläche:**  
+   - In Summenzählern (z. B. `✅ 4`) und der Live-Aufstellungsberechnung berücksichtigt die Anwendung nur Antworten mit `version_responded === match.version`.  
+   - Dadurch sah es für den Benutzer im ersten Moment so aus, als wären die Stimmen gelöscht worden. In Wahrheit wurden sie lediglich als **veraltet** eingestuft, damit eine Zusage für einen alten Termin nicht fälschlicherweise für einen völlig neuen Spieltermin gewertet wird.  
 
 ---
 
@@ -238,10 +238,10 @@ Sobald `version_responded < match.version` ist, blendet das System am Spielkarte
 > Dieses Spiel wurde auf einen neuen Termin verschoben. *(Zuvor: Freitag, 10.10.2025, 19:00 Uhr)*.
 > Bitte bestätige deine Verfügbarkeit für den neuen Termin erneut. Deine alte Stimme war: **✅ Ja**
 
-#### 2. Optische Kennzeichnung in der Mannschafts- & Rückmeldeliste
-- In der Rückmeldungsliste für Betreuer/Mannschaftsführer werden veraltete Stimmen ausgegraut und mit einem **⚠️-Symbol** versehen.
-- Auch in der Verfügbarkeits-Matrix (`TeamMatrixView.tsx`) wird bei veralteten Eintragsversionen ein **⚠️** am jeweiligen Feld eingeblendet.
-- Sobald der Spieler erneut auf **Ja**, **Vielleicht** oder **Nein** klickt, wird `version_responded` auf den aktuellen Stand `match.version` angehoben und das Warnsymbol verschwindet.
+#### 2. Optische Kennzeichnung in der Mannschafts- & Rückmeldeliste  
+- In der Rückmeldungsliste für Betreuer/Mannschaftsführer werden veraltete Stimmen ausgegraut und mit einem **⚠️-Symbol** versehen.  
+- Auch in der Verfügbarkeits-Matrix (`TeamMatrixView.tsx`) wird bei veralteten Eintragsversionen ein **⚠️** am jeweiligen Feld eingeblendet.  
+- Sobald der Spieler erneut auf **Ja**, **Vielleicht** oder **Nein** klickt, wird `version_responded` auf den aktuellen Stand `match.version` angehoben und das Warnsymbol verschwindet.  
 
 ---
 
