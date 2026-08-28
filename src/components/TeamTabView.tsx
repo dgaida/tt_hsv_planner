@@ -26,12 +26,12 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [userAllYesAvailabilities, setUserAllYesAvailabilities] = useState<any[]>([]);
 
+  const isElevatedRole = userRole === 'team_manager' || userRole === 'sportwart' || userRole === 'club_admin' || isClubAdmin;
+
   const handleRefresh = async () => {
     // If the user has an elevated role (team_manager, sportwart, club_admin),
     // we also sync their calendar with myTischtennis.de online Webcal.
     // Standard players only reload from the local Supabase database.
-    const isElevatedRole = userRole === 'team_manager' || userRole === 'sportwart' || userRole === 'club_admin' || isClubAdmin;
-
     if (isElevatedRole) {
       setSyncing(true);
       setSyncFeedback('Online-Kalender wird auf Änderungen geprüft...');
@@ -533,20 +533,22 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
             </p>
           )}
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={syncing}
-          className="text-sm px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold rounded-xl transition-colors self-start disabled:opacity-50 flex items-center gap-2"
-        >
-          {syncing ? (
-            <>
-              <div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-teal-700"></div>
-              <span>Synchronisiere...</span>
-            </>
-          ) : (
-            <span>🔄 Aktualisieren</span>
-          )}
-        </button>
+        {isElevatedRole && (
+          <button
+            onClick={handleRefresh}
+            disabled={syncing}
+            className="text-sm px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold rounded-xl transition-colors self-start disabled:opacity-50 flex items-center gap-2"
+          >
+            {syncing ? (
+              <>
+                <div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-teal-700"></div>
+                <span>Synchronisiere...</span>
+              </>
+            ) : (
+              <span>🔄 Aktualisieren</span>
+            )}
+          </button>
+        )}
       </div>
 
       {cancelledMatches.length > 0 && (

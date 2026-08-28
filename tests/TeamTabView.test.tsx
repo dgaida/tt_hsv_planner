@@ -278,7 +278,7 @@ describe('TeamTabView', () => {
     });
   });
 
-  it('does NOT call syncTeamCalendar when a player clicks Aktualisieren', async () => {
+  it('hides the Aktualisieren button for player role and does not trigger syncTeamCalendar', async () => {
     const fromMock = vi.fn().mockImplementation((table: string) => {
       const queryMock: any = {
         eq: vi.fn().mockImplementation(() => queryMock),
@@ -336,14 +336,8 @@ describe('TeamTabView', () => {
       expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
     });
 
-    const refreshBtn = screen.getByRole('button', { name: /🔄 Aktualisieren/ });
-    expect(refreshBtn).toBeTruthy();
-
-    fireEvent.click(refreshBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Daten aus Datenbank neu geladen/)).toBeTruthy();
-    });
+    const refreshBtn = screen.queryByRole('button', { name: /🔄 Aktualisieren/ });
+    expect(refreshBtn).toBeNull();
 
     expect(syncTeamCalendar).not.toHaveBeenCalled();
   });
