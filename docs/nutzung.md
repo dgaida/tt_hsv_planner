@@ -54,7 +54,7 @@ Als Spieler steht für dich die schnelle Rückmeldung und deine persönliche Pla
 * Gib ein Start- und Enddatum sowie einen optionalen Grund ein.  
 
 #### 5. Aktualisieren-Button (Datenabgleich)  
-* Für reine Spieler-Accounts ist der Button **"🔄 Aktualisieren"** im Mannschafts-Tab ausgeblendet. Er steht nur Benutzern zur Verfügung, die sich mit Passwort und erweiterten Rechten (Mannschaftsführer, Sportwart, Admin) angemeldet haben, um unnötige Anfragen und Schnittstellen-Sperren zu vermeiden.
+* Für reine Spieler-Accounts ist der Button **"🔄 Aktualisieren"** im Mannschafts-Tab ausgeblendet. Er steht nur Benutzern zur Verfügung, die sich mit Passwort und erweiterten Rechten (Mannschaftsführer, Sportwart, Admin) angemeldet haben, um unnötige Anfragen und Schnittstellen-Sperren zu vermeiden.  
 
 ---
 
