@@ -69,6 +69,70 @@ describe('TeamMatrixView', () => {
       expect(screen.getByText('Max M')).toBeTruthy();
       expect(screen.getByText('✅')).toBeTruthy(); // Max is yes
       expect(screen.getByText('Summe (✅)')).toBeTruthy();
+      expect(screen.queryByText('WhatsApp')).toBeNull();
+    });
+  });
+
+  it('renders WhatsApp row for manager/admin and copies generated message on click', async () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: mockTeamPlayers, error: null }),
+          }),
+        };
+      }
+      if (table === 'availabilities') {
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockResolvedValue({ data: mockAvailabilities, error: null }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [{ id: 'p-1', name: 'Max Mustermann' }], error: null }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<TeamMatrixView teamId={mockTeamId} isManagerOrAdmin={true} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('WhatsApp')).toBeTruthy();
+    });
+
+    const copyBtn = screen.getByTitle('WhatsApp-Text in Zwischenablage kopieren');
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(writeTextMock).toHaveBeenCalled();
+      const copiedContent = writeTextMock.mock.calls[0][0];
+      expect(copiedContent).toContain('Heimspiel');
+      expect(copiedContent).toContain('Max');
     });
   });
 
