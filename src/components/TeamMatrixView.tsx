@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Plus, Check, Trash2 } from 'lucide-react';
+import { Users, Plus, Check, Trash2, MessageCircle } from 'lucide-react';
 import { getShortName } from '../lib/nameUtils';
+import { generateWhatsAppMessage } from '../lib/whatsappUtils';
 
 interface TeamMatrixViewProps {
   teamId: string;
@@ -15,6 +16,29 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showManagePlayers, setShowManagePlayers] = useState(false);
+  const [copiedMatchId, setCopiedMatchId] = useState<string | null>(null);
+
+  const handleCopyWhatsApp = async (match: any) => {
+    try {
+      const msg = generateWhatsAppMessage(match, availabilities, allProfiles, teamPlayers);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(msg);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = msg;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedMatchId(match.id);
+      setTimeout(() => {
+        setCopiedMatchId(null);
+      }, 2000);
+    } catch (err: any) {
+      alert('Fehler beim Kopieren der WhatsApp-Nachricht: ' + err.message);
+    }
+  };
 
   const loadMatrixData = async () => {
     setLoading(true);
@@ -357,6 +381,36 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                       );
                     })}
                   </tr>
+                  {isManagerOrAdmin && (
+                    <tr className="bg-emerald-50/50 border-t border-emerald-100">
+                      <td className="px-4 py-3 text-xs font-bold text-emerald-900 sticky left-0 bg-emerald-50/90 z-10 border-r border-emerald-100 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                        WhatsApp
+                      </td>
+                      {matches.map((m) => {
+                        const isCopied = copiedMatchId === m.id;
+                        return (
+                          <td key={m.id} className="px-1.5 py-2 text-center text-xs">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyWhatsApp(m)}
+                              className={`inline-flex items-center justify-center p-1.5 rounded-lg border transition-all text-xs font-bold ${
+                                isCopied
+                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                  : 'bg-white hover:bg-emerald-100 text-emerald-700 border-emerald-300'
+                              }`}
+                              title="WhatsApp-Text in Zwischenablage kopieren"
+                            >
+                              {isCopied ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                <MessageCircle className="h-4 w-4" />
+                              )}
+                            </button>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
