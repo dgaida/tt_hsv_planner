@@ -103,16 +103,18 @@ export function generateWhatsAppMessage(
 
   if (yesAvails.length >= 4) {
     // Option 1: 4 or more yes votes
-    // "Das Heim-/Auswärtsspiel gegen Gegner am DDD TT.MM. um HH:MM Uhr spielen wir in der Aufstellung A, B, C, D."
-    const namesList = confirmedFirstNames.join(', ');
-    return `Das ${matchType} gegen ${opponent} am ${dateTimeStr} spielen wir in der Aufstellung ${namesList}.`;
+    // "🏓 Das Heim-/Auswärtsspiel gegen Gegner am DDD TT.MM. um HH:MM Uhr spielen wir in der Aufstellung A, B, C, D mit Backup E."
+    const primaryNames = confirmedFirstNames.slice(0, 4).join(', ');
+    const backupStr = confirmedFirstNames.length > 4 ? ` mit Backup ${confirmedFirstNames[4]}` : '';
+    return `🏓 Das ${matchType} gegen ${opponent} am ${dateTimeStr} spielen wir in der Aufstellung ${primaryNames}${backupStr}.`;
   } else {
     // Option 2: less than 4 yes votes
-    // "WICHTIG: Für das Heim-/Auswärtsspiel gegen Gegner am DDD TT.MM. um HH:MM Uhr fehlen uns noch N Spieler! Bisher haben zugesagt: A, B, C, D. Bitte bis DDD TT.MM. melden, ansonsten muss ich das Spiel absage."
+    // "⚠️ WICHTIG: Für das Heim-/Auswärtsspiel gegen Gegner am DDD TT.MM. um HH:MM Uhr fehlt/fehlen uns noch N Spieler! Bisher haben zugesagt: A, B, C. Bitte bis DDD TT.MM. melden, ansonsten muss ich das Spiel absagen. 🙏"
     const missingCount = 4 - yesAvails.length;
+    const missingPhrase = missingCount === 1 ? 'fehlt uns noch 1 Spieler' : `fehlen uns noch ${missingCount} Spieler`;
     const confirmedList = confirmedFirstNames.length > 0 ? confirmedFirstNames.join(', ') : 'keine';
     const deadlineStr = getDeadlineDayDate(match.dtstart);
 
-    return `WICHTIG: Für das ${matchType} gegen ${opponent} am ${dateTimeStr} fehlen uns noch ${missingCount} Spieler! Bisher haben zugesagt: ${confirmedList}. Bitte bis ${deadlineStr} melden, ansonsten muss ich das Spiel absagen.`;
+    return `⚠️ WICHTIG: Für das ${matchType} gegen ${opponent} am ${dateTimeStr} ${missingPhrase}! Bisher haben zugesagt: ${confirmedList}. Bitte bis ${deadlineStr} melden, ansonsten muss ich das Spiel absagen. 🙏`;
   }
 }
