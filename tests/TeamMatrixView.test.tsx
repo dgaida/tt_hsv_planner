@@ -33,13 +33,18 @@ describe('TeamMatrixView', () => {
 
   it('renders matrix table with players and their match availabilities', async () => {
     const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: [{ id: mockTeamId, name: 'Erwachsene I' }], error: null }),
+          }),
+        };
+      }
       if (table === 'matches') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
-              }),
+              order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
             }),
           }),
         };
@@ -82,13 +87,18 @@ describe('TeamMatrixView', () => {
     });
 
     const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: [{ id: mockTeamId, name: 'Erwachsene I' }], error: null }),
+          }),
+        };
+      }
       if (table === 'matches') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
-              }),
+              order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
             }),
           }),
         };
@@ -141,13 +151,18 @@ describe('TeamMatrixView', () => {
 
     const updateMock = vi.fn().mockResolvedValue({ data: null, error: null });
     const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: [{ id: mockTeamId, name: 'Erwachsene I' }], error: null }),
+          }),
+        };
+      }
       if (table === 'matches') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
-              }),
+              order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
             }),
           }),
         };
@@ -207,13 +222,18 @@ describe('TeamMatrixView', () => {
     ];
 
     const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: [{ id: mockTeamId, name: 'Erwachsene I' }], error: null }),
+          }),
+        };
+      }
       if (table === 'matches') {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              eq: vi.fn().mockReturnValue({
-                order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
-              }),
+              order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
             }),
           }),
         };

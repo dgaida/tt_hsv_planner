@@ -14,13 +14,22 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
   const [teamPlayers, setTeamPlayers] = useState<any[]>([]);
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
+  const [allMatches, setAllMatches] = useState<any[]>([]);
+  const [allTeams, setAllTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showManagePlayers, setShowManagePlayers] = useState(false);
   const [copiedMatchId, setCopiedMatchId] = useState<string | null>(null);
 
   const handleCopyWhatsApp = async (match: any) => {
     try {
-      const msg = generateWhatsAppMessage(match, availabilities, allProfiles, teamPlayers);
+      const msg = generateWhatsAppMessage(
+        match,
+        availabilities,
+        allProfiles,
+        teamPlayers,
+        allMatches,
+        allTeams
+      );
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(msg);
       } else {
@@ -43,14 +52,19 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
   const loadMatrixData = async () => {
     setLoading(true);
     try {
-      const { data: matchesData } = await supabase
+      const { data: teamsData } = await supabase.from('teams').select('*').eq('active', true);
+      const activeTeams = teamsData || [];
+      setAllTeams(activeTeams);
+
+      const { data: allMatchesData } = await supabase
         .from('matches')
         .select('*')
-        .eq('team_id', teamId)
         .eq('active', true)
         .order('dtstart', { ascending: true });
+      const fetchedAllMatches = allMatchesData || [];
+      setAllMatches(fetchedAllMatches);
 
-      const fetchedMatches = matchesData || [];
+      const fetchedMatches = fetchedAllMatches.filter((m) => m.team_id === teamId);
       setMatches(fetchedMatches);
 
       const { data: tpData } = await supabase
