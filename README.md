@@ -22,8 +22,8 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
    * CI/CD via GitHub Actions (Hosting, Code Quality Checks, Test-Automatisierung, Version-Badges & automatisierter Cronjob-Sync)  
 2. 🧑‍💻 **[Nutzung & Benutzerhandbuch](./docs/nutzung.md)**  
    * **Spieler:** Persönlicher Abwesenheitskalender, Zu- und Absagen (RSVP), passwortloser Login, Ersatzspieler-Anmeldung  
-   * **Mannschaftsführer:** Stammspieler- & Ersatzspieler-Verwaltung, manuelle Aufstellungsanpassung (▲/▼)  
-   * **Sportwart:** Spielerverwaltung, Q-TTR-Punkte, automatischer HTML-Kader-Import mit Kopier-Fallback, 4-Monats-Abwesenheitsmatrix  
+   * **Mannschaftsführer:** Stammspieler- & Ersatzspieler-Verwaltung, manuelle Aufstellungsanpassung (▲/▼), Team-Matrix & WhatsApp-Nachrichten-Generator
+   * **Sportwart:** Spielerverwaltung, Q-TTR-Punkte, automatischer HTML-Kader-Import mit Kopier-Fallback, 4-Monats-Abwesenheitsmatrix, mannschaftsübergreifende Lineup- & WhatsApp-Aufstellungskontrolle
    * **Administrator:** Teampflege, Webcal-Links, Rollenzuweisungen, Synchronisationsberichte, Passwort-Gate Zurücksetzen  
 3. 🏗️ **[Technische Architektur](./docs/architektur.md)**  
    * Technologiestack (React, Vite, TypeScript, Tailwind CSS, Vitest, Supabase)  
@@ -57,6 +57,10 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
   * **Kader-Struktur:** Ein Spielkader besteht aus 4 Stammspielern und 1 Ersatzspieler (hervorgehoben mit amberfarbenem Badge).  
   * **Priorisierung:** Verfügbarkeiten werden primär nach RSVP-Status (`Ja` > `Keine Antwort` > `Vielleicht` > `Nein`) und sekundär nach Vereinsrangfolge (Team-Nummer ➔ Position ➔ Name) einsortiert.  
   * **Manuelle Anpassung:** Reihenfolgen können über Buttons (▲ / ▼) individuell angepasst und als `lineup` JSONB in der Datenbank gespeichert werden.  
+* **💬 WhatsApp-Textgenerator & Parallelspiel-Erkennung:**
+  * **Team-Matrix Integration:** Mannschaftsführer und Sportwarte können per Klick direkt unter einem Spiel in der Matrix eine vorgefertigte WhatsApp-Nachricht generieren und kopieren.
+  * **Intelligente Vorlagen:** Bei ≥ 4 Zusagen wird die Stammaufstellung (mit optionalem Backup) erzeugt; bei < 4 Zusagen wird ein dringender Aufruf mit fehlender Spieleranzahl, Namensliste und automatischer 1-Wochen-Frist formatiert.
+  * **Parallelspiel-Erkennung:** Erkennt automatisch zeitgleiche Spiele anderer Teams am selben Ort (Heim/Auswärts) und fügt freundliche Zusatzhinweise an.
 * **HTML-Kader-Import & Abgleich Engine:**  
   * Der Sportwart kann den Vereinskader von myTischtennis.de automatisch über CORS-Proxies abrufen oder per Kopieren/Einfügen als HTML verarbeiten.  
   * Das System vergleicht die Daten und klassifiziert Änderungen transparent in *„Bereits aktuell“*, *„Nur aktualisiert“* (z. B. Q-TTR) oder *„Ersetzt“*.  
