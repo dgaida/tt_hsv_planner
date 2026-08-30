@@ -78,6 +78,58 @@ describe('TeamMatrixView', () => {
     });
   });
 
+  it('renders WhatsApp row when isManagerOrAdmin is true (for team_manager, sportwart, and club_admin)', async () => {
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: [{ id: mockTeamId, name: 'Erwachsene I' }], error: null }),
+          }),
+        };
+      }
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === 'team_players') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: mockTeamPlayers, error: null }),
+          }),
+        };
+      }
+      if (table === 'availabilities') {
+        return {
+          select: vi.fn().mockReturnValue({
+            in: vi.fn().mockResolvedValue({ data: mockAvailabilities, error: null }),
+          }),
+        };
+      }
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: [{ id: 'p-1', name: 'Max Mustermann' }], error: null }),
+          }),
+        };
+      }
+      return { select: vi.fn().mockResolvedValue({ data: [], error: null }) };
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<TeamMatrixView teamId={mockTeamId} isManagerOrAdmin={true} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('WhatsApp')).toBeTruthy();
+      expect(screen.getByTitle('WhatsApp-Text in Zwischenablage kopieren')).toBeTruthy();
+    });
+  });
+
   it('renders WhatsApp row for manager/admin and copies generated message on click', async () => {
     const writeTextMock = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, {
