@@ -279,11 +279,30 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      📊 4. Team-Matrix
+                      📊 4. Team-Matrix & WhatsApp-Nachrichten-Generator
                     </h4>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 mb-2">
                       Unterhalb der Spieleliste deiner Mannschaft siehst du die <strong>Team-Matrix</strong>. Hier erkennst du auf einen Blick, wer zugesagt, abgesagt, noch nicht geantwortet oder eine Bemerkung hinterlassen hat.
                     </p>
+                    <div className="bg-emerald-50/60 p-3 rounded-lg border border-emerald-150 text-xs text-gray-600 space-y-1.5">
+                      <p className="font-bold text-emerald-900 flex items-center gap-1">
+                        💬 WhatsApp-Kopierfunktion (Zeile "WhatsApp" ganz unten):
+                      </p>
+                      <p className="text-[11px] leading-relaxed">
+                        Ein Klick auf das WhatsApp-Icon unter einem Spiel generiert automatisch einen fertigen WhatsApp-Text und kopiert ihn direkt in deine Zwischenablage:
+                      </p>
+                      <ul className="list-disc pl-4 space-y-1 text-[11px]">
+                        <li>
+                          <strong>Bei 4 oder mehr Zusagen:</strong> Erzeugt eine finale Aufstellungsnachricht mit den 4 Stammspielern und optionalem 5. Backup-Spieler.
+                        </li>
+                        <li>
+                          <strong>Bei weniger als 4 Zusagen:</strong> Erzeugt einen dringenden Aufruf, nennt die Anzahl der fehlenden Spieler, listet bisherige Zusagen namentlich auf und setzt automatisch eine Rückmeldefrist (1 Woche vor dem Spiel).
+                        </li>
+                        <li>
+                          <strong>Erkennung zeitgleicher Spiele:</strong> Spielt zeitgleich eine andere Vereinsmannschaft am selben Ort (Heim oder Auswärts), fügt das System automatisch einen freundlichen Zusatzhinweis hinzu (z. B. <em>"Die zweite Mannschaft hat zeitgleich ebenfalls ein Heimspiel..."</em>).
+                        </li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
@@ -328,7 +347,7 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                       🏓 2. Aufstellungs-Kontrolle & Lineups (mannschaftsübergreifend)
                     </h4>
                     <p className="text-xs text-gray-500">
-                      In der Gesamtübersicht und in den Teamansichten siehst du die berechnete Aufstellung (Top 4 Stammspieler + 5. Ersatzspieler basierend auf der 4-Stufen RSVP-Logik und Rangfolge). Als Sportwart hast du das Recht, <strong>die Aufstellungen aller Mannschaften manuell zu sortieren (▲/▼) oder die Rückmeldungen (RSVP) von beliebigen Spielern direkt zu bearbeiten</strong>, um Ausfälle mannschaftsübergreifend optimal zu koordinieren.
+                      In der Gesamtübersicht und in den Teamansichten siehst du die berechnete Aufstellung (Top 4 Stammspieler + 5. Ersatzspieler basierend auf der 4-Stufen RSVP-Logik und Rangfolge). Als Sportwart hast du das Recht, <strong>die Aufstellungen aller Mannschaften manuell zu sortieren (▲/▼) oder die Rückmeldungen (RSVP) von beliebigen Spielern direkt zu bearbeiten</strong>, um Ausfälle mannschaftsübergreifend optimal zu koordinieren. Zudem kannst du in der Team-Matrix per Klick vorgefertigte WhatsApp-Aufstellungsmeldungen oder Spielersuch-Nachrichten inklusive automatischer Parallelspiel-Erkennung kopieren.
                     </p>
                   </div>
 

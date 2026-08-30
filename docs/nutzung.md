@@ -81,9 +81,14 @@ Die Aufstellung pro Spiel (maximal 5 Spieler auf dem Spielbericht) wird automati
 * **C. Der Kader (4 Stamm + 1 Ersatz):** Aus der sortierten Liste werden die Top 5 Spieler genommen. Die ersten 4 Spieler bilden die Stammaufstellung des Spiels. Der 5. Spieler wird deutlich als **"Ersatz"** (mit amberfarbener Markierung und "Ersatz"-Badge) dargestellt.  
 * **D. Manuelle Reihenfolge (Reorder):** Du kannst diese Standard-Berechnung manuell überschreiben, indem du die Schaltflächen **▲** (nach oben) und **▼** (nach unten) neben dem Namen des Spielers verwendest. Die individuelle Reihenfolge wird als `lineup` JSONB-Array direkt am Spiel gespeichert.  
 
-#### 4. Team-Matrix  
+#### 4. Team-Matrix & WhatsApp-Nachrichten-Generator
 * Im Reiter **"Team-Matrix"** siehst du alle Spiele deiner Mannschaft und alle deine Spieler in einer kompakten Tabelle.  
 * Änderungen an Verfügbarkeiten in der Matrix aktualisieren die Datenbank direkt ohne zusätzliche Bestätigungs-Popups.  
+* **💬 Automatische WhatsApp-Nachrichten (WhatsApp-Zeile ganz unten in der Matrix):**
+  * Ein Klick auf das WhatsApp-Icon unter einem Spiel generiert einen vorgefertigten Text und kopiert ihn direkt in deine Zwischenablage.
+  * **Option 1 (≥ 4 Zusagen):** Generiert eine Aufstellungs-Nachricht mit den 4 Stammspielern und (falls vorhanden) einem 5. Backup-Spieler.
+  * **Option 2 (< 4 Zusagen):** Generiert einen dringenden Aufruf zur Rückmeldung mit Nennung der noch fehlenden Spieler (inkl. korrekter Singular-/Plural-Grammatik), Auflistung der bisherigen Zusagen sowie einer automatischen Rückmeldefrist (1 Woche vor dem Spiel).
+  * **Parallelspiel-Erkennung:** Findet zeitgleich ein Spiel einer anderen Vereinsmannschaft am selben Ort (Heim oder Auswärts) statt, fügt der Generator automatisch einen freundlichen Hinweis an (z. B. *"Die zweite Mannschaft hat zeitgleich ebenfalls ein Heimspiel..."*).
 
 #### 5. Abwesenheits-Kalender  
 * Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate in einem kompakten **2x2-Grid** anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund.  
