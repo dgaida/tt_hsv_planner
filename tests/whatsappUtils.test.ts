@@ -147,4 +147,103 @@ describe('whatsappUtils', () => {
     const message = generateWhatsAppMessage(match, matchAvailabilities, allProfiles);
     expect(message).toContain('fehlen uns noch 2 Spieler! Bisher haben zugesagt: Alice, Bob.');
   });
+
+  it('appends concurrent home match sentence for both Option 1 and Option 2', () => {
+    const match1 = {
+      id: 'm-1',
+      team_id: 't-2',
+      summary: 'Heiligenhauser SV II vs opponent A',
+      is_home: true,
+      dtstart: '2026-11-14T18:00:00.000Z', // Evening match (18:00 UTC / 19:00 local)
+      version: 1,
+      active: true,
+    };
+
+    const match2 = {
+      id: 'm-2',
+      team_id: 't-1',
+      summary: 'Heiligenhauser SV I vs opponent B',
+      is_home: true,
+      dtstart: '2026-11-14T18:00:00.000Z',
+      version: 1,
+      active: true,
+    };
+
+    const allTeams = [
+      { id: 't-1', name: 'Erwachsene I' },
+      { id: 't-2', name: 'Erwachsene II' },
+    ];
+
+    const allMatches = [match1, match2];
+
+    const matchAvailabilities = [
+      { match_id: 'm-1', player_id: 'p-1', response: 'yes', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-2', response: 'yes', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-3', response: 'yes', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-4', response: 'yes', version_responded: 1 },
+    ];
+
+    const allProfiles = [
+      { id: 'p-1', name: 'Alice', team_number: 2, position_number: 1 },
+      { id: 'p-2', name: 'Bob', team_number: 2, position_number: 2 },
+      { id: 'p-3', name: 'Charlie', team_number: 2, position_number: 3 },
+      { id: 'p-4', name: 'David', team_number: 2, position_number: 4 },
+    ];
+
+    // Option 1 (>=4 confirmed)
+    const msg1 = generateWhatsAppMessage(match1, matchAvailabilities, allProfiles, [], allMatches, allTeams);
+    expect(msg1).toContain('Die erste Mannschaft hat zeitgleich ebenfalls ein Heimspiel. Es wird also bestimmt ein netter Abend.');
+
+    // Option 2 (<4 confirmed)
+    const msg2 = generateWhatsAppMessage(match1, matchAvailabilities.slice(0, 2), allProfiles, [], allMatches, allTeams);
+    expect(msg2).toContain('Die erste Mannschaft hat zeitgleich ebenfalls ein Heimspiel. Es wird also bestimmt ein netter Abend.');
+  });
+
+  it('appends concurrent away match sentence with location name and time of day', () => {
+    const match1 = {
+      id: 'm-10',
+      team_id: 't-2',
+      summary: 'VfL Engelskirchen vs Heiligenhauser SV II',
+      is_home: false,
+      location: 'Turnhalle Engelskirchen, 51766 Engelskirchen',
+      dtstart: '2026-11-15T09:00:00.000Z', // Morning match (9:00)
+      version: 1,
+      active: true,
+    };
+
+    const match2 = {
+      id: 'm-20',
+      team_id: 't-3',
+      summary: 'VfL Engelskirchen II vs Heiligenhauser SV III',
+      is_home: false,
+      location: 'Turnhalle Engelskirchen, 51766 Engelskirchen',
+      dtstart: '2026-11-15T09:00:00.000Z',
+      version: 1,
+      active: true,
+    };
+
+    const allTeams = [
+      { id: 't-2', name: 'Erwachsene II' },
+      { id: 't-3', name: 'Erwachsene III' },
+    ];
+
+    const allMatches = [match1, match2];
+
+    const matchAvailabilities = [
+      { match_id: 'm-10', player_id: 'p-1', response: 'yes', version_responded: 1 },
+      { match_id: 'm-10', player_id: 'p-2', response: 'yes', version_responded: 1 },
+      { match_id: 'm-10', player_id: 'p-3', response: 'yes', version_responded: 1 },
+      { match_id: 'm-10', player_id: 'p-4', response: 'yes', version_responded: 1 },
+    ];
+
+    const allProfiles = [
+      { id: 'p-1', name: 'Alice', team_number: 2, position_number: 1 },
+      { id: 'p-2', name: 'Bob', team_number: 2, position_number: 2 },
+      { id: 'p-3', name: 'Charlie', team_number: 2, position_number: 3 },
+      { id: 'p-4', name: 'David', team_number: 2, position_number: 4 },
+    ];
+
+    const msg = generateWhatsAppMessage(match1, matchAvailabilities, allProfiles, [], allMatches, allTeams);
+    expect(msg).toContain('Die dritte Mannschaft hat zeitgleich ebenfalls ein Spiel in Engelskirchen. Es wird also bestimmt ein netter Vormittag.');
+  });
 });
