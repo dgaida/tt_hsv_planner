@@ -61,7 +61,7 @@ Speichert alle importierten und manuell erstellten Spiele.
   * `date`: `TIMESTAMPTZ` (Spielzeitpunkt, zeitzonensicher `Europe/Berlin`)  
   * `is_home`: `BOOLEAN` (Heimspiel-Flag, ermittelt über die Vereins-Substring-Prüfung `'heiligenhaus'` / `'heiligenhauser'`)  
   * `match_version`: `INT` (Zähler für Terminverschiebungen, startet bei `1`)  
-  * `lineup`: `JSONB` (Historisches Lineup-Array; die Sortierung erfolgt nun strikt automatisch nach RSVP-Status und Meldereihenfolge)
+  * `lineup`: `JSONB` (Historisches Lineup-Array; die Sortierung erfolgt nun strikt automatisch nach RSVP-Status und Meldereihenfolge)  
 
 ### `availabilities` (Rückmeldungen)
 Speichert die Bereitschaft der Spieler für ein bestimmtes Spiel.  

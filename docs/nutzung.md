@@ -122,7 +122,7 @@ Als Sportwart hast du die sportliche Gesamtleitung des Vereins und planst die Au
 
 #### 5. Aufstellungs-Kontrolle & mannschaftsübergreifendes Lineup  
 * In der Gesamtübersicht und im Mannschafts-Tab siehst du für jedes Spiel die automatisch berechnete Aufstellung (4 Stamm + 1 Ersatz).  
-* Als Sportwart kannst du die RSVPs beliebig anpassen.
+* Als Sportwart kannst du die RSVPs beliebig anpassen.  
 
 ---
 
