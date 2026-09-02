@@ -79,7 +79,6 @@ Die Aufstellung pro Spiel (maximal 5 Spieler auf dem Spielbericht) wird automati
 * **B. Vereinsrangfolge (Tie-Breaker):** Haben mehrere Spieler denselben RSVP-Status, entscheidet die feste Rangfolge im Verein:  
   * **Team-Nummer** aufsteigend ➔ **Positions-Nummer** aufsteigend ➔ **Name** alphabetisch.  
 * **C. Der Kader (4 Stamm + 1 Ersatz):** Aus der sortierten Liste werden die Top 5 Spieler genommen. Die ersten 4 Spieler bilden die Stammaufstellung des Spiels. Der 5. Spieler wird deutlich als **"Ersatz"** (mit amberfarbener Markierung und "Ersatz"-Badge) dargestellt.  
-* **D. Manuelle Reihenfolge (Reorder):** Du kannst diese Standard-Berechnung manuell überschreiben, indem du die Schaltflächen **▲** (nach oben) und **▼** (nach unten) neben dem Namen des Spielers verwendest. Die individuelle Reihenfolge wird als `lineup` JSONB-Array direkt am Spiel gespeichert.  
 
 #### 4. Team-Matrix & WhatsApp-Nachrichten-Generator  
 * Im Reiter **"Team-Matrix"** siehst du alle Spiele deiner Mannschaft und alle deine Spieler in einer kompakten Tabelle.  
@@ -123,7 +122,7 @@ Als Sportwart hast du die sportliche Gesamtleitung des Vereins und planst die Au
 
 #### 5. Aufstellungs-Kontrolle & mannschaftsübergreifendes Lineup  
 * In der Gesamtübersicht und im Mannschafts-Tab siehst du für jedes Spiel die automatisch berechnete Aufstellung (4 Stamm + 1 Ersatz).  
-* Als Sportwart kannst du die Aufstellung aller Teams manuell verschieben (▲/▼) oder die RSVPs beliebig anpassen.  
+* Als Sportwart kannst du die RSVPs beliebig anpassen.
 
 ---
 

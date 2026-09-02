@@ -124,7 +124,7 @@ Speichert alle aus den Kalendern importierten oder manuell gepflegten Spieltermi
 | `matchday` | `INTEGER` | `NULLABLE` | Nummer des Spieltags (z. B. `3` für den 3. Spieltag). |
 | `active` | `BOOLEAN` | `NOT NULL DEFAULT true` | `true` = Aktives Spiel im Spielplan; `false` = Aus dem Kalender entfernt/abgesagt. |
 | `version` | `INTEGER` | `NOT NULL DEFAULT 1` | **Termin-Versionszähler.** Erhöht sich bei Datums-/Uhrzeitänderungen um `1`. |
-| `lineup` | `JSONB` | `NULLABLE` | Manuell festgelegte Aufstellungsreihenfolge (Array von Profil-UUIDs für bis zu 5 Spieler). |
+| `lineup` | `JSONB` | `NULLABLE` | Historisches Lineup-Array; die Sortierung erfolgt strikt automatisch nach RSVP-Status und Meldereihenfolge. |
 | `last_synced_at`| `TIMESTAMPTZ` | `DEFAULT NOW()` | Zeitpunkt der letzten erfolgreichen Kalendersynchronisation. |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Erstellungszeitpunkt des Spiels. |
 | `updated_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Zeitpunkt der letzten Aktualisierung. |

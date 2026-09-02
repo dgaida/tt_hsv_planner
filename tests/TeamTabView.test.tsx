@@ -570,7 +570,7 @@ describe('TeamTabView', () => {
     });
   });
 
-  it('handles voting, comment saving, and lineup reordering', async () => {
+  it('handles voting and comment saving', async () => {
     const mockProfiles = [
       { id: mockUserId, name: 'Max Mustermann', team_number: 1, position_number: 1, role: 'team_manager' },
       { id: 'p-2', name: 'Erika Muster', team_number: 1, position_number: 2, role: 'player' },
@@ -671,13 +671,8 @@ describe('TeamTabView', () => {
       expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Bemerkung'));
     });
 
-    // 3. Reorder lineup (move player down)
-    const moveDownBtns = screen.getAllByTitle('Nach unten');
-    if (moveDownBtns.length > 0) {
-      fireEvent.click(moveDownBtns[0]);
-      await waitFor(() => {
-        expect(updateMock).toHaveBeenCalled();
-      });
-    }
+    // Verify reorder buttons ▲ / ▼ are not present
+    expect(screen.queryByTitle('Nach oben')).toBeNull();
+    expect(screen.queryByTitle('Nach unten')).toBeNull();
   });
 });

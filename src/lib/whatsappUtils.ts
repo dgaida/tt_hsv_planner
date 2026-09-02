@@ -159,49 +159,22 @@ export function generateWhatsAppMessage(
     (a) => a.match_id === match.id && a.response === 'yes' && a.version_responded === match.version
   );
 
-  // Map confirmed player profiles
-  let confirmedProfiles: any[] = [];
+  // Sort confirmed profiles by official reporting order (team_number asc, position_number asc, name asc)
+  const confirmedProfiles = yesAvails
+    .map((av) => allProfiles.find((p) => p.id === av.player_id) || av.profiles)
+    .filter(Boolean);
 
-  if (match.lineup && Array.isArray(match.lineup) && match.lineup.length > 0) {
-    // If custom lineup is defined, filter confirmed players and order by match.lineup index
-    const lineupOrder = match.lineup as string[];
-    const profilesMap = new Map<string, any>();
+  confirmedProfiles.sort((a, b) => {
+    const teamNumA = a.team_number ?? 999999;
+    const teamNumB = b.team_number ?? 999999;
+    if (teamNumA !== teamNumB) return teamNumA - teamNumB;
 
-    yesAvails.forEach((av) => {
-      const prof = allProfiles.find((p) => p.id === av.player_id) || av.profiles;
-      if (prof) {
-        profilesMap.set(prof.id, prof);
-      }
-    });
+    const posNumA = a.position_number ?? 999999;
+    const posNumB = b.position_number ?? 999999;
+    if (posNumA !== posNumB) return posNumA - posNumB;
 
-    // Pick profiles in lineup order first, then any remaining confirmed profiles
-    const ordered: any[] = [];
-    lineupOrder.forEach((pid) => {
-      if (profilesMap.has(pid)) {
-        ordered.push(profilesMap.get(pid));
-        profilesMap.delete(pid);
-      }
-    });
-    profilesMap.forEach((prof) => ordered.push(prof));
-    confirmedProfiles = ordered;
-  } else {
-    // Sort confirmed profiles by team_number, position_number, name
-    confirmedProfiles = yesAvails
-      .map((av) => allProfiles.find((p) => p.id === av.player_id) || av.profiles)
-      .filter(Boolean);
-
-    confirmedProfiles.sort((a, b) => {
-      const teamNumA = a.team_number ?? 999999;
-      const teamNumB = b.team_number ?? 999999;
-      if (teamNumA !== teamNumB) return teamNumA - teamNumB;
-
-      const posNumA = a.position_number ?? 999999;
-      const posNumB = b.position_number ?? 999999;
-      if (posNumA !== posNumB) return posNumA - posNumB;
-
-      return (a.name || '').localeCompare(b.name || '');
-    });
-  }
+    return (a.name || '').localeCompare(b.name || '');
+  });
 
   const confirmedFirstNames = confirmedProfiles
     .map((p) => getFirstName(p.name))
