@@ -61,7 +61,7 @@ Speichert alle importierten und manuell erstellten Spiele.
   * `date`: `TIMESTAMPTZ` (Spielzeitpunkt, zeitzonensicher `Europe/Berlin`)  
   * `is_home`: `BOOLEAN` (Heimspiel-Flag, ermittelt über die Vereins-Substring-Prüfung `'heiligenhaus'` / `'heiligenhauser'`)  
   * `match_version`: `INT` (Zähler für Terminverschiebungen, startet bei `1`)  
-  * `lineup`: `JSONB` (Optionales, manuell angepasstes Lineup-Array von Spieler-UUIDs für bis zu 5 Spieler)  
+  * `lineup`: `JSONB` (Historisches Lineup-Array; die Sortierung erfolgt nun strikt automatisch nach RSVP-Status und Meldereihenfolge)
 
 ### `availabilities` (Rückmeldungen)
 Speichert die Bereitschaft der Spieler für ein bestimmtes Spiel.  
@@ -119,8 +119,6 @@ Die Aufstellungs-Engine in `TeamTabView.tsx` kombiniert Stamm- und Ersatzspieler
 4. **Kader-Zusammenstellung (4 Stamm + 1 Ersatz):**  
    * Die obersten 4 verfügbaren Spieler bilden die primäre Stammaufstellung.  
    * Der 5. Spieler rückt als **Ersatzspieler** nach und wird optisch hervorgehoben (amberfarbener Hintergrund mit `"Ersatz"`-Badge).  
-5. **Manuelle Sortierung (Lineup JSONB):**  
-   Berechtigte Benutzer (Mannschaftsführer, Sportwart, Admin) können die Aufstellungsreihenfolge über Buttons (▲/▼) anpassen. Die Reihenfolge wird in `matches.lineup` als JSONB-Array von UUIDs gespeichert.
 
 ---
 

@@ -271,9 +271,6 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                         <li>Die ersten <strong>vier Spieler</strong> (Index 1 bis 4) bilden die Kern-Aufstellung.</li>
                         <li>Der <strong>fünfte Spieler</strong> (Index 5) wird deutlich sichtbar als <strong>"Ersatz"</strong> markiert (warme gelbe Hintergrundfarbe & Ersatz-Badge).</li>
                       </ul>
-                      <p>
-                        <strong>E. Manuelle Sortierung (Reorder):</strong> Als Mannschaftsführer kannst du diese Standard-Reihenfolge mit den Schaltflächen <strong className="text-slate-700">▲</strong> und <strong className="text-slate-700">▼</strong> auf der rechten Seite der Spielerzeile manuell anpassen (z.B. für taktische Aufstellungen). Diese manuelle Reihenfolge wird sofort in der Datenbank gespeichert und überschreibt die Standardberechnung.
-                      </p>
                     </div>
                   </div>
 
@@ -347,7 +344,7 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                       🏓 2. Aufstellungs-Kontrolle & Lineups (mannschaftsübergreifend)
                     </h4>
                     <p className="text-xs text-gray-500">
-                      In der Gesamtübersicht und in den Teamansichten siehst du die berechnete Aufstellung (Top 4 Stammspieler + 5. Ersatzspieler basierend auf der 4-Stufen RSVP-Logik und Rangfolge). Als Sportwart hast du das Recht, <strong>die Aufstellungen aller Mannschaften manuell zu sortieren (▲/▼) oder die Rückmeldungen (RSVP) von beliebigen Spielern direkt zu bearbeiten</strong>, um Ausfälle mannschaftsübergreifend optimal zu koordinieren. Zudem kannst du in der Team-Matrix per Klick vorgefertigte WhatsApp-Aufstellungsmeldungen oder Spielersuch-Nachrichten inklusive automatischer Parallelspiel-Erkennung kopieren.
+                      In der Gesamtübersicht und in den Teamansichten siehst du die berechnete Aufstellung (Top 4 Stammspieler + 5. Ersatzspieler basierend auf der 4-Stufen RSVP-Logik und Rangfolge). Als Sportwart hast du das Recht, <strong>die Rückmeldungen (RSVP) von beliebigen Spielern direkt zu bearbeiten</strong>, um Ausfälle mannschaftsübergreifend optimal zu koordinieren. Zudem kannst du in der Team-Matrix per Klick vorgefertigte WhatsApp-Aufstellungsmeldungen oder Spielersuch-Nachrichten inklusive automatischer Parallelspiel-Erkennung kopieren.
                     </p>
                   </div>
 

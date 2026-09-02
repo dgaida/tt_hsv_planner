@@ -464,37 +464,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
     // Limit lineup to the top 5 candidates:
     const activeLineup = orderedCandidates.slice(0, 5);
 
-    // Sort activeLineup if there is a custom lineup saved in matches.lineup (which is an array of player UUIDs)
-    if (match.lineup && Array.isArray(match.lineup)) {
-      const lineupOrder = match.lineup as string[];
-      activeLineup.sort((a, b) => {
-        const idxA = lineupOrder.indexOf(a.id);
-        const idxB = lineupOrder.indexOf(b.id);
-        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-        if (idxA !== -1) return -1;
-        if (idxB !== -1) return 1;
-        return 0;
-      });
-    }
-
     return { activeLineup, stammspieler };
-  };
-
-  const handleUpdateLineupOrder = async (matchId: string, newLineupOrder: string[]) => {
-    try {
-      const { error } = await supabase
-        .from('matches')
-        .update({ lineup: newLineupOrder })
-        .eq('id', matchId);
-
-      if (error) throw error;
-      // Update local state
-      setMatches((prev) =>
-        prev.map((m) => (m.id === matchId ? { ...m, lineup: newLineupOrder } : m))
-      );
-    } catch (err: any) {
-      alert('Fehler beim Speichern der Reihenfolge: ' + err.message);
-    }
   };
 
   const formatGermanDate = (dateStr: string) => {
@@ -616,20 +586,6 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
             const currentTeamIndex = sortedTeams.findIndex((t) => t.id === teamId) + 1;
 
             const isCurrentTeamManager = userRole === 'team_manager' && userTeamNumber === currentTeamIndex;
-            const canReorder = userIsAdminOrSportwart || isCurrentTeamManager;
-
-            const movePlayer = (index: number, direction: 'up' | 'down') => {
-              const newIndex = direction === 'up' ? index - 1 : index + 1;
-              if (newIndex < 0 || newIndex >= activeLineup.length) return;
-
-              const copy = [...activeLineup];
-              const temp = copy[index];
-              copy[index] = copy[newIndex];
-              copy[newIndex] = temp;
-
-              const orderIds = copy.map((p) => p.id);
-              handleUpdateLineupOrder(match.id, orderIds);
-            };
 
             const handleUpdatePlayerResponse = async (playerId: string, responseType: 'yes' | 'no' | 'maybe' | '') => {
               const existingAv = matchAvails.find((a) => a.player_id === playerId);
@@ -856,7 +812,6 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                       <div className="w-full bg-slate-50 rounded-xl p-3 border border-slate-150 space-y-2 text-xs">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 mb-1.5">
                         <span className="font-extrabold text-slate-700">👥 Aufstellung (Stamm 1-4 / Ersatz)</span>
-                        {canReorder && <span className="text-[10px] bg-teal-100 text-teal-800 px-1 py-0.5 rounded font-bold">Sortierbar</span>}
                       </div>
                       {activeLineup.length === 0 ? (
                         <p className="text-slate-400 italic">Keine Spieler aufgestellt.</p>
@@ -943,28 +898,6 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                                   </span>
                                 )}
 
-                                {canReorder && (
-                                  <div className="flex gap-0.5 ml-1">
-                                    <button
-                                      type="button"
-                                      disabled={idx === 0}
-                                      onClick={() => movePlayer(idx, 'up')}
-                                      className="p-0.5 hover:bg-slate-100 text-slate-500 rounded disabled:opacity-30"
-                                      title="Nach oben"
-                                    >
-                                      ▲
-                                    </button>
-                                    <button
-                                      type="button"
-                                      disabled={idx === activeLineup.length - 1}
-                                      onClick={() => movePlayer(idx, 'down')}
-                                      className="p-0.5 hover:bg-slate-100 text-slate-500 rounded disabled:opacity-30"
-                                      title="Nach unten"
-                                    >
-                                      ▼
-                                    </button>
-                                  </div>
-                                )}
                               </div>
                             </div>
                           );
