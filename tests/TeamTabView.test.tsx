@@ -570,6 +570,179 @@ describe('TeamTabView', () => {
     });
   });
 
+  it('renders recent changes banner for team manager when previousLoginAt is provided', async () => {
+    const mockRecentAv = [
+      {
+        id: 'av-recent-1',
+        match_id: 'm-1',
+        player_id: 'p-2',
+        response: 'no',
+        updated_at: '2026-08-10T12:00:00.000Z',
+        profiles: { name: 'Erika Muster' },
+        matches: { summary: 'Erwachsene I vs TV Klaswipper', is_home: true, dtstart: '2026-08-12T18:00:00.000Z' },
+      },
+    ];
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        neq: vi.fn().mockImplementation(() => queryMock),
+        gt: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockRecentAv, error: null });
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockRecentAv, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+        previousLoginAt="2026-08-01T00:00:00.000Z"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Rückmeldungs-Änderungen seit deinem letzten Login/)).toBeTruthy();
+      expect(screen.getByText(/Erika Muster/)).toBeTruthy();
+      expect(screen.getByText(/abgesagt/)).toBeTruthy();
+    });
+
+    // Dismiss banner
+    const dismissBtn = screen.getByRole('button', { name: /Gelesen \/ Ausblenden/ });
+    fireEvent.click(dismissBtn);
+
+    expect(screen.queryByText(/Rückmeldungs-Änderungen seit deinem letzten Login/)).toBeNull();
+  });
+
+  it('supports "Ja als Ersatz" option in lineup dropdown and ranks "yes_sub" in substitute position behind "yes"', async () => {
+    const mockProfiles = [
+      { id: mockUserId, name: 'Max', team_number: 1, position_number: 1, role: 'team_manager' },
+      { id: 'p-1', name: 'Player A', team_number: 1, position_number: 1, role: 'player' },
+      { id: 'p-2', name: 'Player B', team_number: 1, position_number: 2, role: 'player' },
+      { id: 'p-3', name: 'Player C', team_number: 1, position_number: 3, role: 'player' },
+      { id: 'p-4', name: 'Player D', team_number: 1, position_number: 4, role: 'player' },
+      { id: 'p-5', name: 'Player E', team_number: 1, position_number: 5, role: 'player' },
+    ];
+
+    // 4 players (A, B, C, D) answered 'yes', but C was set to 'yes_sub' (Ja als Ersatz).
+    // So regular 'yes' players: A, B, D, E.
+    // 'yes_sub' player C will be placed in position 5 (Ersatz)!
+    const mockAvs = [
+      { id: 'av-1', match_id: 'm-1', player_id: 'p-1', response: 'yes', version_responded: 1, profiles: { name: 'Player A' } },
+      { id: 'av-2', match_id: 'm-1', player_id: 'p-2', response: 'yes', version_responded: 1, profiles: { name: 'Player B' } },
+      { id: 'av-3', match_id: 'm-1', player_id: 'p-3', response: 'yes_sub', version_responded: 1, profiles: { name: 'Player C' } },
+      { id: 'av-4', match_id: 'm-1', player_id: 'p-4', response: 'yes', version_responded: 1, profiles: { name: 'Player D' } },
+      { id: 'av-5', match_id: 'm-1', player_id: 'p-5', response: 'yes', version_responded: 1, profiles: { name: 'Player E' } },
+    ];
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        delete: vi.fn().mockImplementation(() => queryMock),
+        insert: vi.fn().mockImplementation(() => queryMock),
+        update: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: mockProfiles, error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockAvs, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Erwachsene I/)).toBeTruthy();
+      const lineupSection = screen.getByText(/👥 Aufstellung/).closest('.w-full');
+      expect(lineupSection).toBeTruthy();
+
+      // Top 4 playing positions: Player A, Player B, Player D, Player E
+      // 5th position (Ersatz): Player C (because response = yes_sub)
+      expect(lineupSection!.textContent).toContain('Player A');
+      expect(lineupSection!.textContent).toContain('Player B');
+      expect(lineupSection!.textContent).toContain('Player D');
+      expect(lineupSection!.textContent).toContain('Player E');
+      expect(lineupSection!.textContent).toContain('Player C');
+    });
+
+    // Check that 'Ja als Ersatz' is present in dropdown options
+    const options = screen.getAllByRole('option', { name: 'Ja als Ersatz' });
+    expect(options.length).toBeGreaterThan(0);
+  });
+
   it('handles voting and comment saving', async () => {
     const mockProfiles = [
       { id: mockUserId, name: 'Max Mustermann', team_number: 1, position_number: 1, role: 'team_manager' },

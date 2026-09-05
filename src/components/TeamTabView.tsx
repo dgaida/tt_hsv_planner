@@ -2,21 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { syncTeamCalendar } from '../lib/syncEngine';
 import { getShortName } from '../lib/nameUtils';
-import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Check, X, HelpCircle, MessageSquare, AlertTriangle, Bell } from 'lucide-react';
+import { formatShortDayDate, getOpponentName } from '../lib/whatsappUtils';
 
 interface TeamTabViewProps {
   teamId: string;
   userId: string;
   userRole: string;
   isClubAdmin: boolean;
+  previousLoginAt?: string | null;
 }
 
-export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: TeamTabViewProps) {
+export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, previousLoginAt }: TeamTabViewProps) {
   const [matches, setMatches] = useState<any[]>([]);
   const [cancelledMatches, setCancelledMatches] = useState<any[]>([]);
   const [availabilities, setAvailabilities] = useState<Record<string, any>>({});
   const [matchChanges, setMatchChanges] = useState<Record<string, any[]>>({});
   const [allAvailabilities, setAllAvailabilities] = useState<any[]>([]);
+  const [recentChanges, setRecentChanges] = useState<any[]>([]);
+  const [showRecentChanges, setShowRecentChanges] = useState(true);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [teamName, setTeamName] = useState('');
@@ -237,6 +241,19 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
           .in('match_id', matchIds);
         setAllAvailabilities(allAvail || []);
 
+        // Fetch recent changes since last login for team manager
+        if (previousLoginAt) {
+          const { data: recentAvs } = await supabase
+            .from('availabilities')
+            .select('*, profiles(name), matches(summary, is_home, dtstart)')
+            .in('match_id', matchIds)
+            .gt('updated_at', previousLoginAt)
+            .neq('player_id', userId)
+            .order('updated_at', { ascending: false });
+
+          setRecentChanges(recentAvs || []);
+        }
+
         const { data: changes } = await supabase
           .from('match_changes')
           .select('*')
@@ -432,17 +449,19 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
 
     // RSVP priority order:
     // 1. yes (Ja)
-    // 2. no response / null / undefined / older version (Keine Antwort)
-    // 3. maybe (Vielleicht)
-    // 4. no (Nein)
+    // 2. yes_sub (Ja als Ersatz)
+    // 3. no response / null / undefined / older version (Keine Antwort)
+    // 4. maybe (Vielleicht)
+    // 5. no (Nein)
     const getRsvppriority = (p: any) => {
       const av = matchAvails.find((a) => a.player_id === p.id);
       const response = av && av.version_responded === match.version ? av.response : null;
       if (response === 'yes') return 1;
-      if (!response) return 2;
-      if (response === 'maybe') return 3;
-      if (response === 'no') return 4;
-      return 2;
+      if (response === 'yes_sub') return 2;
+      if (!response) return 3;
+      if (response === 'maybe') return 4;
+      if (response === 'no') return 5;
+      return 3;
     };
 
     // Sort candidates by RSVP priority first, then by global club ranking:
@@ -521,6 +540,49 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
         )}
       </div>
 
+      {userRole === 'team_manager' && showRecentChanges && recentChanges.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs sm:text-sm text-blue-900 space-y-3 shadow-sm">
+          <div className="flex items-center justify-between gap-2 font-bold text-blue-900">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-blue-600 shrink-0" />
+              <span>🔔 Rückmeldungs-Änderungen seit deinem letzten Login ({recentChanges.length})</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowRecentChanges(false)}
+              className="text-xs px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg font-semibold transition-colors shrink-0"
+            >
+              Gelesen / Ausblenden
+            </button>
+          </div>
+          <ul className="space-y-1.5 pt-1">
+            {recentChanges.map((ch) => {
+              const playerName = ch.profiles?.name || 'Ein Spieler';
+              const matchType = ch.matches?.is_home ? 'Heimspiel' : 'Auswärtsspiel';
+              const opponent = getOpponentName(ch.matches);
+              const matchDate = formatShortDayDate(ch.matches?.dtstart);
+              const actionText =
+                ch.response === 'yes'
+                  ? 'zugesagt'
+                  : ch.response === 'yes_sub'
+                  ? 'als Ersatz zugesagt'
+                  : ch.response === 'no'
+                  ? 'abgesagt'
+                  : 'mit "vielleicht" geantwortet';
+
+              return (
+                <li key={ch.id} className="bg-white/80 p-2.5 rounded-xl border border-blue-100 flex items-center gap-2">
+                  <span className="text-blue-600 font-bold">•</span>
+                  <span>
+                    Spieler <strong>{playerName}</strong> hat für das <strong>{matchType} gegen {opponent}</strong> am {matchDate} <strong>{actionText}</strong>.
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       {cancelledMatches.length > 0 && (
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs sm:text-sm text-rose-900 space-y-2">
           <div className="flex items-center gap-2 font-bold text-rose-800">
@@ -562,7 +624,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
               : null;
 
             const matchAvails = allAvailabilities.filter((av) => av.match_id === match.id);
-            const countJa = matchAvails.filter((av) => av.response === 'yes' && av.version_responded === match.version).length;
+            const countJa = matchAvails.filter((av) => (av.response === 'yes' || av.response === 'yes_sub') && av.version_responded === match.version).length;
             const countNein = matchAvails.filter((av) => av.response === 'no' && av.version_responded === match.version).length;
             const countVielleicht = matchAvails.filter((av) => av.response === 'maybe' && av.version_responded === match.version).length;
 
@@ -587,7 +649,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
 
             const isCurrentTeamManager = userRole === 'team_manager' && userTeamNumber === currentTeamIndex;
 
-            const handleUpdatePlayerResponse = async (playerId: string, responseType: 'yes' | 'no' | 'maybe' | '') => {
+            const handleUpdatePlayerResponse = async (playerId: string, responseType: 'yes' | 'yes_sub' | 'no' | 'maybe' | '') => {
               const existingAv = matchAvails.find((a) => a.player_id === playerId);
               try {
                 if (responseType) {
@@ -870,7 +932,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                                     value={response || ''}
                                     onChange={(e) => handleUpdatePlayerResponse(p.id, e.target.value as any)}
                                     className={`text-[10px] font-bold p-1 rounded border outline-none bg-white cursor-pointer ${
-                                      response === 'yes'
+                                      response === 'yes' || response === 'yes_sub'
                                         ? 'border-emerald-300 text-emerald-800 bg-emerald-50'
                                         : response === 'no'
                                         ? 'border-rose-300 text-rose-800 bg-rose-50'
@@ -881,12 +943,13 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                                   >
                                     <option value="">Keine Antwort</option>
                                     <option value="yes">Ja</option>
+                                    <option value="yes_sub">Ja als Ersatz</option>
                                     <option value="maybe">Vielleicht</option>
                                     <option value="no">Nein</option>
                                   </select>
                                 ) : (
                                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                                    response === 'yes'
+                                    response === 'yes' || response === 'yes_sub'
                                       ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
                                       : response === 'no'
                                       ? 'bg-rose-50 text-rose-800 border-rose-100'
@@ -894,7 +957,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                                       ? 'bg-amber-50 text-amber-800 border-amber-100'
                                       : 'bg-slate-50 text-slate-400 border-slate-100'
                                   }`}>
-                                    {response === 'yes' ? 'Ja' : response === 'no' ? 'Nein' : response === 'maybe' ? 'Vielleicht' : 'Keine Antwort'}
+                                    {response === 'yes' ? 'Ja' : response === 'yes_sub' ? 'Ja als Ersatz' : response === 'no' ? 'Nein' : response === 'maybe' ? 'Vielleicht' : 'Keine Antwort'}
                                   </span>
                                 )}
 
@@ -917,7 +980,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
                             av.version_responded < match.version
                               ? 'bg-gray-50 text-gray-400 border-gray-200'
-                              : av.response === 'yes'
+                              : av.response === 'yes' || av.response === 'yes_sub'
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-100'
                               : av.response === 'no'
                               ? 'bg-rose-50 text-rose-800 border-rose-100'
@@ -930,6 +993,8 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin }: T
                               ? '⚠️'
                               : av.response === 'yes'
                               ? '✅'
+                              : av.response === 'yes_sub'
+                              ? '✅ (Ersatz)'
                               : av.response === 'no'
                               ? '❌'
                               : '🤔'}

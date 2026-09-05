@@ -69,6 +69,37 @@ describe('whatsappUtils', () => {
     expect(message).not.toContain('mit Backup');
   });
 
+  it('handles "yes_sub" response by placing substitute player in Backup slot behind regular "yes" players', () => {
+    const match = {
+      id: 'm-1',
+      summary: 'Heiligenhauser SV vs TTG Rivalen',
+      is_home: true,
+      dtstart: '2026-09-20T17:00:00.000Z',
+      version: 1,
+    };
+
+    // p-3 (Charlie) has response 'yes_sub'. So p-1, p-2, p-4, p-5 are regular 'yes'.
+    // Alice, Bob, David, Frank will be primary 4, Charlie will be Backup!
+    const matchAvailabilities = [
+      { match_id: 'm-1', player_id: 'p-1', response: 'yes', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-2', response: 'yes', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-3', response: 'yes_sub', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-4', response: 'yes', version_responded: 1 },
+      { match_id: 'm-1', player_id: 'p-5', response: 'yes', version_responded: 1 },
+    ];
+
+    const allProfiles = [
+      { id: 'p-1', name: 'Alice Schmidt', team_number: 1, position_number: 1 },
+      { id: 'p-2', name: 'Bob Müller', team_number: 1, position_number: 2 },
+      { id: 'p-3', name: 'Charlie Meier', team_number: 1, position_number: 3 },
+      { id: 'p-4', name: 'David Schulze', team_number: 1, position_number: 4 },
+      { id: 'p-5', name: 'Frank Franke', team_number: 1, position_number: 5 },
+    ];
+
+    const message = generateWhatsAppMessage(match, matchAvailabilities, allProfiles);
+    expect(message).toContain('spielen wir in der Aufstellung Alice, Bob, David, Frank mit Backup Charlie.');
+  });
+
   it('generates Option 1 WhatsApp message with 5th player as Backup', () => {
     const match = {
       id: 'm-1',

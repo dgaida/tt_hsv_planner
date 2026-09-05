@@ -154,17 +154,28 @@ export function generateWhatsAppMessage(
   const opponent = getOpponentName(match);
   const dateTimeStr = `${formatShortDayDate(match.dtstart)} um ${formatTime(match.dtstart)} Uhr`;
 
-  // Get active confirmed ("yes") availabilities for this match version
+  // Get active confirmed ("yes" or "yes_sub") availabilities for this match version
   const yesAvails = matchAvailabilities.filter(
-    (a) => a.match_id === match.id && a.response === 'yes' && a.version_responded === match.version
+    (a) => a.match_id === match.id && (a.response === 'yes' || a.response === 'yes_sub') && a.version_responded === match.version
   );
 
-  // Sort confirmed profiles by official reporting order (team_number asc, position_number asc, name asc)
+  // Sort confirmed profiles: regular "yes" players first, followed by "yes_sub" (substitute) players,
+  // ordered by official reporting order (team_number asc, position_number asc, name asc)
   const confirmedProfiles = yesAvails
     .map((av) => allProfiles.find((p) => p.id === av.player_id) || av.profiles)
     .filter(Boolean);
 
   confirmedProfiles.sort((a, b) => {
+    const avA = yesAvails.find((av) => av.player_id === a.id);
+    const avB = yesAvails.find((av) => av.player_id === b.id);
+
+    const isSubA = avA?.response === 'yes_sub' ? 1 : 0;
+    const isSubB = avB?.response === 'yes_sub' ? 1 : 0;
+
+    if (isSubA !== isSubB) {
+      return isSubA - isSubB; // 0 (regular yes) comes before 1 (yes_sub)
+    }
+
     const teamNumA = a.team_number ?? 999999;
     const teamNumB = b.team_number ?? 999999;
     if (teamNumA !== teamNumB) return teamNumA - teamNumB;

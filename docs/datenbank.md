@@ -70,6 +70,7 @@ Speichert die Profil- und Ranglistendaten aller Spieler im Verein. Die Profile s
 | `ttr_points` | `INTEGER` | `NOT NULL DEFAULT 0` | Q-TTR-Punkte des Spielers für Ranglisten und Aufstellungsreihenfolge. |
 | `team_number` | `INTEGER` | `NULLABLE` | Nummer der Stamm-Mannschaft (z. B. `1` für Erwachsene I, `2` für Erwachsene II). |
 | `position_number` | `INTEGER` | `NULLABLE` | Listenposition innerhalb der Stamm-Mannschaft (z. B. `1` bis `4`). |
+| `last_login_at` | `TIMESTAMPTZ` | `NULLABLE` | Zeitstempel der letzten Anmeldung (wird für das Benachrichtigungs-Banner genutzt). |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Erstellungszeitpunkt des Profils. |
 | `updated_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Zeitpunkt der letzten Profilaktualisierung. |
 
@@ -142,7 +143,7 @@ Speichert die Zu- und Absagen der Spieler für die einzelnen Spieltermine.
 | `id` | `UUID` | `PRIMARY KEY`, `DEFAULT gen_random_uuid()` | Eindeutige Kennung der Rückmeldung. |
 | `match_id` | `UUID` | `NOT NULL`, `REFERENCES public.matches(id) ON DELETE CASCADE` | Fremdschlüssel zum Spieltermin in `matches`. |
 | `player_id` | `UUID` | `NOT NULL`, `REFERENCES public.profiles(id) ON UPDATE CASCADE ON DELETE CASCADE` | Fremdschlüssel zum Spielerprofil in `profiles`. |
-| `response` | `public.availability_response` | `NOT NULL` | Ausgewählter Status (`'yes'`, `'no'`, `'maybe'`). |
+| `response` | `public.availability_response` | `NOT NULL` | Ausgewählter Status (`'yes'`, `'yes_sub'`, `'no'`, `'maybe'`). |
 | `comment` | `TEXT` | `NULLABLE` | Optionale Bemerkung des Spielers (z. B. "Verspäte mich um 15 Min."). |
 | `version_responded` | `INTEGER` | `NOT NULL` | **Die `version` des Spiels zum Zeitpunkt der Abstimmung.** |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | Zeitpunkt der ersten Stimmabgabe. |

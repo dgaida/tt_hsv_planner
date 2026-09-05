@@ -210,10 +210,13 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                 <div className="space-y-3 mt-4">
                   <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-150">
                     <h4 className="font-bold text-gray-800 flex items-center gap-1.5 text-xs uppercase tracking-wider mb-1">
-                      🔑 1. Login-Voraussetzung
+                      🔑 1. Login-Voraussetzung & Änderungs-Banner
                     </h4>
                     <p className="text-xs text-gray-500">
                       Du musst dich zwingend mit deiner <strong>E-Mail-Adresse und Passwort</strong> anmelden. Eine passwortlose Anmeldung über die Namensliste stuft dich aus Sicherheitsgründen als normalen Spieler ein!
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      <strong>🔔 Benachrichtigungen seit deinem letzten Login:</strong> Wenn du eingeloggt bist und deine Mannschaft auswählst, wird oben über den Spielen ein blaues Banner angezeigt. Dort siehst du auf einen Blick alle neuen Zu-, Ab- oder Ersatz-Meldungen von Spielern, die seit deinem letzten Login vorgenommen wurden.
                     </p>
                   </div>
 
@@ -252,9 +255,10 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                         <strong>B. RSVP-Priorität (4-Stufen-Logik):</strong> Alle Kandidaten werden zuerst nach ihrer Rückmeldung für dieses Spiel gruppiert und priorisiert:
                       </p>
                       <ol className="list-decimal pl-4 space-y-0.5">
-                        <li><strong className="text-emerald-700">Ja (Zusage):</strong> Haben die höchste Priorität und rücken ganz nach oben.</li>
+                        <li><strong className="text-emerald-700">Ja (Zusage):</strong> Haben höchste Priorität und rücken auf die ersten 4 Stamm-Plätze.</li>
+                        <li><strong className="text-teal-700">Ja als Ersatz:</strong> 5. Option im Dropdown. Wenn 5 oder mehr Spieler zugesagt haben, kannst du Spieler als "Ja als Ersatz" markieren. Sie landen dann auf Ersatz-Position 5, 6 etc.</li>
                         <li><strong>Keine Antwort:</strong> Werden als Standby behandelt und folgen danach.</li>
-                        <li><strong className="text-amber-700">Vielleicht:</strong> Stehen an dritter Stelle.</li>
+                        <li><strong className="text-amber-700">Vielleicht:</strong> Stehen an vierter Stelle.</li>
                         <li><strong className="text-rose-700">Nein (Absage):</strong> Rutschen ganz ans Ende.</li>
                       </ol>
                       <p>
