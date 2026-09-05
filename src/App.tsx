@@ -16,6 +16,7 @@ export default function App() {
   const [isPasswordVerified, setIsPasswordVerified] = useState(false);
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [previousLoginAt, setPreviousLoginAt] = useState<string | null>(null);
   const [teams, setTeams] = useState<any[]>([]);
 
   // Tab-state
@@ -44,6 +45,25 @@ export default function App() {
           ...prof,
           role: loginMethod === 'passwordless' ? 'player' : prof.role,
         };
+
+        // Capture previous last_login_at timestamp before updating it
+        if (prof.last_login_at) {
+          setPreviousLoginAt(prof.last_login_at);
+        } else {
+          // Default fallback: 24 hours ago
+          setPreviousLoginAt(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        }
+
+        // Asynchronously record current login timestamp
+        try {
+          await supabase
+            .from('profiles')
+            .update({ last_login_at: new Date().toISOString() })
+            .eq('id', profileId);
+        } catch (e) {
+          // Ignore timestamp update errors
+        }
+
         setProfile(finalProfile);
         setSession({ user: { id: prof.id, email: '' } });
 
@@ -296,6 +316,7 @@ export default function App() {
               userId={session.user.id}
               userRole={profile?.role}
               isClubAdmin={isClubAdmin}
+              previousLoginAt={previousLoginAt}
             />
 
             {/* Matrix View */}

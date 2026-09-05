@@ -61,7 +61,7 @@ export default function GesamtUebersichtView() {
     const list: any[] = [];
 
     const activeAvails = allAvails.filter(
-      (a) => a.response === 'yes' || a.response === 'maybe'
+      (a) => a.response === 'yes' || a.response === 'yes_sub' || a.response === 'maybe'
     );
 
     const playerMap = new Map<string, any[]>();
@@ -227,7 +227,7 @@ export default function GesamtUebersichtView() {
             };
 
             const matchAvs = availabilities.filter((av) => av.match_id === match.id && av.version_responded === match.version);
-            const yesAvs = matchAvs.filter((av) => av.response === 'yes');
+            const yesAvs = matchAvs.filter((av) => av.response === 'yes' || av.response === 'yes_sub');
             const maybeAvs = matchAvs.filter((av) => av.response === 'maybe');
 
             const stammAvail = yesAvs.filter((av) => isPlayerStamm(av.player_id));

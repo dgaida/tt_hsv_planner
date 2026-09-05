@@ -29,6 +29,7 @@ describe('App Component', () => {
     const createMockChain = (dataValue: any): any => {
       const chain: any = {
         select: vi.fn().mockImplementation(() => chain),
+        update: vi.fn().mockImplementation(() => chain),
         eq: vi.fn().mockImplementation(() => chain),
         in: vi.fn().mockImplementation(() => chain),
         order: vi.fn().mockImplementation(() => chain),

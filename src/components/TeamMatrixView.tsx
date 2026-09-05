@@ -309,7 +309,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                                       loadMatrixData();
                                     }}
                                     className={`text-xs p-1 rounded-md border outline-none font-bold bg-white cursor-pointer ${
-                                      av?.response === 'yes' && !isOutdated
+                                      (av?.response === 'yes' || av?.response === 'yes_sub') && !isOutdated
                                         ? 'border-emerald-300 text-emerald-800 bg-emerald-50'
                                         : av?.response === 'no' && !isOutdated
                                         ? 'border-rose-300 text-rose-800 bg-rose-50'
@@ -321,6 +321,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                                   >
                                     <option value="">–</option>
                                     <option value="yes">Ja</option>
+                                    <option value="yes_sub">Ja als Ersatz</option>
                                     <option value="maybe">Vielleicht</option>
                                     <option value="no">Nein</option>
                                   </select>
@@ -344,7 +345,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                               {av ? (
                                 <div className="flex flex-col items-center">
                                   <span className={`text-base select-none ${isOutdated ? 'opacity-40' : ''}`}>
-                                    {av.response === 'yes' ? '✅' : av.response === 'no' ? '❌' : '🤔'}
+                                    {av.response === 'yes' ? '✅' : av.response === 'yes_sub' ? '✅(E)' : av.response === 'no' ? '❌' : '🤔'}
                                   </span>
                                   {isOutdated && (
                                     <span className="text-[10px] leading-tight text-amber-600 font-bold" title="Termin geändert - Neu abstimmen!">
@@ -373,7 +374,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
                     </td>
                     {matches.map((m) => {
                       const matchAvs = availabilities.filter((a) => a.match_id === m.id && a.version_responded === m.version);
-                      const yesCount = matchAvs.filter((a) => a.response === 'yes').length;
+                      const yesCount = matchAvs.filter((a) => a.response === 'yes' || a.response === 'yes_sub').length;
                       return (
                         <td key={m.id} className="px-2 py-3 text-center text-xs font-bold text-emerald-700">
                           {yesCount}
@@ -434,6 +435,7 @@ export default function TeamMatrixView({ teamId, isManagerOrAdmin }: TeamMatrixV
             <div><span className="font-bold">H:</span> Heimspiel</div>
             <div><span className="font-bold">A:</span> Auswärtsspiel</div>
             <div><span className="font-bold">✅:</span> Ja</div>
+            <div><span className="font-bold">✅(E):</span> Ja als Ersatz</div>
             <div><span className="font-bold">❌:</span> Nein</div>
             <div><span className="font-bold">🤔:</span> Vielleicht</div>
             <div><span className="font-bold">⚠️:</span> Termin geändert (Zustimmung ausstehend)</div>

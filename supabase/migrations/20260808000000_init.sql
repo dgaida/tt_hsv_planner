@@ -8,14 +8,15 @@ BEGIN
         CREATE TYPE public.user_role AS ENUM ('player', 'team_manager', 'club_admin', 'sportwart');
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'availability_response') THEN
-        CREATE TYPE public.availability_response AS ENUM ('yes', 'no', 'maybe');
+        CREATE TYPE public.availability_response AS ENUM ('yes', 'no', 'maybe', 'yes_sub');
     END IF;
 END $$;
 
 -- Ensure 'sportwart' value exists in the user_role enum (for older database schemas)
 ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'sportwart';
+ALTER TYPE public.availability_response ADD VALUE IF NOT EXISTS 'yes_sub';
 
--- Commit the transaction so that the new enum value 'sportwart' is registered
+-- Commit the transaction so that the new enum values are registered
 -- and can be used in subsequent statements in the same script.
 COMMIT;
 
@@ -51,6 +52,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role public.user_role NOT N
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ttr_points INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS team_number INTEGER;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS position_number INTEGER;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
 
 -- Ensure older schemas get the default UUID generator for the profiles id column
 ALTER TABLE public.profiles ALTER COLUMN id SET DEFAULT gen_random_uuid();
