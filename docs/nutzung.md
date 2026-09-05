@@ -61,9 +61,9 @@ Als Spieler steht für dich die schnelle Rückmeldung und deine persönliche Pla
 ### 📋 B. Mannschaftsführer (Rolle: `team_manager`)
 Als Mannschaftsführer bist du für die Aufstellung und Pflege deines Teams verantwortlich.
 
-#### 1. Anmeldung & Benachrichtigungs-Banner seit letztem Login
+#### 1. Anmeldung & Benachrichtigungs-Banner seit letztem Login  
 * **Wichtig:** Du musst dich zwingend mit deiner **E-Mail und deinem Passwort anmelden**, um deine erweiterten Rechte freizuschalten. Bei einer passwortlosen Anmeldung über das Dropdown wirst du vom System als normaler Spieler eingestuft!  
-* **🔔 Rückmeldungs-Änderungen seit dem letzten Login:** Sobald du eingeloggt bist und deine Mannschaft auswählst, erscheint oben über der Spieleliste ein hervorgehobenes blaues Benachrichtigungs-Banner. Dort siehst du auf einen Blick alle neuen Zu-, Ab- und Ersatzmeldungen von Spielern für Spiele deiner Mannschaft, die seit deinem vorherigen Login eingegangen sind (z. B. *"Spieler Max Mustermann hat für das Heimspiel gegen TTC Musterstadt am 15.10. zugesagt"*).
+* **🔔 Rückmeldungs-Änderungen seit dem letzten Login:** Sobald du eingeloggt bist und deine Mannschaft auswählst, erscheint oben über der Spieleliste ein hervorgehobenes blaues Benachrichtigungs-Banner. Dort siehst du auf einen Blick alle neuen Zu-, Ab- und Ersatzmeldungen von Spielern für Spiele deiner Mannschaft, die seit deinem vorherigen Login eingegangen sind (z. B. *"Spieler Max Mustermann hat für das Heimspiel gegen TTC Musterstadt am 15.10. zugesagt"*).  
 
 #### 2. Spieler & Ersatzspieler zu Spielen hinzufügen (RSVP-Steuerung)
 Du kannst Rückmeldungen (Zusagen/Absagen) für dein Team direkt eintragen und steuern. Dies ist ideal, wenn dir ein Spieler mündlich, per E-Mail oder per WhatsApp Bescheid gibt:  
@@ -72,12 +72,12 @@ Du kannst Rückmeldungen (Zusagen/Absagen) für dein Team direkt eintragen und s
 
 #### 3. Automatische Mannschaftsaufstellung & Sortier-Logik (Lineup-Engine)
 Die Aufstellung pro Spiel (maximal 5 Spieler auf dem Spielbericht) wird automatisch berechnet und sortiert:  
-* **A. RSVP-Priorität & Taktische Option "Ja als Ersatz" (5-Stufen-Logik):**
-  1. **Ja (Zusage):** Haben höchste Priorität und bilden die ersten 4 Stamm-Positionen.
-  2. **Ja als Ersatz (`yes_sub`):** 5. Option im Dropdown-Menü für Mannschaftsführer, Sportwart und Admin. Haben sich z. B. 5 oder mehr Spieler mit "Ja" gemeldet, kannst du Spieler, die zwar können, aber taktisch nicht unter den ersten 4 spielen sollen, auf "Ja als Ersatz" setzen. Sie werden dann auf Position 5, 6 usw. einsortiert.
-  3. **Keine Antwort (unentschieden / null):** Folgen danach als Standby.
-  4. **Vielleicht:** Stehen an vierter Stelle.
-  5. **Nein (Absage):** Werden ans Ende der Liste einsortiert.
+* **A. RSVP-Priorität & Taktische Option "Ja als Ersatz" (5-Stufen-Logik):**  
+  1. **Ja (Zusage):** Haben höchste Priorität und bilden die ersten 4 Stamm-Positionen.  
+  2. **Ja als Ersatz (`yes_sub`):** 5. Option im Dropdown-Menü für Mannschaftsführer, Sportwart und Admin. Haben sich z. B. 5 oder mehr Spieler mit "Ja" gemeldet, kannst du Spieler, die zwar können, aber taktisch nicht unter den ersten 4 spielen sollen, auf "Ja als Ersatz" setzen. Sie werden dann auf Position 5, 6 usw. einsortiert.  
+  3. **Keine Antwort (unentschieden / null):** Folgen danach als Standby.  
+  4. **Vielleicht:** Stehen an vierter Stelle.  
+  5. **Nein (Absage):** Werden ans Ende der Liste einsortiert.  
 * **B. Vereinsrangfolge (Tie-Breaker):** Haben mehrere Spieler denselben RSVP-Status, entscheidet die feste Rangfolge im Verein:  
   * **Team-Nummer** aufsteigend ➔ **Positions-Nummer** aufsteigend ➔ **Name** alphabetisch.  
 * **C. Der Kader (4 Stamm + 1 Ersatz):** Aus der sortierten Liste werden die Top 5 Spieler genommen. Die ersten 4 Spieler bilden die Stammaufstellung des Spiels. Der 5. Spieler wird deutlich als **"Ersatz"** (mit amberfarbener Markierung und "Ersatz"-Badge) dargestellt.  

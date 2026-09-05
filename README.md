@@ -53,11 +53,11 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
 * **Abwesenheits-Kalender (Mein Kalender & 4-Monats-Planer):**  
   * Spieler tragen Abwesenheiten (Urlaub, Arbeit, Krankheit) im persönlichen Kalender ein.  
   * Für Mannschaftsführer, Sportwarte und Admins steht ein dedizierter **4-Monats-Abwesenheits-Kalender** (2x2 Grid) bereit.  
-* **Änderungs-Benachrichtigungen seit dem letzten Login:**
-  * Mannschaftsführer sehen nach der Anmeldung direkt oben über der Spieleliste ihrer Mannschaft alle Zu-, Ab- und Ersatz-Meldungen von Spielern, die seit ihrem letzten Login eingegangen sind.
-* **Intelligente Aufstellungs- & Ersatzspieler-Logik ("Ja als Ersatz"):**
+* **Änderungs-Benachrichtigungen seit dem letzten Login:**  
+  * Mannschaftsführer sehen nach der Anmeldung direkt oben über der Spieleliste ihrer Mannschaft alle Zu-, Ab- und Ersatz-Meldungen von Spielern, die seit ihrem letzten Login eingegangen sind.  
+* **Intelligente Aufstellungs- & Ersatzspieler-Logik ("Ja als Ersatz"):**  
   * **Kader-Struktur:** Ein Spielkader besteht aus 4 Stammspielern und 1 Ersatzspieler (hervorgehoben mit amberfarbenem Badge).  
-  * **Priorisierung & Taktische Option "Ja als Ersatz":** Für Mannschaftsführer, Sportwart und Admin steht im Dropdown-Menü die Option **"Ja als Ersatz"** zur Verfügung. Damit lassen sich spielbereite Akteure gezielt auf Ersatz-Positionen (Position 5, 6) verschieben, wenn bereits 4 oder mehr Zusagen vorliegen. Die Rangfolge lautet: `Ja` > `Ja als Ersatz` > `Keine Antwort` > `Vielleicht` > `Nein` (sekundär sortiert nach der Vereinsrangfolge).
+  * **Priorisierung & Taktische Option "Ja als Ersatz":** Für Mannschaftsführer, Sportwart und Admin steht im Dropdown-Menü die Option **"Ja als Ersatz"** zur Verfügung. Damit lassen sich spielbereite Akteure gezielt auf Ersatz-Positionen (Position 5, 6) verschieben, wenn bereits 4 oder mehr Zusagen vorliegen. Die Rangfolge lautet: `Ja` > `Ja als Ersatz` > `Keine Antwort` > `Vielleicht` > `Nein` (sekundär sortiert nach der Vereinsrangfolge).  
 * **💬 WhatsApp-Textgenerator & Parallelspiel-Erkennung:**  
   * **Team-Matrix Integration:** Mannschaftsführer und Sportwarte können per Klick direkt unter einem Spiel in der Matrix eine vorgefertigte WhatsApp-Nachricht generieren und kopieren.  
   * **Intelligente Vorlagen:** Bei ≥ 4 Zusagen wird die Stammaufstellung (mit optionalem Backup) erzeugt; bei < 4 Zusagen wird ein dringender Aufruf mit fehlender Spieleranzahl, Namensliste und automatischer 1-Wochen-Frist formatiert.  
