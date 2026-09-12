@@ -3,6 +3,7 @@ import {
   getFirstName,
   formatShortDayDate,
   formatTime,
+  getArrivalTime,
   getDeadlineDayDate,
   getOpponentName,
   generateWhatsAppMessage,
@@ -23,6 +24,12 @@ describe('whatsappUtils', () => {
 
     const timeStr = formatTime(dtstart);
     expect(timeStr).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it('calculates arrival time correctly', () => {
+    const dtstart = '2026-08-15T18:30:00.000Z'; // 18:30 match
+    expect(getArrivalTime(dtstart, 60)).toBe('17:30');
+    expect(getArrivalTime(dtstart, 30)).toBe('18:00');
   });
 
   it('calculates 1-week deadline date correctly', () => {
@@ -66,6 +73,7 @@ describe('whatsappUtils', () => {
     const message = generateWhatsAppMessage(match, matchAvailabilities, allProfiles);
     expect(message).toContain('🏓 Das Heimspiel gegen TTG Rivalen am');
     expect(message).toContain('spielen wir in der Aufstellung Alice, Bob, Charlie, David.');
+    expect(message).toContain('Bitte seid bis spätestens 16:00 Uhr in der Halle.');
     expect(message).not.toContain('mit Backup');
   });
 
@@ -154,6 +162,7 @@ describe('whatsappUtils', () => {
     expect(message).toContain('⚠️ WICHTIG: Für das Auswärtsspiel gegen Post SV am');
     expect(message).toContain('fehlt uns noch 1 Spieler! Bisher haben zugesagt: Alice, Bob, Charlie.');
     expect(message).toContain('melden, ansonsten muss ich das Spiel absagen. 🙏');
+    expect(message).toContain('Bitte seid um 13:30 Uhr an Post SV.');
   });
 
   it('generates Option 2 WhatsApp message with plural "fehlen uns noch 2 Spieler"', () => {
@@ -276,5 +285,33 @@ describe('whatsappUtils', () => {
 
     const msg = generateWhatsAppMessage(match1, matchAvailabilities, allProfiles, [], allMatches, allTeams);
     expect(msg).toContain('Die dritte Mannschaft hat zeitgleich ebenfalls ein Spiel in Engelskirchen. Es wird also bestimmt ein netter Vormittag.');
+  });
+
+  it('appends away arrival time and detailed address/location info when provided', () => {
+    const match = {
+      id: 'm-away',
+      summary: 'TTV Rivalen vs Heiligenhauser SV',
+      is_home: false,
+      location: 'Turnhalle Süd, Schulstraße 12, 51766 Engelskirchen',
+      dtstart: '2026-10-10T18:30:00.000Z',
+      version: 1,
+    };
+
+    const matchAvailabilities = [
+      { match_id: 'm-away', player_id: 'p-1', response: 'yes', version_responded: 1 },
+      { match_id: 'm-away', player_id: 'p-2', response: 'yes', version_responded: 1 },
+      { match_id: 'm-away', player_id: 'p-3', response: 'yes', version_responded: 1 },
+      { match_id: 'm-away', player_id: 'p-4', response: 'yes', version_responded: 1 },
+    ];
+
+    const allProfiles = [
+      { id: 'p-1', name: 'Alice', team_number: 1, position_number: 1 },
+      { id: 'p-2', name: 'Bob', team_number: 1, position_number: 2 },
+      { id: 'p-3', name: 'Charlie', team_number: 1, position_number: 3 },
+      { id: 'p-4', name: 'David', team_number: 1, position_number: 4 },
+    ];
+
+    const message = generateWhatsAppMessage(match, matchAvailabilities, allProfiles);
+    expect(message).toContain('Bitte seid um 18:00 Uhr an Turnhalle Süd, Schulstraße 12, 51766 Engelskirchen.');
   });
 });

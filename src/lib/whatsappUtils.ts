@@ -22,6 +22,14 @@ export function formatTime(dateStr: string): string {
   return `${hours}:${minutes}`;
 }
 
+export function getArrivalTime(dtstartStr: string, minutesBefore: number): string {
+  const date = new Date(dtstartStr);
+  date.setMinutes(date.getMinutes() - minutesBefore);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
 export function getDeadlineDayDate(dtstartStr: string): string {
   const matchDate = new Date(dtstartStr);
   const deadlineDate = new Date(matchDate);
@@ -208,11 +216,21 @@ export function generateWhatsAppMessage(
     }
   }
 
+  let arrivalInfo = '';
+  if (match.is_home) {
+    const homeArrivalTime = getArrivalTime(match.dtstart, 60);
+    arrivalInfo = ` Bitte seid bis spätestens ${homeArrivalTime} Uhr in der Halle.`;
+  } else {
+    const awayArrivalTime = getArrivalTime(match.dtstart, 30);
+    const location = (match.location && match.location.trim()) ? match.location.trim() : getAwayLocationName(match);
+    arrivalInfo = ` Bitte seid um ${awayArrivalTime} Uhr an ${location}.`;
+  }
+
   if (yesAvails.length >= 4) {
     // Option 1: 4 or more yes votes
     const primaryNames = confirmedFirstNames.slice(0, 4).join(', ');
     const backupStr = confirmedFirstNames.length > 4 ? ` mit Backup ${confirmedFirstNames[4]}` : '';
-    return `🏓 Das ${matchType} gegen ${opponent} am ${dateTimeStr} spielen wir in der Aufstellung ${primaryNames}${backupStr}.${extraConcurrentSentence}`;
+    return `🏓 Das ${matchType} gegen ${opponent} am ${dateTimeStr} spielen wir in der Aufstellung ${primaryNames}${backupStr}.${extraConcurrentSentence}${arrivalInfo}`;
   } else {
     // Option 2: less than 4 yes votes
     const missingCount = 4 - yesAvails.length;
@@ -220,6 +238,6 @@ export function generateWhatsAppMessage(
     const confirmedList = confirmedFirstNames.length > 0 ? confirmedFirstNames.join(', ') : 'keine';
     const deadlineStr = getDeadlineDayDate(match.dtstart);
 
-    return `⚠️ WICHTIG: Für das ${matchType} gegen ${opponent} am ${dateTimeStr} ${missingPhrase}! Bisher haben zugesagt: ${confirmedList}. Bitte bis ${deadlineStr} melden, ansonsten muss ich das Spiel absagen. 🙏${extraConcurrentSentence}`;
+    return `⚠️ WICHTIG: Für das ${matchType} gegen ${opponent} am ${dateTimeStr} ${missingPhrase}! Bisher haben zugesagt: ${confirmedList}. Bitte bis ${deadlineStr} melden, ansonsten muss ich das Spiel absagen. 🙏${extraConcurrentSentence}${arrivalInfo}`;
   }
 }
