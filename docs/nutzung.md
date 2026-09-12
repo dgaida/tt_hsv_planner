@@ -90,6 +90,7 @@ Die Aufstellung pro Spiel (maximal 5 Spieler auf dem Spielbericht) wird automati
   * **Option 1 (≥ 4 Zusagen):** Generiert eine Aufstellungs-Nachricht mit den 4 Stammspielern und (falls vorhanden) einem 5. Backup-Spieler.  
   * **Option 2 (< 4 Zusagen):** Generiert einen dringenden Aufruf zur Rückmeldung mit Nennung der noch fehlenden Spieler (inkl. korrekter Singular-/Plural-Grammatik), Auflistung der bisherigen Zusagen sowie einer automatischen Rückmeldefrist (1 Woche vor dem Spiel).  
   * **Parallelspiel-Erkennung:** Findet zeitgleich ein Spiel einer anderen Vereinsmannschaft am selben Ort (Heim oder Auswärts) statt, fügt der Generator automatisch einen freundlichen Hinweis an (z. B. *"Die zweite Mannschaft hat zeitgleich ebenfalls ein Heimspiel..."*).  
+  * **Ankunftszeit & Spielort:** Bei 4 oder mehr Zusagen wird am Ende der Nachricht automatisch die Ankunftszeit bzw. der Treffpunkt eingefügt (bei Heimspielen 1 Stunde vor Spielstart in der Halle; bei Auswärtsspielen 30 Minuten vor Spielstart am jeweiligen Spielort).
 
 #### 5. Abwesenheits-Kalender  
 * Du hast Zugriff auf den Reiter **"Abwesenheits-Kalender"**, der die kommenden 4 Monate in einem kompakten **2x2-Grid** anzeigt. Klickst du auf einen Tag, siehst du alle abwesenden Spieler deines Vereins mit Grund.  
