@@ -137,7 +137,7 @@ describe('whatsappUtils', () => {
     expect(message).toContain('spielen wir in der Aufstellung Taras, David, Daniel, Jan mit Backup Frank.');
   });
 
-  it('generates Option 2 WhatsApp message with singular "fehlt uns noch 1 Spieler"', () => {
+  it('generates Option 2 WhatsApp message with singular "fehlt uns noch 1 Spieler" and omits arrival info', () => {
     const match = {
       id: 'm-2',
       summary: 'Post SV vs Heiligenhauser SV',
@@ -162,7 +162,8 @@ describe('whatsappUtils', () => {
     expect(message).toContain('⚠️ WICHTIG: Für das Auswärtsspiel gegen Post SV am');
     expect(message).toContain('fehlt uns noch 1 Spieler! Bisher haben zugesagt: Alice, Bob, Charlie.');
     expect(message).toContain('melden, ansonsten muss ich das Spiel absagen. 🙏');
-    expect(message).toContain('Bitte seid um 13:30 Uhr an Post SV.');
+    expect(message).not.toContain('Bitte seid um');
+    expect(message).not.toContain('Bitte seid bis spätestens');
   });
 
   it('generates Option 2 WhatsApp message with plural "fehlen uns noch 2 Spieler"', () => {

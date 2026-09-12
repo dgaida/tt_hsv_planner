@@ -303,7 +303,7 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                           <strong>Erkennung zeitgleicher Spiele:</strong> Spielt zeitgleich eine andere Vereinsmannschaft am selben Ort (Heim oder Auswärts), fügt das System automatisch einen freundlichen Zusatzhinweis hinzu (z. B. <em>"Die zweite Mannschaft hat zeitgleich ebenfalls ein Heimspiel..."</em>).
                         </li>
                         <li>
-                          <strong>Ankunftszeit & Spielort:</strong> Fügt automatisch die empfohlene Ankunftszeit hinzu (bei Heimspielen 1 Stunde vor Spielstart in der Halle; bei Auswärtsspielen 30 Minuten vor Spielstart am jeweiligen Spielort).
+                          <strong>Ankunftszeit & Spielort:</strong> Bei 4 oder mehr Zusagen wird automatisch die Ankunftszeit bzw. der Treffpunkt ergänzt (bei Heimspielen 1 Stunde vor Spielstart in der Halle; bei Auswärtsspielen 30 Minuten vor Spielstart am jeweiligen Spielort).
                         </li>
                       </ul>
                     </div>

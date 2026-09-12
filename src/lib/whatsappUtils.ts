@@ -238,6 +238,6 @@ export function generateWhatsAppMessage(
     const confirmedList = confirmedFirstNames.length > 0 ? confirmedFirstNames.join(', ') : 'keine';
     const deadlineStr = getDeadlineDayDate(match.dtstart);
 
-    return `⚠️ WICHTIG: Für das ${matchType} gegen ${opponent} am ${dateTimeStr} ${missingPhrase}! Bisher haben zugesagt: ${confirmedList}. Bitte bis ${deadlineStr} melden, ansonsten muss ich das Spiel absagen. 🙏${extraConcurrentSentence}${arrivalInfo}`;
+    return `⚠️ WICHTIG: Für das ${matchType} gegen ${opponent} am ${dateTimeStr} ${missingPhrase}! Bisher haben zugesagt: ${confirmedList}. Bitte bis ${deadlineStr} melden, ansonsten muss ich das Spiel absagen. 🙏${extraConcurrentSentence}`;
   }
 }
