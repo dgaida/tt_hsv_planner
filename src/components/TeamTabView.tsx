@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { syncTeamCalendar } from '../lib/syncEngine';
 import { getShortName } from '../lib/nameUtils';
-import { Check, X, HelpCircle, MessageSquare, AlertTriangle, Bell } from 'lucide-react';
+import { Check, X, HelpCircle, MessageSquare, AlertTriangle, Bell, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatShortDayDate, getOpponentName } from '../lib/whatsappUtils';
 
 interface TeamTabViewProps {
@@ -29,6 +29,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
   const [syncing, setSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [userAllYesAvailabilities, setUserAllYesAvailabilities] = useState<any[]>([]);
+  const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
 
   const isElevatedRole = userRole === 'team_manager' || userRole === 'sportwart' || userRole === 'club_admin' || isClubAdmin;
 
@@ -615,6 +616,40 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
           </div>
         ) : (
           matches.map((match) => {
+            const matchDateObj = new Date(match.dtstart);
+            const isPastMatch = Date.now() - matchDateObj.getTime() > 24 * 60 * 60 * 1000;
+            const isExpanded = expandedMatches[match.id] ?? !isPastMatch;
+
+            const opponent = match.is_home
+              ? (match.summary.split(' vs ')[1] || match.summary).trim()
+              : (match.summary.split(' vs ')[0] || match.summary).trim();
+
+            if (isPastMatch && !isExpanded) {
+              return (
+                <div
+                  key={match.id}
+                  className="bg-white/80 rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-gray-600"
+                >
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-gray-700">
+                      {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {opponent}
+                    </h3>
+                    <p className="text-gray-500 font-medium">
+                      📅 {formatGermanDate(match.dtstart)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedMatches((prev) => ({ ...prev, [match.id]: true }))}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-xs transition-colors self-start sm:self-auto flex items-center gap-1.5 shrink-0"
+                  >
+                    <span>Details anzeigen</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            }
+
             const userAv = availabilities[match.id];
             const hasOutdatedResponse = userAv && userAv.version_responded < match.version;
 
@@ -627,10 +662,6 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
             const countJa = matchAvails.filter((av) => (av.response === 'yes' || av.response === 'yes_sub') && av.version_responded === match.version).length;
             const countNein = matchAvails.filter((av) => av.response === 'no' && av.version_responded === match.version).length;
             const countVielleicht = matchAvails.filter((av) => av.response === 'maybe' && av.version_responded === match.version).length;
-
-            const opponent = match.is_home
-              ? (match.summary.split(' vs ')[1] || match.summary).trim()
-              : (match.summary.split(' vs ')[0] || match.summary).trim();
 
             const { activeLineup, stammspieler } = getLineupForMatch(match, matchAvails);
 
@@ -733,16 +764,28 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
                     {/* Left Column: Match details, Location, Description & RSVP Vote */}
                     <div className="space-y-4">
-                      <div>
-                        <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-full mb-2">
-                          Spieltag {match.matchday || '-'}
-                        </span>
-                        <h3 className={`text-base sm:text-lg font-bold ${countJa < 4 ? 'text-red-600' : 'text-gray-800'}`}>
-                          {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {opponent}
-                        </h3>
-                        <p className="text-sm font-semibold text-teal-700 mt-1">
-                          📅 {formatGermanDate(match.dtstart)}
-                        </p>
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-full mb-2">
+                            Spieltag {match.matchday || '-'}
+                          </span>
+                          <h3 className={`text-base sm:text-lg font-bold ${countJa < 4 ? 'text-red-600' : 'text-gray-800'}`}>
+                            {match.is_home ? '🏠 Heimspiel' : '🚌 Auswärtsspiel'} gegen {opponent}
+                          </h3>
+                          <p className="text-sm font-semibold text-teal-700 mt-1">
+                            📅 {formatGermanDate(match.dtstart)}
+                          </p>
+                        </div>
+                        {isPastMatch && (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedMatches((prev) => ({ ...prev, [match.id]: false }))}
+                            className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-xs transition-colors flex items-center gap-1.5 shrink-0"
+                          >
+                            <span>Minimieren</span>
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
 
                       <div className="space-y-1.5 text-xs sm:text-sm text-gray-600">
