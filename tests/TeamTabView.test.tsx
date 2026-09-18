@@ -39,7 +39,7 @@ describe('TeamTabView', () => {
       id: 'm-1',
       team_id: mockTeamId,
       summary: 'Erwachsene I vs TV Klaswipper',
-      dtstart: '2026-08-12T18:00:00.000Z',
+      dtstart: '2027-08-12T18:00:00.000Z',
       is_home: true,
       active: true,
       version: 1,
@@ -502,7 +502,7 @@ describe('TeamTabView', () => {
         matches: {
           id: 'm-other',
           team_id: 'team-999',
-          dtstart: '2026-08-12T18:30:00.000Z', // within 1 hr of 18:00
+          dtstart: '2027-08-12T18:30:00.000Z', // within 1 hr of 18:00
           active: true,
           version: 1,
           teams: { name: 'Erwachsene II' },
@@ -741,6 +741,94 @@ describe('TeamTabView', () => {
     // Check that 'Ja als Ersatz' is present in dropdown options
     const options = screen.getAllByRole('option', { name: 'Ja als Ersatz' });
     expect(options.length).toBeGreaterThan(0);
+  });
+
+  it('renders past matches compactly by default and toggles expand/minimize', async () => {
+    const pastMatch = {
+      id: 'm-past',
+      team_id: mockTeamId,
+      summary: 'Erwachsene I vs TV Klaswipper III',
+      dtstart: '2025-09-12T18:00:00.000Z',
+      is_home: true,
+      active: true,
+      version: 1,
+      matchday: 2,
+    };
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? [pastMatch] : [], error: null });
+        });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="player"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/🏠 Heimspiel gegen TV Klaswipper III/)).toBeTruthy();
+      expect(screen.getByRole('button', { name: /Details anzeigen/ })).toBeTruthy();
+      // Lineup section should not be visible when compact
+      expect(screen.queryByText(/👥 Aufstellung/)).toBeNull();
+    });
+
+    // Click "Details anzeigen"
+    const expandBtn = screen.getByRole('button', { name: /Details anzeigen/ });
+    fireEvent.click(expandBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Minimieren/ })).toBeTruthy();
+      expect(screen.getByText(/👥 Aufstellung/)).toBeTruthy();
+    });
+
+    // Click "Minimieren"
+    const minimizeBtn = screen.getByRole('button', { name: /Minimieren/ });
+    fireEvent.click(minimizeBtn);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Details anzeigen/ })).toBeTruthy();
+      expect(screen.queryByText(/👥 Aufstellung/)).toBeNull();
+    });
   });
 
   it('handles voting and comment saving', async () => {
