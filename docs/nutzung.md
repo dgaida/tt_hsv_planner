@@ -52,7 +52,7 @@ Als Spieler steht für dich die schnelle Rückmeldung und deine persönliche Pla
 #### 4. Mein Kalender (Abwesenheiten)  
 * Im Reiter **"Mein Kalender"** kannst du Zeiträume eintragen, an denen du generell nicht zur Verfügung stehst (Urlaub, Dienstreisen, Lehrgänge, Krankheit).  
 * Gib ein Start- und Enddatum sowie einen optionalen Grund ein.  
-* **Automatische Absage ("Nein"):** Für alle aktiven Spiele, die in deinen eingetragenen Abwesenheitszeitraum fallen, trägt das System automatisch ein **"Nein"** als deine Rückmeldung für das jeweilige Spiel ein.
+* **Automatische Absage ("Nein"):** Für alle aktiven Spiele, die in deinen eingetragenen Abwesenheitszeitraum fallen, trägt das System automatisch ein **"Nein"** als deine Rückmeldung für das jeweilige Spiel ein.  
 
 #### 5. Aktualisieren-Button (Datenabgleich)  
 * Für reine Spieler-Accounts ist der Button **"🔄 Aktualisieren"** im Mannschafts-Tab ausgeblendet. Er steht nur Benutzern zur Verfügung, die sich mit Passwort und erweiterten Rechten (Mannschaftsführer, Sportwart, Admin) angemeldet haben, um unnötige Anfragen und Schnittstellen-Sperren zu vermeiden.  
