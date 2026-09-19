@@ -55,12 +55,81 @@ describe('TeamTabView', () => {
     vi.clearAllMocks();
   });
 
+  it('queries sync_runs and displays last successful sync run date and type', async () => {
+    const mockSyncRun = {
+      id: 'run-99',
+      started_at: '2026-08-10T10:00:00.000Z',
+      completed_at: '2026-08-10T10:05:00.000Z',
+      status: 'success',
+      summary_text: 'Synchronisation beendet. Status: success.',
+    };
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      const queryMock: any = {
+        eq: vi.fn().mockImplementation(() => queryMock),
+        in: vi.fn().mockImplementation(() => queryMock),
+        order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockSyncRun, error: null }),
+        single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
+        select: vi.fn().mockImplementation(() => queryMock),
+        then: vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: [], error: null }).then(onFulfilled);
+        }),
+      };
+
+      if (table === 'teams') {
+        queryMock.order = vi.fn().mockResolvedValue({ data: [mockTeam], error: null });
+        queryMock.single = vi.fn().mockResolvedValue({ data: mockTeam, error: null });
+      }
+      if (table === 'matches') {
+        let activeVal = true;
+        queryMock.eq = vi.fn().mockImplementation((col, val) => {
+          if (col === 'active') activeVal = val;
+          return queryMock;
+        });
+        queryMock.order = vi.fn().mockImplementation(() => {
+          return Promise.resolve({ data: activeVal ? mockMatches : [], error: null });
+        });
+      }
+      if (table === 'profiles') {
+        queryMock.single = vi.fn().mockResolvedValue({ data: { id: mockUserId, name: 'Max', team_number: 1 }, error: null });
+        queryMock.order = vi.fn().mockResolvedValue({ data: [], error: null });
+      }
+      if (table === 'availabilities') {
+        queryMock.then = vi.fn().mockImplementation((onFulfilled) => {
+          return Promise.resolve({ data: mockUserAv, error: null }).then(onFulfilled);
+        });
+      }
+
+      return queryMock;
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(
+      <TeamTabView
+        teamId={mockTeamId}
+        userId={mockUserId}
+        userRole="team_manager"
+        isClubAdmin={false}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Letzte erfolgreiche Aktualisierung am/)).toBeTruthy();
+      expect(screen.getByText(/\(automatisch\)/)).toBeTruthy();
+    });
+  });
+
   it('hides "Aktuelle Rückmeldungen:" for player role and displays it for team_manager role', async () => {
     const fromMock = vi.fn().mockImplementation((table: string) => {
       const queryMock: any = {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         then: vi.fn().mockImplementation((onFulfilled) => {
@@ -131,6 +200,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
@@ -212,6 +283,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
@@ -284,6 +357,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
@@ -348,6 +423,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
@@ -429,6 +506,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: deleteMock,
@@ -515,6 +594,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
@@ -590,6 +671,8 @@ describe('TeamTabView', () => {
         gt: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         then: vi.fn().mockImplementation((onFulfilled) => {
@@ -676,6 +759,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
@@ -760,6 +845,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         then: vi.fn().mockImplementation((onFulfilled) => {
@@ -861,6 +948,8 @@ describe('TeamTabView', () => {
         eq: vi.fn().mockImplementation(() => queryMock),
         in: vi.fn().mockImplementation(() => queryMock),
         order: vi.fn().mockImplementation(() => queryMock),
+        limit: vi.fn().mockImplementation(() => queryMock),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         single: vi.fn().mockImplementation(() => Promise.resolve({ data: null, error: null })),
         select: vi.fn().mockImplementation(() => queryMock),
         delete: vi.fn().mockImplementation(() => queryMock),
