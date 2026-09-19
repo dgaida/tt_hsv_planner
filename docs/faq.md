@@ -23,6 +23,10 @@ Um deine erweiterten administrativen Rechte zu nutzen, musst du dich zwingend ü
 ### Q5: Wie unterscheidet das System Stamm- und Ersatzspieler im Aufstellungs-Kader?
 **Antwort:** Das System stellt automatisch einen 5er-Kader zusammen (4 Stammspieler + 1 Ersatzspieler). Der 5. Spieler wird als Ersatzspieler mit einem deutlichen amberfarbenen Hintergrund und einem `"Ersatz"`-Badge gekennzeichnet.
 
+### Q6: Warum schlägt der manuelle „Aktualisieren“-Button manchmal fehl (HTTP 429)?
+**Antwort:** Beim manuellen Klick auf **🔄 Aktualisieren** im Browser wird der Kalender über öffentliche CORS-Proxies abgerufen. Wenn viele Nutzer dieselben Proxies verwenden oder myTischtennis.de Anfragen drosselt, antwortet der Server mit **HTTP 429 (Too Many Requests)**.
+**Wichtig:** Ein manueller Klick ist **nicht notwendig**. Die Anwendung führt **jeden Tag automatisch im Hintergrund** eine vollständige Server-Synchronisation (`sync-calendars`) aus, die nicht von CORS-Proxies abhängt.
+
 ---
 
 ## 🛠️ 2. Technische Fehlerbehebung

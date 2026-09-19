@@ -524,20 +524,25 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
           )}
         </div>
         {isElevatedRole && (
-          <button
-            onClick={handleRefresh}
-            disabled={syncing}
-            className="text-sm px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold rounded-xl transition-colors self-start disabled:opacity-50 flex items-center gap-2"
-          >
-            {syncing ? (
-              <>
-                <div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-teal-700"></div>
-                <span>Synchronisiere...</span>
-              </>
-            ) : (
-              <span>🔄 Aktualisieren</span>
-            )}
-          </button>
+          <div className="flex flex-col items-start sm:items-end gap-1">
+            <button
+              onClick={handleRefresh}
+              disabled={syncing}
+              className="text-sm px-4 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-semibold rounded-xl transition-colors self-start sm:self-auto disabled:opacity-50 flex items-center gap-2"
+            >
+              {syncing ? (
+                <>
+                  <div className="animate-spin rounded-full h-3.5 w-3.5 border-t-2 border-b-2 border-teal-700"></div>
+                  <span>Synchronisiere...</span>
+                </>
+              ) : (
+                <span>🔄 Aktualisieren</span>
+              )}
+            </button>
+            <span className="text-[10px] text-gray-500 italic">
+              ℹ️ Automatische tägliche Kalendersynchronisation aktiv (manueller Klick selten nötig)
+            </span>
+          </div>
         )}
       </div>
 
