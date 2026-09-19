@@ -39,6 +39,14 @@ export default function AbsencesView({ userId }: AbsencesViewProps) {
     loadAbsences();
   }, [userId]);
 
+  const getLocalDateString = (dtstartStr: string) => {
+    const d = new Date(dtstartStr);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -64,12 +72,61 @@ export default function AbsencesView({ userId }: AbsencesViewProps) {
 
       if (error) throw error;
 
+      // Automatically set "nein" for all matches in this date range
+      let matchesUpdatedCount = 0;
+      const { data: activeMatches, error: matchesErr } = await supabase
+        .from('matches')
+        .select('id, version, dtstart')
+        .eq('active', true);
+
+      if (!matchesErr && activeMatches) {
+        const matchingMatches = activeMatches.filter((m) => {
+          const matchDateStr = getLocalDateString(m.dtstart);
+          return matchDateStr >= startDate && matchDateStr <= endDate;
+        });
+
+        for (const match of matchingMatches) {
+          const { data: existingAv } = await supabase
+            .from('availabilities')
+            .select('id')
+            .eq('match_id', match.id)
+            .eq('player_id', userId)
+            .maybeSingle();
+
+          if (existingAv) {
+            const { error: updateErr } = await supabase
+              .from('availabilities')
+              .update({
+                response: 'no',
+                version_responded: match.version,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existingAv.id);
+            if (!updateErr) matchesUpdatedCount++;
+          } else {
+            const { error: insertErr } = await supabase
+              .from('availabilities')
+              .insert({
+                match_id: match.id,
+                player_id: userId,
+                response: 'no',
+                version_responded: match.version,
+              });
+            if (!insertErr) matchesUpdatedCount++;
+          }
+        }
+      }
+
       // Reset form
       setStartDate('');
       setEndDate('');
       setReason('');
       loadAbsences();
-      alert('Abwesenheit erfolgreich eingetragen!');
+      if (matchesUpdatedCount > 0) {
+        alert(`Abwesenheit erfolgreich eingetragen! Für ${matchesUpdatedCount} Spiel(e) in diesem Zeitraum wurde automatisch "Nein" eingetragen.`);
+      } else {
+        alert('Abwesenheit erfolgreich eingetragen!');
+      }
     } catch (err: any) {
       console.error('Error adding absence:', err);
       setError('Fehler beim Eintragen: ' + err.message);
@@ -119,7 +176,7 @@ export default function AbsencesView({ userId }: AbsencesViewProps) {
             📅 Mein Abwesenheits-Kalender
           </h2>
           <p className="text-sm text-gray-500">
-            Trage hier Tage ein, an denen du nicht spielen kannst (z. B. Urlaub, Arbeit, Krankheit). Der Sportwart sieht diese Termine gesammelt in seiner Planung.
+            Trage hier Tage ein, an denen du nicht spielen kannst (z. B. Urlaub, Arbeit, Krankheit). Der Sportwart sieht diese Termine gesammelt in seiner Planung. Für alle Spiele in diesem Zeitraum wird automatisch ein "Nein" als Rückmeldung eingetragen.
           </p>
         </div>
       </div>

@@ -194,7 +194,7 @@ export default function GuideView({ role = 'player' }: GuideViewProps) {
                       📅 3. Abwesenheiten eintragen (Mein Kalender)
                     </h4>
                     <p className="text-xs text-gray-500">
-                      Im Reiter <strong>"Mein Kalender"</strong> kannst du Zeiträume eintragen, an denen du generell nicht zur Verfügung stehst (Urlaub, Dienstreisen, Krankheit). Diese werden Mannschaftsführern, dem Sportwart und den Admins im Abwesenheits-Kalender automatisch angezeigt.
+                      Im Reiter <strong>"Mein Kalender"</strong> kannst du Zeiträume eintragen, an denen du generell nicht zur Verfügung stehst (Urlaub, Dienstreisen, Krankheit). Für alle Spiele in diesem Zeitraum wird automatisch ein <strong>"Nein"</strong> als Rückmeldung eingetragen. Diese Abwesenheiten werden Mannschaftsführern, dem Sportwart und den Admins im Abwesenheits-Kalender automatisch angezeigt.
                     </p>
                   </div>
                 </div>

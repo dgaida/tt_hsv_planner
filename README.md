@@ -51,7 +51,7 @@ Für eine detaillierte Übersicht und Anleitung haben wir eine umfassende Dokume
   * Verschiebt sich ein Spiel auf myTischtennis.de, wird dies über die stabile `UID` des ICS-Events erkannt.  
   * Bereits abgegebene Rückmeldungen werden archiviert und im Frontend als *„erneute Antwort erforderlich“ (⚠️)* markiert.  
 * **Abwesenheits-Kalender (Mein Kalender & 4-Monats-Planer):**  
-  * Spieler tragen Abwesenheiten (Urlaub, Arbeit, Krankheit) im persönlichen Kalender ein.  
+  * Spieler tragen Abwesenheiten (Urlaub, Arbeit, Krankheit) im persönlichen Kalender ein. Für alle Spiele im gebuchten Zeitraum wird automatisch ein **"Nein"** als Rückmeldung hinterlegt.
   * Für Mannschaftsführer, Sportwarte und Admins steht ein dedizierter **4-Monats-Abwesenheits-Kalender** (2x2 Grid) bereit.  
 * **Änderungs-Benachrichtigungen seit dem letzten Login:**  
   * Mannschaftsführer sehen nach der Anmeldung direkt oben über der Spieleliste ihrer Mannschaft alle Zu-, Ab- und Ersatz-Meldungen von Spielern, die seit ihrem letzten Login eingegangen sind.  
