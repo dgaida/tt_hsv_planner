@@ -90,6 +90,83 @@ describe('AbsencesView', () => {
     });
   });
 
+  it('automatically sets "no" response for matches within the absence date range', async () => {
+    const mockMatches = [
+      { id: 'match-1', version: 2, dtstart: '2026-08-16T18:00:00.000Z', active: true },
+      { id: 'match-2', version: 1, dtstart: '2026-09-01T18:00:00.000Z', active: true },
+    ];
+
+    const orderMock = vi.fn()
+      .mockResolvedValueOnce({ data: [], error: null })
+      .mockResolvedValueOnce({ data: mockAbsences, error: null });
+
+    const insertAvailabilitySpy = vi.fn().mockResolvedValue({ error: null });
+    const updateAvailabilitySpy = vi.fn().mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
+
+    const fromMock = vi.fn().mockImplementation((table: string) => {
+      if (table === 'absences') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              order: orderMock,
+            }),
+          }),
+          insert: vi.fn().mockResolvedValue({ error: null }),
+        };
+      }
+      if (table === 'matches') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: mockMatches, error: null }),
+          }),
+        };
+      }
+      if (table === 'availabilities') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+              }),
+            }),
+          }),
+          insert: insertAvailabilitySpy,
+          update: updateAvailabilitySpy,
+        };
+      }
+      return {};
+    });
+
+    vi.mocked(supabase.from).mockImplementation(fromMock as any);
+
+    render(<AbsencesView userId={mockUserId} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Eingetragene Abwesenheiten (0)')).toBeTruthy();
+    });
+
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    fireEvent.change(dateInputs[0], { target: { value: '2026-08-15' } });
+    fireEvent.change(dateInputs[1], { target: { value: '2026-08-20' } });
+
+    const submitBtn = screen.getByRole('button', { name: 'Eintragen' });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(insertAvailabilitySpy).toHaveBeenCalledWith({
+        match_id: 'match-1',
+        player_id: mockUserId,
+        response: 'no',
+        version_responded: 2,
+      });
+      expect(window.alert).toHaveBeenCalledWith(
+        expect.stringContaining('Für 1 Spiel(e) in diesem Zeitraum wurde automatisch "Nein" eingetragen.')
+      );
+    });
+  });
+
   it('allows deleting an absence', async () => {
     const orderMock = vi.fn()
       .mockResolvedValueOnce({ data: mockAbsences, error: null }) // first load
