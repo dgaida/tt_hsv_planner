@@ -123,6 +123,72 @@ END:VCALENDAR`;
     expect(res.message).toContain('Team not found');
   });
 
+  it('blocks update and triggers safety guard when more than 2 matches would be changed or deactivated', async () => {
+    // Setup 3 existing matches in database
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: vi.fn().mockResolvedValue({
+                data: { id: 'team-3', name: 'Erwachsene III', webcal_url: 'webcal://example.com/cal.ics' },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'matches') {
+        return {
+          select: () => ({
+            eq: vi.fn().mockResolvedValue({
+              data: [
+                { id: 'm-1', external_uid: 'uid-1', dtstart: '2026-09-12T16:00:00.000Z', dtend: '2026-09-12T19:00:00.000Z', summary: 'Game 1', active: true, version: 1 },
+                { id: 'm-2', external_uid: 'uid-2', dtstart: '2026-09-19T16:00:00.000Z', dtend: '2026-09-19T19:00:00.000Z', summary: 'Game 2', active: true, version: 1 },
+                { id: 'm-3', external_uid: 'uid-3', dtstart: '2026-09-26T16:00:00.000Z', dtend: '2026-09-26T19:00:00.000Z', summary: 'Game 3', active: true, version: 1 },
+              ],
+              error: null,
+            }),
+          }),
+        };
+      }
+      return { insert: vi.fn(), update: vi.fn() };
+    });
+
+    // Calendar response with all 3 matches rescheduled (3 changes > 2 limit)
+    const mockIcsText = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:uid-1
+DTSTART;TZID=Europe/Berlin:20260913T180000
+DTEND;TZID=Europe/Berlin:20260913T210000
+SUMMARY:Game 1
+END:VEVENT
+BEGIN:VEVENT
+UID:uid-2
+DTSTART;TZID=Europe/Berlin:20260920T180000
+DTEND;TZID=Europe/Berlin:20260920T210000
+SUMMARY:Game 2
+END:VEVENT
+BEGIN:VEVENT
+UID:uid-3
+DTSTART;TZID=Europe/Berlin:20260927T180000
+DTEND;TZID=Europe/Berlin:20260927T210000
+SUMMARY:Game 3
+END:VEVENT
+END:VCALENDAR`;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(mockIcsText),
+    }));
+
+    const syncRes = await syncTeamCalendar(mockSupabase, 'team-3');
+
+    expect(syncRes.status).toBe('failed');
+    expect(syncRes.message).toContain('Sicherheitssperre: Mehr als 2 Spiele (3) wurden angeblich geändert oder abgesagt');
+  });
+
   it('updates match details when other details change without date/time change', async () => {
     const mockIcsText = `BEGIN:VCALENDAR
 VERSION:2.0

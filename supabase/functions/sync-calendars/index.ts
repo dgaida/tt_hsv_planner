@@ -310,6 +310,59 @@ serve(async (req: Request) => {
         }
 
         const processedUids = new Set<string>();
+        let potentialChanges = 0;
+
+        for (const event of events) {
+          processedUids.add(event.uid);
+          const existing = existingMap.get(event.uid);
+          if (existing) {
+            const oldStart = new Date(existing.dtstart).getTime();
+            const newStart = event.dtstart.getTime();
+            const oldEnd = new Date(existing.dtend).getTime();
+            const newEnd = event.dtend.getTime();
+
+            const dateTimeChanged = oldStart !== newStart || oldEnd !== newEnd;
+            const matchday = extractMatchday(event.description, event.summary);
+            const detailsChanged =
+              existing.summary !== event.summary ||
+              existing.description !== event.description ||
+              existing.location !== event.location ||
+              existing.matchday !== matchday ||
+              !existing.active;
+
+            if (dateTimeChanged || detailsChanged) {
+              potentialChanges++;
+            }
+          }
+        }
+
+        for (const [uid, existing] of existingMap.entries()) {
+          if (!processedUids.has(uid) && existing.active) {
+            potentialChanges++;
+          }
+        }
+
+        const activeExistingMatches = Array.from(existingMap.values()).filter((m) => m.active);
+
+        // Safety check 1: Do not deactivate matches if 0 events were parsed when active matches existed
+        if (events.length === 0 && activeExistingMatches.length > 0) {
+          teamDetail.status = 'warning';
+          teamDetail.error = `Sicherheitssperre: 0 Termine im ICS gefunden, obwohl ${activeExistingMatches.length} aktive Spiele existieren. Inaktivierung blockiert.`;
+          finalStatus = 'warning';
+          syncDetails.push(teamDetail);
+          continue;
+        }
+
+        // Safety check 2: If more than 2 matches would be changed or cancelled, abort all modifications
+        if (potentialChanges > 2) {
+          teamDetail.status = 'warning';
+          teamDetail.error = `Sicherheitssperre: Mehr als 2 Spiele (${potentialChanges}) wurden angeblich geändert oder abgesagt. Aktualisierung aus Sicherheitsgründen abgebrochen.`;
+          finalStatus = 'warning';
+          syncDetails.push(teamDetail);
+          continue;
+        }
+
+        processedUids.clear();
 
         for (const event of events) {
           processedUids.add(event.uid);
@@ -419,37 +472,28 @@ serve(async (req: Request) => {
           }
         }
 
-        const activeExistingMatches = Array.from(existingMap.values()).filter((m) => m.active);
+        for (const [uid, existing] of existingMap.entries()) {
+          if (!processedUids.has(uid) && existing.active) {
+            const { error: deacErr } = await supabase
+              .from('matches')
+              .update({
+                active: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existing.id);
 
-        // Safety check: Do not deactivate matches if 0 events were parsed when active matches existed
-        if (events.length === 0 && activeExistingMatches.length > 0) {
-          teamDetail.status = 'warning';
-          teamDetail.error = `Sicherheitssperre: 0 Termine im ICS gefunden, obwohl ${activeExistingMatches.length} aktive Spiele existieren. Inaktivierung blockiert.`;
-          finalStatus = 'warning';
-        } else {
-          for (const [uid, existing] of existingMap.entries()) {
-            if (!processedUids.has(uid) && existing.active) {
-              const { error: deacErr } = await supabase
-                .from('matches')
-                .update({
-                  active: false,
-                  updated_at: new Date().toISOString(),
-                })
-                .eq('id', existing.id);
+            if (deacErr) {
+              console.error(`Deactivate error match ${existing.id}:`, deacErr);
+            } else {
+              teamDetail.deactivated++;
+              totalDeactivated++;
 
-              if (deacErr) {
-                console.error(`Deactivate error match ${existing.id}:`, deacErr);
-              } else {
-                teamDetail.deactivated++;
-                totalDeactivated++;
-
-                await supabase
-                  .from('match_changes')
-                  .insert({
-                    match_id: existing.id,
-                    change_type: 'cancelled',
-                  });
-              }
+              await supabase
+                .from('match_changes')
+                .insert({
+                  match_id: existing.id,
+                  change_type: 'cancelled',
+                });
             }
           }
         }
