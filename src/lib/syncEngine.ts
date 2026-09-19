@@ -195,6 +195,61 @@ export async function syncTeamCalendar(
     }
 
     const processedUids = new Set<string>();
+    let potentialChanges = 0;
+
+    // Pre-analyze events to count potential changes/deactivations
+    for (const event of events) {
+      processedUids.add(event.uid);
+      const existing = existingMap.get(event.uid);
+      if (existing) {
+        const oldStart = new Date(existing.dtstart).getTime();
+        const newStart = event.dtstart.getTime();
+        const oldEnd = new Date(existing.dtend).getTime();
+        const newEnd = event.dtend.getTime();
+
+        const dateTimeChanged = oldStart !== newStart || oldEnd !== newEnd;
+
+        const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
+        const matchday = extractMatchday(event.description, event.summary);
+        const otherDetailsChanged =
+          existing.summary !== event.summary ||
+          existing.description !== event.description ||
+          existing.location !== event.location ||
+          existing.matchday !== matchday ||
+          existing.is_home !== homeAwayInfo.isHome ||
+          !existing.active;
+
+        if (dateTimeChanged || otherDetailsChanged) {
+          potentialChanges++;
+        }
+      }
+    }
+
+    // Count existing active matches that are not present in the downloaded calendar (to be deactivated/cancelled)
+    for (const [uid, existing] of existingMap.entries()) {
+      if (!processedUids.has(uid) && existing.active) {
+        potentialChanges++;
+      }
+    }
+
+    const activeExistingMatches = Array.from(existingMap.values()).filter((m) => m.active);
+
+    // Safety Check 1: 0 events returned when active matches exist
+    if (events.length === 0 && activeExistingMatches.length > 0) {
+      result.status = 'failed';
+      result.message = `Sicherheitssperre: Der Kalender lieferte 0 Termine, obwohl ${activeExistingMatches.length} aktive Spiele in der Datenbank existieren. Aus Sicherheitsgründen wurden keine Spiele inaktiviert.`;
+      return result;
+    }
+
+    // Safety Check 2: If more than 2 matches would be changed or cancelled/deactivated, abort all modifications
+    if (potentialChanges > 2) {
+      result.status = 'failed';
+      result.message = `Sicherheitssperre: Mehr als 2 Spiele (${potentialChanges}) wurden angeblich geändert oder abgesagt. Die Aktualisierung wurde aus Sicherheitsgründen abgebrochen, da von einem Abfragefehler ausgegangen wird.`;
+      return result;
+    }
+
+    // Reset processed set for actual update processing
+    processedUids.clear();
 
     for (const event of events) {
       processedUids.add(event.uid);
@@ -304,41 +359,32 @@ export async function syncTeamCalendar(
       }
     }
 
-    const activeExistingMatches = Array.from(existingMap.values()).filter((m) => m.active);
+    for (const [uid, existing] of existingMap.entries()) {
+      if (!processedUids.has(uid) && existing.active) {
+        const { error: deacErr } = await supabase
+          .from('matches')
+          .update({
+            active: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
 
-    // Safety Check: If the parsed ICS contains 0 events but active matches exist in the database,
-    // do NOT deactivate all matches! This prevents accidental mass cancellation due to empty/malformed ICS responses.
-    if (events.length === 0 && activeExistingMatches.length > 0) {
-      result.status = 'failed';
-      result.message = `Sicherheitssperre: Der Kalender lieferte 0 Termine, obwohl ${activeExistingMatches.length} aktive Spiele in der Datenbank existieren. Aus Sicherheitsgründen wurden keine Spiele inaktiviert.`;
-    } else {
-      for (const [uid, existing] of existingMap.entries()) {
-        if (!processedUids.has(uid) && existing.active) {
-          const { error: deacErr } = await supabase
-            .from('matches')
-            .update({
-              active: false,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', existing.id);
+        if (deacErr) {
+          console.error(`Error deactivating match ${existing.id}:`, deacErr);
+        } else {
+          result.deactivated++;
 
-          if (deacErr) {
-            console.error(`Error deactivating match ${existing.id}:`, deacErr);
-          } else {
-            result.deactivated++;
-
-            await supabase
-              .from('match_changes')
-              .insert({
-                match_id: existing.id,
-                change_type: 'cancelled',
-              });
-          }
+          await supabase
+            .from('match_changes')
+            .insert({
+              match_id: existing.id,
+              change_type: 'cancelled',
+            });
         }
       }
-
-      result.message = `Erfolgreich synchronisiert (${team.name}). ${result.added} neue Spiele, ${result.rescheduled} verschoben, ${result.updated} Details geändert, ${result.deactivated} inaktiv gesetzt.`;
     }
+
+    result.message = `Erfolgreich synchronisiert (${team.name}). ${result.added} neue Spiele, ${result.rescheduled} verschoben, ${result.updated} Details geändert, ${result.deactivated} inaktiv gesetzt.`;
   } catch (err: any) {
     result.status = 'failed';
     result.message = err.message || 'Unknown sync error';
