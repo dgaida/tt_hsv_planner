@@ -30,7 +30,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [userAllYesAvailabilities, setUserAllYesAvailabilities] = useState<any[]>([]);
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
-  const [lastSyncInfo, setLastSyncInfo] = useState<{ dateStr: string; type: 'automatisch' | 'manuell' } | null>(null);
+  const [lastSyncInfo, setLastSyncInfo] = useState<{ dateStr: string; type: 'automatisch' | 'manuell'; status: 'success' | 'warning' } | null>(null);
 
   const isElevatedRole = userRole === 'team_manager' || userRole === 'sportwart' || userRole === 'club_admin' || isClubAdmin;
 
@@ -313,6 +313,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
         setLastSyncInfo({
           dateStr,
           type: isManual ? 'manuell' : 'automatisch',
+          status: lastRun.status as 'success' | 'warning',
         });
       }
     } catch (err) {
@@ -570,7 +571,11 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
             </button>
             <span className="text-[10px] text-gray-500 italic">
               {lastSyncInfo ? (
-                <>ℹ️ Letzte erfolgreiche Aktualisierung am {lastSyncInfo.dateStr} ({lastSyncInfo.type})</>
+                lastSyncInfo.status === 'warning' ? (
+                  <>⚠️ Warnung bei letzter Aktualisierung am {lastSyncInfo.dateStr} ({lastSyncInfo.type})</>
+                ) : (
+                  <>ℹ️ Letzte erfolgreiche Aktualisierung am {lastSyncInfo.dateStr} ({lastSyncInfo.type})</>
+                )
               ) : (
                 <>ℹ️ Automatische tägliche Kalendersynchronisation aktiv (manueller Klick selten nötig)</>
               )}
