@@ -200,8 +200,23 @@ export async function syncTeamCalendar(
 
     // Pre-analyze events to count potential changes/deactivations
     for (const event of events) {
+      let existing = existingMap.get(event.uid);
+
+      // Fallback match detection: if external_uid doesn't match, search active matches by summary
+      if (!existing && existingMatches) {
+        const normSummary = (event.summary || '').trim().toLowerCase();
+        const fallbackMatch = existingMatches.find(
+          (m) => m.active && (m.summary || '').trim().toLowerCase() === normSummary && !processedUids.has(m.external_uid)
+        );
+        if (fallbackMatch) {
+          existingMap.delete(fallbackMatch.external_uid);
+          fallbackMatch.external_uid = event.uid;
+          existingMap.set(event.uid, fallbackMatch);
+          existing = fallbackMatch;
+        }
+      }
+
       processedUids.add(event.uid);
-      const existing = existingMap.get(event.uid);
       const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
       const matchday = extractMatchday(event.description, event.summary);
 
@@ -281,7 +296,18 @@ export async function syncTeamCalendar(
 
     for (const event of events) {
       processedUids.add(event.uid);
-      const existing = existingMap.get(event.uid);
+      let existing = existingMap.get(event.uid);
+      if (!existing && existingMatches) {
+        const normSummary = (event.summary || '').trim().toLowerCase();
+        const fallbackMatch = existingMatches.find(
+          (m) => m.active && (m.summary || '').trim().toLowerCase() === normSummary
+        );
+        if (fallbackMatch) {
+          existing = fallbackMatch;
+          existing.external_uid = event.uid;
+          existingMap.set(event.uid, existing);
+        }
+      }
 
       const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
       const matchday = extractMatchday(event.description, event.summary);

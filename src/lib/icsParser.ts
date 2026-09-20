@@ -165,17 +165,20 @@ export function determineHomeAway(summary: string, teamName: string, teamShortNa
     const awayCandidate = vsParts[1].trim();
 
     const isOurTeam = (candidate: string) => {
-      const lower = candidate.toLowerCase();
+      const lower = (candidate || '').toLowerCase();
       // Check if it contains "heiligenhaus" or "heiligenhauser" (case-insensitive)
       if (lower.includes('heiligenhaus') || lower.includes('heiligenhauser')) {
         return true;
       }
+      const tName = (teamName || '').toLowerCase();
+      const tShortName = (teamShortName || '').toLowerCase();
+
       // Or if it matches teamName / teamShortName
       if (
-        lower.includes(teamName.toLowerCase()) ||
-        lower.includes(teamShortName.toLowerCase()) ||
-        teamName.toLowerCase().includes(lower) ||
-        teamShortName.toLowerCase().includes(lower)
+        (tName && lower.includes(tName)) ||
+        (tShortName && lower.includes(tShortName)) ||
+        (tName && tName.includes(lower)) ||
+        (tShortName && tShortName.includes(lower))
       ) {
         return true;
       }

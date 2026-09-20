@@ -152,24 +152,33 @@ function parseIcs(icsContent: string): IcsEvent[] {
 }
 
 function determineHomeAway(summary: string, teamName: string, teamShortName: string) {
-  const normalizedSummary = summary.replace(/\s+vs\.?\s+/gi, ' vs ');
+  const normalizedSummary = (summary || '').replace(/\s+vs\.?\s+/gi, ' vs ');
   const vsParts = normalizedSummary.split(' vs ');
 
   if (vsParts.length === 2) {
     const homeCandidate = vsParts[0].trim();
     const awayCandidate = vsParts[1].trim();
 
+    const tName = (teamName || '').toLowerCase();
+    const tShortName = (teamShortName || '').toLowerCase();
+    const homeLower = homeCandidate.toLowerCase();
+    const awayLower = awayCandidate.toLowerCase();
+
     const isHomeMatched =
-      homeCandidate.toLowerCase().includes(teamName.toLowerCase()) ||
-      homeCandidate.toLowerCase().includes(teamShortName.toLowerCase()) ||
-      teamName.toLowerCase().includes(homeCandidate.toLowerCase()) ||
-      teamShortName.toLowerCase().includes(homeCandidate.toLowerCase());
+      homeLower.includes('heiligenhaus') ||
+      homeLower.includes('heiligenhauser') ||
+      (tName && homeLower.includes(tName)) ||
+      (tShortName && homeLower.includes(tShortName)) ||
+      (tName && tName.includes(homeLower)) ||
+      (tShortName && tShortName.includes(homeLower));
 
     const isAwayMatched =
-      awayCandidate.toLowerCase().includes(teamName.toLowerCase()) ||
-      awayCandidate.toLowerCase().includes(teamShortName.toLowerCase()) ||
-      teamName.toLowerCase().includes(awayCandidate.toLowerCase()) ||
-      teamShortName.toLowerCase().includes(awayCandidate.toLowerCase());
+      awayLower.includes('heiligenhaus') ||
+      awayLower.includes('heiligenhauser') ||
+      (tName && awayLower.includes(tName)) ||
+      (tShortName && awayLower.includes(tShortName)) ||
+      (tName && tName.includes(awayLower)) ||
+      (tShortName && tShortName.includes(awayLower));
 
     if (isHomeMatched && !isAwayMatched) {
       return { isHome: true, opponent: awayCandidate };
@@ -314,8 +323,23 @@ serve(async (req: Request) => {
         const potentialChangeDiffs: string[] = [];
 
         for (const event of events) {
+          let existing = existingMap.get(event.uid);
+
+          // Fallback match detection: if external_uid doesn't match, search active matches by summary
+          if (!existing && existingMatches) {
+            const normSummary = (event.summary || '').trim().toLowerCase();
+            const fallbackMatch = existingMatches.find(
+              (m) => m.active && (m.summary || '').trim().toLowerCase() === normSummary && !processedUids.has(m.external_uid)
+            );
+            if (fallbackMatch) {
+              existingMap.delete(fallbackMatch.external_uid);
+              fallbackMatch.external_uid = event.uid;
+              existingMap.set(event.uid, fallbackMatch);
+              existing = fallbackMatch;
+            }
+          }
+
           processedUids.add(event.uid);
-          const existing = existingMap.get(event.uid);
           const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
           const matchday = extractMatchday(event.description, event.summary);
 
@@ -397,8 +421,20 @@ serve(async (req: Request) => {
         processedUids.clear();
 
         for (const event of events) {
+          let existing = existingMap.get(event.uid);
+          if (!existing && existingMatches) {
+            const normSummary = (event.summary || '').trim().toLowerCase();
+            const fallbackMatch = existingMatches.find(
+              (m) => m.active && (m.summary || '').trim().toLowerCase() === normSummary
+            );
+            if (fallbackMatch) {
+              existing = fallbackMatch;
+              existing.external_uid = event.uid;
+              existingMap.set(event.uid, existing);
+            }
+          }
+
           processedUids.add(event.uid);
-          const existing = existingMap.get(event.uid);
 
           const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
           const matchday = extractMatchday(event.description, event.summary);
@@ -446,6 +482,7 @@ serve(async (req: Request) => {
               const { error: updateErr } = await supabase
                 .from('matches')
                 .update({
+                  external_uid: event.uid,
                   summary: event.summary,
                   description: event.description,
                   location: event.location,
@@ -475,10 +512,11 @@ serve(async (req: Request) => {
                     change_type: 'date_time_changed',
                   });
               }
-            } else if (detailsChanged) {
+            } else if (detailsChanged || existing.external_uid !== event.uid) {
               const { error: updateErr } = await supabase
                 .from('matches')
                 .update({
+                  external_uid: event.uid,
                   summary: event.summary,
                   description: event.description,
                   location: event.location,

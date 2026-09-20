@@ -321,4 +321,82 @@ END:VCALENDAR`;
     expect(resFetchFail.status).toBe('failed');
     expect(resFetchFail.message).toContain('Alle Verbindungsmethoden zum Kalender-Download sind fehlgeschlagen');
   });
+
+  it('correctly matches existing game by summary fallback when external_uid differs', async () => {
+    // Existing game in DB with external_uid 'uid-old-123'
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'teams') {
+        return {
+          select: () => ({
+            eq: () => ({
+              single: vi.fn().mockResolvedValue({
+                data: { id: 'team-3', name: 'Erwachsene III', webcal_url: 'webcal://example.com/cal.ics' },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'matches') {
+        return {
+          select: () => ({
+            eq: vi.fn().mockResolvedValue({
+              data: [
+                {
+                  id: 'm-fallback-1',
+                  team_id: 'team-3',
+                  external_uid: 'uid-old-123',
+                  summary: 'TV Klaswipper II vs Heiligenhauser SV III',
+                  dtstart: '2026-09-30T17:30:00+00:00',
+                  dtend: '2026-09-30T20:30:00+00:00',
+                  is_home: false,
+                  active: true,
+                  version: 1,
+                },
+              ],
+              error: null,
+            }),
+          }),
+          update: vi.fn().mockImplementation(() => ({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          })),
+        };
+      }
+      return {
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({ data: { id: 'run-1' }, error: null }),
+        }),
+        insert: vi.fn().mockImplementation(() => ({
+          select: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({ data: { id: 'run-1' }, error: null }),
+          }),
+        })),
+        update: vi.fn().mockImplementation(() => ({
+          eq: vi.fn().mockResolvedValue({ error: null }),
+        })),
+      };
+    });
+
+    // Calendar response with different UID 'uid-new-456' but identical summary and date/time
+    const mockIcsText = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:uid-new-456
+DTSTART;TZID=Europe/Berlin:20260930T193000
+DTEND;TZID=Europe/Berlin:20260930T223000
+SUMMARY:TV Klaswipper II vs Heiligenhauser SV III
+LOCATION:Klaswipper
+END:VEVENT
+END:VCALENDAR`;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      text: vi.fn().mockResolvedValue(mockIcsText),
+    }));
+
+    const res = await syncTeamCalendar(mockSupabase, 'team-3');
+    expect(res.status).toBe('success');
+    expect(res.added).toBe(0);
+    expect(res.deactivated).toBe(0);
+  });
 });
