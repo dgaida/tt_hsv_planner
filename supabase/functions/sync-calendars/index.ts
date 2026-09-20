@@ -152,24 +152,33 @@ function parseIcs(icsContent: string): IcsEvent[] {
 }
 
 function determineHomeAway(summary: string, teamName: string, teamShortName: string) {
-  const normalizedSummary = summary.replace(/\s+vs\.?\s+/gi, ' vs ');
+  const normalizedSummary = (summary || '').replace(/\s+vs\.?\s+/gi, ' vs ');
   const vsParts = normalizedSummary.split(' vs ');
 
   if (vsParts.length === 2) {
     const homeCandidate = vsParts[0].trim();
     const awayCandidate = vsParts[1].trim();
 
+    const tName = (teamName || '').toLowerCase();
+    const tShortName = (teamShortName || '').toLowerCase();
+    const homeLower = homeCandidate.toLowerCase();
+    const awayLower = awayCandidate.toLowerCase();
+
     const isHomeMatched =
-      homeCandidate.toLowerCase().includes(teamName.toLowerCase()) ||
-      homeCandidate.toLowerCase().includes(teamShortName.toLowerCase()) ||
-      teamName.toLowerCase().includes(homeCandidate.toLowerCase()) ||
-      teamShortName.toLowerCase().includes(homeCandidate.toLowerCase());
+      homeLower.includes('heiligenhaus') ||
+      homeLower.includes('heiligenhauser') ||
+      (tName && homeLower.includes(tName)) ||
+      (tShortName && homeLower.includes(tShortName)) ||
+      (tName && tName.includes(homeLower)) ||
+      (tShortName && tShortName.includes(homeLower));
 
     const isAwayMatched =
-      awayCandidate.toLowerCase().includes(teamName.toLowerCase()) ||
-      awayCandidate.toLowerCase().includes(teamShortName.toLowerCase()) ||
-      teamName.toLowerCase().includes(awayCandidate.toLowerCase()) ||
-      teamShortName.toLowerCase().includes(awayCandidate.toLowerCase());
+      awayLower.includes('heiligenhaus') ||
+      awayLower.includes('heiligenhauser') ||
+      (tName && awayLower.includes(tName)) ||
+      (tShortName && awayLower.includes(tShortName)) ||
+      (tName && tName.includes(awayLower)) ||
+      (tShortName && tShortName.includes(awayLower));
 
     if (isHomeMatched && !isAwayMatched) {
       return { isHome: true, opponent: awayCandidate };
@@ -311,27 +320,69 @@ serve(async (req: Request) => {
 
         const processedUids = new Set<string>();
         let potentialChanges = 0;
+        const potentialChangeDiffs: string[] = [];
 
         for (const event of events) {
+          let existing = existingMap.get(event.uid);
+
+          // Fallback match detection: if external_uid doesn't match, search active matches by summary
+          if (!existing && existingMatches) {
+            const normSummary = (event.summary || '').trim().toLowerCase();
+            const fallbackMatch = existingMatches.find(
+              (m) => m.active && (m.summary || '').trim().toLowerCase() === normSummary && !processedUids.has(m.external_uid)
+            );
+            if (fallbackMatch) {
+              existingMap.delete(fallbackMatch.external_uid);
+              fallbackMatch.external_uid = event.uid;
+              existingMap.set(event.uid, fallbackMatch);
+              existing = fallbackMatch;
+            }
+          }
+
           processedUids.add(event.uid);
-          const existing = existingMap.get(event.uid);
-          if (existing) {
+          const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
+          const matchday = extractMatchday(event.description, event.summary);
+
+          if (!existing) {
+            potentialChangeDiffs.push(
+              `[NEU] ${event.summary} (${event.dtstart.toISOString()})`
+            );
+          } else {
             const oldStart = new Date(existing.dtstart).getTime();
             const newStart = event.dtstart.getTime();
             const oldEnd = new Date(existing.dtend).getTime();
             const newEnd = event.dtend.getTime();
 
             const dateTimeChanged = oldStart !== newStart || oldEnd !== newEnd;
-            const matchday = extractMatchday(event.description, event.summary);
-            const detailsChanged =
-              existing.summary !== event.summary ||
-              existing.description !== event.description ||
-              existing.location !== event.location ||
-              existing.matchday !== matchday ||
-              !existing.active;
+            const diffReasons: string[] = [];
 
-            if (dateTimeChanged || detailsChanged) {
+            if (dateTimeChanged) {
+              diffReasons.push(`Termin/Uhrzeit: Alt=${existing.dtstart} -> Neu=${event.dtstart.toISOString()}`);
+            }
+            if (existing.summary !== event.summary) {
+              diffReasons.push(`Titel: Alt="${existing.summary}" -> Neu="${event.summary}"`);
+            }
+            if (existing.description !== event.description) {
+              diffReasons.push(`Beschreibung: Alt="${existing.description || ''}" -> Neu="${event.description || ''}"`);
+            }
+            if (existing.location !== event.location) {
+              diffReasons.push(`Ort: Alt="${existing.location || ''}" -> Neu="${event.location || ''}"`);
+            }
+            if (existing.matchday !== matchday) {
+              diffReasons.push(`Spieltag: Alt=${existing.matchday} -> Neu=${matchday}`);
+            }
+            if (existing.is_home !== homeAwayInfo.isHome) {
+              diffReasons.push(`Heimspiel: Alt=${existing.is_home} -> Neu=${homeAwayInfo.isHome}`);
+            }
+            if (!existing.active) {
+              diffReasons.push(`Status: Inaktiv -> Reaktivieren`);
+            }
+
+            if (diffReasons.length > 0) {
               potentialChanges++;
+              potentialChangeDiffs.push(
+                `[GEÄNDERT] ${existing.summary} (${existing.dtstart}): ${diffReasons.join(' | ')}`
+              );
             }
           }
         }
@@ -339,6 +390,9 @@ serve(async (req: Request) => {
         for (const [uid, existing] of existingMap.entries()) {
           if (!processedUids.has(uid) && existing.active) {
             potentialChanges++;
+            potentialChangeDiffs.push(
+              `[ENTFERNT/ABSAGE] ${existing.summary} (${existing.dtstart})`
+            );
           }
         }
 
@@ -356,7 +410,9 @@ serve(async (req: Request) => {
         // Safety check 2: If more than 2 matches would be changed or cancelled, abort all modifications
         if (potentialChanges > 2) {
           teamDetail.status = 'warning';
-          teamDetail.error = `Sicherheitssperre: Mehr als 2 Spiele (${potentialChanges}) wurden angeblich geändert oder abgesagt. Aktualisierung aus Sicherheitsgründen abgebrochen.`;
+          teamDetail.error = `Sicherheitssperre: Mehr als 2 Spiele (${potentialChanges}) wurden angeblich geändert oder abgesagt. Aktualisierung aus Sicherheitsgründen abgebrochen. Geplante Änderungen: ${potentialChangeDiffs.join(' ; ')}`;
+          (teamDetail as any).potentialChanges = potentialChangeDiffs;
+          console.warn(`[SYNC-DEBUG] ${team.name}: Sicherheitssperre getriggert (${potentialChanges} Änderungen):\n` + potentialChangeDiffs.join('\n'));
           finalStatus = 'warning';
           syncDetails.push(teamDetail);
           continue;
@@ -365,8 +421,20 @@ serve(async (req: Request) => {
         processedUids.clear();
 
         for (const event of events) {
+          let existing = existingMap.get(event.uid);
+          if (!existing && existingMatches) {
+            const normSummary = (event.summary || '').trim().toLowerCase();
+            const fallbackMatch = existingMatches.find(
+              (m) => m.active && (m.summary || '').trim().toLowerCase() === normSummary
+            );
+            if (fallbackMatch) {
+              existing = fallbackMatch;
+              existing.external_uid = event.uid;
+              existingMap.set(event.uid, existing);
+            }
+          }
+
           processedUids.add(event.uid);
-          const existing = existingMap.get(event.uid);
 
           const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
           const matchday = extractMatchday(event.description, event.summary);
@@ -414,6 +482,7 @@ serve(async (req: Request) => {
               const { error: updateErr } = await supabase
                 .from('matches')
                 .update({
+                  external_uid: event.uid,
                   summary: event.summary,
                   description: event.description,
                   location: event.location,
@@ -443,10 +512,11 @@ serve(async (req: Request) => {
                     change_type: 'date_time_changed',
                   });
               }
-            } else if (detailsChanged) {
+            } else if (detailsChanged || existing.external_uid !== event.uid) {
               const { error: updateErr } = await supabase
                 .from('matches')
                 .update({
+                  external_uid: event.uid,
                   summary: event.summary,
                   description: event.description,
                   location: event.location,
