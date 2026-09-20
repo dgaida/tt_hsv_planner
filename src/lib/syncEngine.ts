@@ -196,31 +196,55 @@ export async function syncTeamCalendar(
 
     const processedUids = new Set<string>();
     let potentialChanges = 0;
+    const potentialChangeDiffs: string[] = [];
 
     // Pre-analyze events to count potential changes/deactivations
     for (const event of events) {
       processedUids.add(event.uid);
       const existing = existingMap.get(event.uid);
-      if (existing) {
+      const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
+      const matchday = extractMatchday(event.description, event.summary);
+
+      if (!existing) {
+        potentialChangeDiffs.push(
+          `[NEU] ${event.summary} (${event.dtstart.toISOString()})`
+        );
+      } else {
         const oldStart = new Date(existing.dtstart).getTime();
         const newStart = event.dtstart.getTime();
         const oldEnd = new Date(existing.dtend).getTime();
         const newEnd = event.dtend.getTime();
 
         const dateTimeChanged = oldStart !== newStart || oldEnd !== newEnd;
+        const diffReasons: string[] = [];
 
-        const homeAwayInfo = determineHomeAway(event.summary, team.name, team.short_name);
-        const matchday = extractMatchday(event.description, event.summary);
-        const otherDetailsChanged =
-          existing.summary !== event.summary ||
-          existing.description !== event.description ||
-          existing.location !== event.location ||
-          existing.matchday !== matchday ||
-          existing.is_home !== homeAwayInfo.isHome ||
-          !existing.active;
+        if (dateTimeChanged) {
+          diffReasons.push(`Termin/Uhrzeit: Alt=${existing.dtstart} -> Neu=${event.dtstart.toISOString()}`);
+        }
+        if (existing.summary !== event.summary) {
+          diffReasons.push(`Titel: Alt="${existing.summary}" -> Neu="${event.summary}"`);
+        }
+        if (existing.description !== event.description) {
+          diffReasons.push(`Beschreibung: Alt="${existing.description || ''}" -> Neu="${event.description || ''}"`);
+        }
+        if (existing.location !== event.location) {
+          diffReasons.push(`Ort: Alt="${existing.location || ''}" -> Neu="${event.location || ''}"`);
+        }
+        if (existing.matchday !== matchday) {
+          diffReasons.push(`Spieltag: Alt=${existing.matchday} -> Neu=${matchday}`);
+        }
+        if (existing.is_home !== homeAwayInfo.isHome) {
+          diffReasons.push(`Heimspiel: Alt=${existing.is_home} -> Neu=${homeAwayInfo.isHome}`);
+        }
+        if (!existing.active) {
+          diffReasons.push(`Status: Inaktiv -> Reaktivieren`);
+        }
 
-        if (dateTimeChanged || otherDetailsChanged) {
+        if (diffReasons.length > 0) {
           potentialChanges++;
+          potentialChangeDiffs.push(
+            `[GEÄNDERT] ${existing.summary} (${existing.dtstart}): ${diffReasons.join(' | ')}`
+          );
         }
       }
     }
@@ -229,6 +253,9 @@ export async function syncTeamCalendar(
     for (const [uid, existing] of existingMap.entries()) {
       if (!processedUids.has(uid) && existing.active) {
         potentialChanges++;
+        potentialChangeDiffs.push(
+          `[ENTFERNT/ABSAGE] ${existing.summary} (${existing.dtstart})`
+        );
       }
     }
 
@@ -244,7 +271,8 @@ export async function syncTeamCalendar(
     // Safety Check 2: If more than 2 matches would be changed or cancelled/deactivated, abort all modifications
     if (potentialChanges > 2) {
       result.status = 'failed';
-      result.message = `Sicherheitssperre: Mehr als 2 Spiele (${potentialChanges}) wurden angeblich geändert oder abgesagt. Die Aktualisierung wurde aus Sicherheitsgründen abgebrochen, da von einem Abfragefehler ausgegangen wird.`;
+      result.message = `Sicherheitssperre: Mehr als 2 Spiele (${potentialChanges}) wurden angeblich geändert oder abgesagt. Die Aktualisierung wurde aus Sicherheitsgründen abgebrochen. Geplante Änderungen: ${potentialChangeDiffs.join(' ; ')}`;
+      console.warn(`[SYNC-DEBUG] ${team.name}: Sicherheitssperre getriggert (${potentialChanges} Änderungen):\n` + potentialChangeDiffs.join('\n'));
       return result;
     }
 

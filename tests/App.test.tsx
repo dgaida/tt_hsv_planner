@@ -38,6 +38,10 @@ describe('App Component', () => {
           const singleVal = Array.isArray(dataValue) ? dataValue[0] : dataValue;
           return createMockChain(singleVal);
         }),
+        maybeSingle: vi.fn().mockImplementation(() => {
+          const singleVal = Array.isArray(dataValue) ? dataValue[0] : dataValue;
+          return Promise.resolve({ data: singleVal || null, error: null });
+        }),
         then: vi.fn().mockImplementation((resolve) => {
           resolve({ data: dataValue, error: null });
           return Promise.resolve({ data: dataValue, error: null });

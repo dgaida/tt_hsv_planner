@@ -30,6 +30,7 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
   const [userAllYesAvailabilities, setUserAllYesAvailabilities] = useState<any[]>([]);
   const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
+  const [lastSyncInfo, setLastSyncInfo] = useState<{ dateStr: string; type: 'automatisch' | 'manuell' } | null>(null);
 
   const isElevatedRole = userRole === 'team_manager' || userRole === 'sportwart' || userRole === 'club_admin' || isClubAdmin;
 
@@ -286,6 +287,34 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
           setUserAllYesAvailabilities(activeYes);
         }
       }
+
+      // Fetch last successful sync run from sync_runs table
+      const { data: lastRun } = await supabase
+        .from('sync_runs')
+        .select('*')
+        .in('status', ['success', 'warning'])
+        .order('completed_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastRun && (lastRun.completed_at || lastRun.started_at)) {
+        const syncDate = new Date(lastRun.completed_at || lastRun.started_at);
+        const dateStr = syncDate.toLocaleDateString('de-DE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }) + ' um ' + syncDate.toLocaleTimeString('de-DE', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }) + ' Uhr';
+
+        const summary = lastRun.summary_text || '';
+        const isManual = summary.includes('Client') || summary.includes('Synchronisierung für') || summary.includes('Manuelle') || summary.includes('manueller');
+        setLastSyncInfo({
+          dateStr,
+          type: isManual ? 'manuell' : 'automatisch',
+        });
+      }
     } catch (err) {
       console.error('Error loading team tab data:', err);
     } finally {
@@ -540,7 +569,11 @@ export default function TeamTabView({ teamId, userId, userRole, isClubAdmin, pre
               )}
             </button>
             <span className="text-[10px] text-gray-500 italic">
-              ℹ️ Automatische tägliche Kalendersynchronisation aktiv (manueller Klick selten nötig)
+              {lastSyncInfo ? (
+                <>ℹ️ Letzte erfolgreiche Aktualisierung am {lastSyncInfo.dateStr} ({lastSyncInfo.type})</>
+              ) : (
+                <>ℹ️ Automatische tägliche Kalendersynchronisation aktiv (manueller Klick selten nötig)</>
+              )}
             </span>
           </div>
         )}
