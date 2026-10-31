@@ -41,10 +41,11 @@
 
 ## 📋 Ablaufschritte für die Turnierleitung vor Ort
 
-1. **Bis 13:30 Uhr (Anmeldung & Rechner 2):**  
-   - Während auf Rechner 1 die Jugend 19 läuft, wickelt Rechner 2 die Anwesenheit und Bezahlung der Klasse F ab.  
+1. **Bis 13:30 Uhr (Anmeldung & Laptop 2):**
+   - Morgens vor 11:45 Uhr läuft die Voranmeldung für Klasse F an Schlange 2 / Laptop 2 (neben Schlange 1 für Jugend und Schlange 3 für click-TT Nachmeldungen).
+   - Ab 11:45 Uhr (Auslosung Jugend auf Laptop 1) wickelt Laptop 2 alle Anmeldungen und Bezahlungen für Klasse F ab. Startgeld: 10 € (inkl. Doppel).
    - *Bezahlt* = *Anwesend* im Menü `Spieler`.  
-   - Nachmeldungen über Rechner 3 in click-TT anlegen, nach Bezahlung Online-Spielerabgleich machen.  
+   - Nachmeldungen über Laptop 3 in click-TT anlegen, nach Bezahlung an Laptop 2 Online-Spielerabgleich machen.
    - Details: Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md).  
 2. **13:30 bis 13:45 Uhr (Vorbereitung & Kontrolle):**  
    - Um 13:30 Uhr Meldeschluss durchsetzen.  
@@ -53,7 +54,7 @@
 3. **13:45 Uhr (Auslosung Einzel):**  
    - Gruppen auslosen, Freilose/Vereinstrennung prüfen, „Spiele erstellen“.  
 4. **14:00 Uhr (Start Einzel-Gruppenphase):**  
-   - Tische gemäß Hallenbelegung zuweisen (Tischabstimmung mit den noch laufenden Spielen der Jugend 19).  
+   - Spielbetrieb auf Laptop 1 leiten; Tische gemäß Hallenbelegung zuweisen (Tischabstimmung mit den noch laufenden Spielen der Jugend 19).
    - Spielzettel ausgeben oder Spiele per Hallenaufruf starten.  
 5. **Nach Abschluss der Gruppenphase (Start Doppel):**  
    - Doppelpaarungen manuell zusammenstellen (siehe [Spielsysteme & Doppel](spielsysteme_doppel.md)).  
@@ -69,7 +70,7 @@
 ## 🔗 Nützliche Links & Vertiefungen  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md)  
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
 - [Spielsysteme & Doppel-Einstellungen](spielsysteme_doppel.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  

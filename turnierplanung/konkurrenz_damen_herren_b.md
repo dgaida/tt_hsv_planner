@@ -42,9 +42,9 @@
 ## 📋 Ablaufschritte für die Turnierleitung vor Ort
 
 1. **Bis 16:00 Uhr (Anmeldung & Mehrfachstart-Prüfung):**  
-   - Auf Rechner 2 Anwesenheit erfassen (*Bezahlt* = *Anwesend*).  
-   - **Wichtige Prüfung:** Falls Spieler aus der Jugend 19 oder Klasse F mitspielen möchten: Ein Start ist **nur dann zulässig**, wenn das vorherige Turnier für diesen Spieler bereits vollständig beendet ist!  
-   - Nachmeldungen über Rechner 3 erfassen, bezahlen lassen, Online-Spielerabgleich ausführen.  
+   - Auf Laptop 2 Anwesenheit erfassen (*Bezahlt* = *Anwesend*). Startgeld: 10 € (inkl. Doppel).
+   - **Wichtige Mehrfachstart-Prüfung:** Falls Spieler aus der Jugend 19 oder Klasse F mitspielen möchten: Ein Start ist **nur dann zulässig**, wenn das vorherige Turnier für diesen Spieler bereits **vollständig beendet** ist (keine offenen Einzel- oder Doppelspiele)! Der Spieler muss sich nach Turnierende erneut an Laptop 2 anmelden und das Startgeld für Klasse B entrichten.
+   - Nachmeldungen über Laptop 3 in click-TT erfassen, an Laptop 2 bezahlen lassen, Online-Spielerabgleich ausführen.
    - Details: Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md).  
 2. **16:00 bis 16:15 Uhr (Meldeschluss & Auslosungsvorbereitung):**  
    - Nach 16:00 Uhr keine Meldungen mehr für Montag annehmen.  
@@ -53,7 +53,7 @@
 3. **16:15 Uhr (Auslosung Einzel):**  
    - Gruppenauslosung durchführen und plausibilisieren, danach „Spiele erstellen“.  
 4. **16:30 Uhr (Start Einzel-Gruppenphase):**  
-   - Auf Rechner 1 den Spielbetrieb für Klasse B starten.  
+   - Auf Laptop 1 den Spielbetrieb für Klasse B starten.
    - Parallel laufen noch Endrunden aus Jugend 19 und/oder F auf freien Tischen.  
 5. **Nach Gruppenphase (Start Doppel):**  
    - Doppelpaarungen manuell zusammenstellen (siehe [Spielsysteme & Doppel](spielsysteme_doppel.md)).  
@@ -70,7 +70,7 @@
 ## 🔗 Nützliche Links & Vertiefungen  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md)  
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
 - [Spielsysteme & Doppel-Einstellungen](spielsysteme_doppel.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  

@@ -15,8 +15,12 @@ Drucke oder hake diese Liste für jede der sieben Konkurrenzen Schritt für Schr
   - [ ] Einzel: Haken bei **„3. Platz ausspielen“** gesetzt!  
   - [ ] Doppel: Haken bei **„3. Platz ausspielen“ NICHT gesetzt**!  
 - [ ] **4. Anwesenheit & Nachmeldungen:**  
+  - [ ] Morgens 3 Schlangen aktiv (Laptop 1: erste Klasse des Tages; Laptop 2: spätere Klassen; Laptop 3: click-TT Nachmeldungen).
+  - [ ] Laptop 1 ab 11:45 Uhr für Auslosung und Spielbetrieb freigegeben (weitere Anmeldungen nur noch an Laptop 2).
   - [ ] Alle erschienenen und bezahlten Spieler auf **Anwesend** gesetzt (*Bezahlt* = *Anwesend*).  
-  - [ ] Nachmeldungen über Rechner 3 in click-TT angelegt, an Rechner 2 bezahlt und per Online-Spielerabgleich nach MKTT geholt.  
+  - [ ] Startgeld kassiert (für jede Konkurrenz separat; Doppel inklusive).
+  - [ ] Mehrfachstarter kontrolliert: Vorherige Konkurrenz muss vollständig abgeschlossen sein (keine offenen Einzel/Doppel); Neuanmeldung erst danach!
+  - [ ] Nachmeldungen über Laptop 3 in click-TT angelegt, an Anmelde-Laptop bezahlt und per Online-Spielerabgleich nach MKTT geholt.
   - [ ] Nicht erschienene Spieler vor der Auslosung gestrichen.  
 - [ ] **5. Startnummern & Setzungen:**  
   - [ ] **Keine** Startnummern vergeben.  
@@ -87,6 +91,6 @@ Die folgenden Verbandsquellen bieten ausführliche Anleitungen und technische Un
 ## 🔗 Verwandte Dokumente  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md)  
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
 - [Spielsysteme & Doppelkonkurrenzen](spielsysteme_doppel.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  

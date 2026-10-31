@@ -41,12 +41,17 @@ Die sieben Konkurrenzen müssen so in MKTT vorhanden sein, wie sie in der genehm
 
 ## 3. Anmeldung am Turniertag
 
-8. **Konkurrenz auswählen:** Im Register `Spieler` die Konkurrenz auswählen, für die gerade angemeldet wird.  
-9. **Anwesenheit erfassen:** Erschienene Spieler als anwesend markieren.  
-   *(Wichtig: Im Menü `Spielerinfo` heißt die Spalte **Bezahlt**, im Menü `Spieler` heißt sie **Anwesend** – beides meint das Gleiche!)*  
+8. **Schlangen & Laptop-Aufteilung morgens:**
+   - Morgens gibt es 3 Schlangen: Laptop 1 wickelt die erste Klasse des Tages ab (Mo: Jugend 19; Di: Klasse C; Mi: Klasse D), Laptop 2 die übrigen Klassen des Tages, und Laptop 3 erfasst Nachmeldungen in click-TT.
+   - Sobald die erste Klasse ausgelost wird (11:45 Uhr), wird Laptop 1 aus der Anmeldung genommen und übernimmt den Spielbetrieb. Laptop 2 übernimmt ab dann alle weiteren regulären Anmeldungen.
+9. **Konkurrenz auswählen & Anwesenheit erfassen:**
+   - Im Register `Spieler` die Konkurrenz auswählen und erschienene Spieler als anwesend markieren.
+   - *(Wichtig: Im Menü `Spielerinfo` heißt die Spalte **Bezahlt**, im Menü `Spieler` heißt sie **Anwesend** – beides meint das Gleiche!)*
+   - Startgeld für jede gestartete Turnierklasse separat kassieren (Jugend 5 €, Erwachsene 10 €; Doppel jeweils inklusive).
+   - **Mehrfachstart:** Spieler melden sich immer nur für eine Klasse an. Erst nach vollständigem Abschluss der vorherigen Klasse (keine offenen Einzel- oder Doppelspiele) muss sich der Spieler erneut für die zweite Klasse anmelden und bezahlen.
 10. **Nachmeldungen erfassen:** Nachmeldungen nur entsprechend der Ausschreibung zulassen (bis 30 Minuten vor Start).  
-    *(Nachmeldungen werden über den separaten **Rechner 3** direkt in **click-TT** erfasst, nicht lokal frei eingetippt. Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md)).*  
-11. **click-TT-Abgleich beachten:** Am Turnierrechner im Menü `Spielerabgleich` die Option `click-TT Teilnehmerliste erneut importieren (direkt online)` wählen. Danach den Haken bei *Anwesend* setzen. Namen und Vereinsangaben müssen übereinstimmen.  
+    *(Nachmeldungen werden über den separaten **Laptop 3** direkt in **click-TT** erfasst, nicht lokal frei eingetippt. Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md)).*
+11. **click-TT-Abgleich beachten:** Am Anmelde-Laptop im Menü `Spielerabgleich` die Option `click-TT Teilnehmerliste erneut importieren (direkt online)` wählen. Danach den Haken bei *Anwesend* setzen. Namen und Vereinsangaben müssen übereinstimmen.
 12. **Startnummern & Setzungen prüfen:**  
     - Es werden **keine Startnummern** vergeben!  
     - Setzungen nach den offiziellen Q-TTR-Werten (vom 11.08.2026) prüfen und `Spieler setzen` verwenden. Vor der Auslosung möglichst nach dem Vier-Augen-Prinzip zweitprüfen lassen.  
@@ -112,7 +117,7 @@ Die sieben Konkurrenzen müssen so in MKTT vorhanden sein, wie sie in der genehm
 
 ## 🔗 Verwandte Dokumente  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
-- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md)  
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
 - [Spielsysteme & Doppelkonkurrenzen](spielsysteme_doppel.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  
