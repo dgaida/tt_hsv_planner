@@ -106,6 +106,9 @@ Vor jeder Auslosung muss ein finaler Spielerabgleich durchgeführt werden:
   - Ein Spieler darf an einem Tag erst dann in einer weiteren Turnierklasse starten, wenn sein vorheriges Turnier **vollständig beendet** ist (d. h. der Spieler hat **weder offene Einzel- noch offene Doppelspiele** mehr in der vorherigen Klasse).
   - Erst nachdem das vorherige Turnier für den Spieler komplett abgeschlossen ist, muss der Spieler **erneut zur Anmeldung kommen** und sich für die zweite Turnierklasse anmelden (Meldeschluss vor Ort von 30 Minuten vor Start der zweiten Klasse muss eingehalten sein!).
   - **Startgeld:** Für jede gestartete Turnierklasse muss das reguläre Startgeld bezahlt werden (Jugend 5 €, Erwachsene 10 €). Das Doppel ist in der jeweiligen Turnierklasse inklusive; für eine weitere Konkurrenz wird jedoch das volle Startgeld der zweiten Klasse fällig.
+- **Zeitliche Priorisierung im Spielbetrieb:**
+  - Oberstes Ziel der Turnierleitung ist es, mit der **Vorrunde (Gruppenphase)** einer Turnierklasse fertig zu sein, bevor die nächste Klasse beginnt.
+  - Anschließend werden Doppel und K.-o.-Phase fortgeführt, während gleichzeitig die **Vorrunde der neu gestarteten Klasse mit Priorität** auf den Tischen angesetzt wird.
 - **Q-TTR-Grenzen strikt einhalten:**  
   Maßgebend ist ausnahmslos der Q-TTR-Wert vom **11.08.2026**. Spieler, deren Q-TTR außerhalb der Klassengrenze liegt, dürfen nicht in dieser Klasse starten (außer nach Genehmigung der Turnierleitung).  
 - **Jugend-Stichtag:**  

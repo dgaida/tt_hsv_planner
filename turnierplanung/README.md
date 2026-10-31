@@ -42,16 +42,19 @@ Dieses Dokument dient der **Turnierleitung während des Turniers** als Leitfaden
    - MKTT kann Doppelpaare **nicht automatisch** zuweisen. Doppelpaarungen müssen manuell zusammengestellt werden.  
 4. **Startzeitpunkt des Doppels:**  
    - Der Doppelwettbewerb startet erst, **wenn die Gruppenphase der jeweiligen Kategorie im Einzel abgeschlossen** ist.  
-5. **„Bezahlt“ = „Anwesend“:**  
+5. **Zeitliche Priorisierung & Vorrunden-Abschluss:**
+   - Das übergeordnete Ziel der Turnierleitung ist es, mit der **Vorrunde (Gruppenphase)** der aktuellen Konkurrenz fertig zu sein, **bevor die nächste Turnierklasse startet**.
+   - Sobald die nächste Konkurrenz beginnt, werden Doppel und K.-o.-Phase der vorherigen Klasse fortgesetzt, während die **Vorrunde der neu gestarteten Klasse stets mit oberster Priorität** auf freien Tischen eingesteuert wird.
+6. **„Bezahlt“ = „Anwesend“:**
    - Im MKTT-Menü *Spielerinfo* gibt es die Spalte **Bezahlt**.  
    - Im MKTT-Menü *Spieler* heißt dieselbe Spalte **Anwesend**.  
    - Bezahlt und anwesend bedeutet exakt das Gleiche.  
-6. **Mehrfachstart-Ablauf & Startgeld:**
+7. **Mehrfachstart-Ablauf & Startgeld:**
    - Ein Spieler kann sich vor Ort immer **nur für eine Turnierklasse auf einmal** anmelden.
    - Ein Parallelstart in überlappenden Konkurrenzen ist **nicht gestattet**.
    - Erst wenn das vorherige Turnier für den Spieler **vollständig beendet** ist (keine offenen Einzel- oder Doppelspiele), muss der Spieler **erneut zur Anmeldung kommen** und sich für die nächste Klasse anmelden (vor dem jeweiligen Vor-Ort-Meldeschluss).
    - Für jede Turnierklasse muss das Startgeld voll bezahlt werden (Doppel ist inklusive).
-7. **Nachmeldungen – Getrennte Schlangen & Dritter Rechner:**
+8. **Nachmeldungen – Getrennte Schlangen & Dritter Rechner:**
    - Für Nachmeldungen gibt es eine **eigene Schlange** und einen **dritten Laptop**.  
    - Nachmeldungen werden direkt über **click-TT** erfasst (nicht direkt als lokale Freieingabe in MKTT).  
    - Bezahlt wird **nicht** am Nachmelde-Laptop, sondern der Nachmelder stellt sich danach in die reguläre Anmeldeschlange.  
