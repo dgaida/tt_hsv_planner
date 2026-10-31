@@ -34,23 +34,23 @@ Dieses Dokument dient der **Turnierleitung während des Turniers** als Leitfaden
 
 ## ⚡ Wichtige Kernregeln für die Turnierleitung
 
-1. **Keine Startnummern vergeben:** In MKTT werden **keine** Startnummern vergeben (Startnummernvergabe entfällt).
-2. **3. Platz ausspielen:**
-   - Im **Einzel** wird der 3. Platz **immer ausgespielt** (in MKTT: Bei Menü *Spielklasse* die Konkurrenz auswählen, Doppelklick darauf und Haken bei *3. Platz ausspielen* setzen).
-   - Im **Doppel** wird der 3. Platz **NICHT** ausgespielt!
-3. **Doppelpaare – keine automatische Zuweisung:**
-   - MKTT kann Doppelpaare **nicht automatisch** zuweisen. Doppelpaarungen müssen manuell zusammengestellt werden.
-4. **Startzeitpunkt des Doppels:**
-   - Der Doppelwettbewerb startet erst, **wenn die Gruppenphase der jeweiligen Kategorie im Einzel abgeschlossen** ist.
-5. **„Bezahlt“ = „Anwesend“:**
-   - Im MKTT-Menü *Spielerinfo* gibt es die Spalte **Bezahlt**.
-   - Im MKTT-Menü *Spieler* heißt dieselbe Spalte **Anwesend**.
-   - Bezahlt und anwesend bedeutet exakt das Gleiche.
-6. **Nachmeldungen – Getrennte Schlangen & Dritter Rechner:**
-   - Für Nachmeldungen gibt es eine **eigene Schlange** und einen **dritten Laptop**.
-   - Nachmeldungen werden direkt über **click-TT** erfasst (nicht direkt als lokale Freieingabe in MKTT).
-   - Bezahlt wird **nicht** am Nachmelde-Laptop, sondern der Nachmelder stellt sich danach in die reguläre Anmeldeschlange.
-   - Am Turnierrechner wird vor der Auslosung ein **Spielerabgleich mit click-TT** durchgeführt und der Haken bei *Anwesend* gesetzt.
+1. **Keine Startnummern vergeben:** In MKTT werden **keine** Startnummern vergeben (Startnummernvergabe entfällt).  
+2. **3. Platz ausspielen:**  
+   - Im **Einzel** wird der 3. Platz **immer ausgespielt** (in MKTT: Bei Menü *Spielklasse* die Konkurrenz auswählen, Doppelklick darauf und Haken bei *3. Platz ausspielen* setzen).  
+   - Im **Doppel** wird der 3. Platz **NICHT** ausgespielt!  
+3. **Doppelpaare – keine automatische Zuweisung:**  
+   - MKTT kann Doppelpaare **nicht automatisch** zuweisen. Doppelpaarungen müssen manuell zusammengestellt werden.  
+4. **Startzeitpunkt des Doppels:**  
+   - Der Doppelwettbewerb startet erst, **wenn die Gruppenphase der jeweiligen Kategorie im Einzel abgeschlossen** ist.  
+5. **„Bezahlt“ = „Anwesend“:**  
+   - Im MKTT-Menü *Spielerinfo* gibt es die Spalte **Bezahlt**.  
+   - Im MKTT-Menü *Spieler* heißt dieselbe Spalte **Anwesend**.  
+   - Bezahlt und anwesend bedeutet exakt das Gleiche.  
+6. **Nachmeldungen – Getrennte Schlangen & Dritter Rechner:**  
+   - Für Nachmeldungen gibt es eine **eigene Schlange** und einen **dritten Laptop**.  
+   - Nachmeldungen werden direkt über **click-TT** erfasst (nicht direkt als lokale Freieingabe in MKTT).  
+   - Bezahlt wird **nicht** am Nachmelde-Laptop, sondern der Nachmelder stellt sich danach in die reguläre Anmeldeschlange.  
+   - Am Turnierrechner wird vor der Auslosung ein **Spielerabgleich mit click-TT** durchgeführt und der Haken bei *Anwesend* gesetzt.  
 
 ---
 
@@ -58,11 +58,11 @@ Dieses Dokument dient der **Turnierleitung während des Turniers** als Leitfaden
 
 Zur Entzerrung des Turnierbetriebs arbeiten an der Turnierleitung zwei Hauptrechner sowie ein separater Nachmelde-Laptop:
 
-- **Rechner 1 (Spielbetrieb & Ergebnisse):**
-  Steuerung des laufenden Spielbetriebs, Aufruf von Spielen, Tischanweisung, Ergebniseingabe, Generierung der nächsten Runden und KO-Felder.
-- **Rechner 2 (Anmeldung & Vorbereitung):**
-  Anwesenheitserfassung vorangemeldeter Spieler, Abgleich, Vorbereitung der nächsten Konkurrenzen.
-- **Rechner 3 (Nachmeldungen click-TT):**
+- **Rechner 1 (Spielbetrieb & Ergebnisse):**  
+  Steuerung des laufenden Spielbetriebs, Aufruf von Spielen, Tischanweisung, Ergebniseingabe, Generierung der nächsten Runden und KO-Felder.  
+- **Rechner 2 (Anmeldung & Vorbereitung):**  
+  Anwesenheitserfassung vorangemeldeter Spieler, Abgleich, Vorbereitung der nächsten Konkurrenzen.  
+- **Rechner 3 (Nachmeldungen click-TT):**  
   Separater Laptop für Nachmeldungen direkt im click-TT Vereinsportal.
 
 ### Phasenweiser Ablaufplan an den Turniertagen
@@ -93,18 +93,18 @@ Zur Entzerrung des Turnierbetriebs arbeiten an der Turnierleitung zwei Hauptrech
 
 ## 📂 Detaillierte Dokumente & Anleitungen
 
-### 1. Einzelne Konkurrenzen (Einzel & Doppel)
-- [Jugend 19 (Mo., 28.12.2026)](konkurrenz_jugend19.md)
-- [Damen/Herren F (Mo., 28.12.2026)](konkurrenz_damen_herren_f.md)
-- [Damen/Herren B (Mo., 28.12.2026)](konkurrenz_damen_herren_b.md)
-- [Damen/Herren C (Di., 29.12.2026)](konkurrenz_damen_herren_c.md)
-- [Damen/Herren E (Di., 29.12.2026)](konkurrenz_damen_herren_e.md)
-- [Damen/Herren D (Mi., 30.12.2026)](konkurrenz_damen_herren_d.md)
-- [Damen/Herren A (Mi., 30.12.2026)](konkurrenz_damen_herren_a.md)
+### 1. Einzelne Konkurrenzen (Einzel & Doppel)  
+- [Jugend 19 (Mo., 28.12.2026)](konkurrenz_jugend19.md)  
+- [Damen/Herren F (Mo., 28.12.2026)](konkurrenz_damen_herren_f.md)  
+- [Damen/Herren B (Mo., 28.12.2026)](konkurrenz_damen_herren_b.md)  
+- [Damen/Herren C (Di., 29.12.2026)](konkurrenz_damen_herren_c.md)  
+- [Damen/Herren E (Di., 29.12.2026)](konkurrenz_damen_herren_e.md)  
+- [Damen/Herren D (Mi., 30.12.2026)](konkurrenz_damen_herren_d.md)  
+- [Damen/Herren A (Mi., 30.12.2026)](konkurrenz_damen_herren_a.md)  
 
-### 2. Praxishilfen & Schritt-für-Schritt-Guides
-- [MKTT-Schritt-für-Schritt-Arbeitsanleitung](mktt_anleitung.md) – Umfassender Leitfaden von der Turniervorbereitung bis zur Siegerehrung
-- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md) – Rechner 3, click-TT, Abgleich und Kassenablauf
-- [Spielsysteme & Doppelkonkurrenzen](spielsysteme_doppel.md) – 3. Platz Einzel/Doppel, manuelle Doppel-Zuweisung & Startzeitpunkte
-- [click-TT Ergebnisexport & Spielerabgleich](clicktt_export.md) – XML-Export und Rückmeldung an click-TT
-- [Checkliste & Notfallkontakte / Quellen](checkliste.md) – Praktische Abhak-Checkliste und offizielle Verbands-Hilfelinks
+### 2. Praxishilfen & Schritt-für-Schritt-Guides  
+- [MKTT-Schritt-für-Schritt-Arbeitsanleitung](mktt_anleitung.md) – Umfassender Leitfaden von der Turniervorbereitung bis zur Siegerehrung  
+- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md) – Rechner 3, click-TT, Abgleich und Kassenablauf  
+- [Spielsysteme & Doppelkonkurrenzen](spielsysteme_doppel.md) – 3. Platz Einzel/Doppel, manuelle Doppel-Zuweisung & Startzeitpunkte  
+- [click-TT Ergebnisexport & Spielerabgleich](clicktt_export.md) – XML-Export und Rückmeldung an click-TT  
+- [Checkliste & Notfallkontakte / Quellen](checkliste.md) – Praktische Abhak-Checkliste und offizielle Verbands-Hilfelinks  

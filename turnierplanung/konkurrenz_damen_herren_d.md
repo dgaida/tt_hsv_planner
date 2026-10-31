@@ -22,54 +22,54 @@
 
 ## 🏓 Spielsysteme (Einzel & Doppel)
 
-### Einzel
-- **Gruppenphase:** 4er-Gruppen (bei abweichenden Teilnehmerzahlen 3er-Gruppen).
-- **Hauptrunde:** Einfaches K.-o.-System für die beiden Erstplatzierten jeder Gruppe.
-- **3. Platz ausspielen:** **JA**, der 3. Platz wird im Einzel ausgespielt!
-  *(In MKTT: Menü `Spielklasse` > Damen/Herren D doppelklicken > Haken bei „3. Platz ausspielen“ setzen).*
-- **Sätze:** 3 Gewinnsätze (Best of 5).
-- **Startnummern:** Es werden **keine Startnummern** vergeben.
+### Einzel  
+- **Gruppenphase:** 4er-Gruppen (bei abweichenden Teilnehmerzahlen 3er-Gruppen).  
+- **Hauptrunde:** Einfaches K.-o.-System für die beiden Erstplatzierten jeder Gruppe.  
+- **3. Platz ausspielen:** **JA**, der 3. Platz wird im Einzel ausgespielt!  
+  *(In MKTT: Menü `Spielklasse` > Damen/Herren D doppelklicken > Haken bei „3. Platz ausspielen“ setzen).*  
+- **Sätze:** 3 Gewinnsätze (Best of 5).  
+- **Startnummern:** Es werden **keine Startnummern** vergeben.  
 
-### Doppel
-- **System:** Einfaches K.-o.-System.
-- **3. Platz ausspielen:** **NEIN**, im Doppel gibt es kein Spiel um Platz 3.
-- **Paarungszuweisung:** MKTT kann Doppelpaare **nicht automatisch** zuweisen. Die Paarungen müssen manuell eingepflegt werden!
-- **Startzeitpunkt:** Das Doppel startet erst, **wenn die Gruppenphase der Klasse D im Einzel abgeschlossen ist**.
-- **Sätze:** 3 Gewinnsätze (Best of 5).
+### Doppel  
+- **System:** Einfaches K.-o.-System.  
+- **3. Platz ausspielen:** **NEIN**, im Doppel gibt es kein Spiel um Platz 3.  
+- **Paarungszuweisung:** MKTT kann Doppelpaare **nicht automatisch** zuweisen. Die Paarungen müssen manuell eingepflegt werden!  
+- **Startzeitpunkt:** Das Doppel startet erst, **wenn die Gruppenphase der Klasse D im Einzel abgeschlossen ist**.  
+- **Sätze:** 3 Gewinnsätze (Best of 5).  
 
 ---
 
 ## 📋 Ablaufschritte für die Turnierleitung vor Ort
 
-1. **Vor 11:30 Uhr (Tagesstart & Anmeldung Klasse D):**
-   - Vortagesdatenbank sichern. Rechner 1 und 2 hochfahren.
-   - Rechner 2: Anwesenheit für Klasse D erfassen (*Bezahlt* = *Anwesend*).
-   - Nachmeldungen über Rechner 3 in click-TT anlegen, bezahlen lassen und per Spielerabgleich synchronisieren.
-   - Details: Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md).
-2. **11:30 bis 11:45 Uhr (Vorbereitung & Kontrolle):**
-   - Meldeschluss um 11:30 Uhr strikt einhalten.
-   - Q-TTR-Bereich kontrollieren: maximal 1450 Punkte.
-   - Nicht erschienene Spieler austragen. MKTT-Einstellungen prüfen.
-3. **11:45 Uhr (Auslosung Einzel):**
-   - Gruppen auslosen, Plausibilität und Vereinstrennung prüfen, „Spiele erstellen“.
-4. **12:00 Uhr (Start Einzel-Gruppenphase):**
-   - Gruppenphase Klasse D starten.
-   - Auf Rechner 2 parallel bereits Voranmeldungen für Klasse A entgegennehmen (Meldeschluss 14:30 Uhr).
-5. **Nach Abschluss der Gruppenphase (Start Doppel):**
-   - Doppelpaarungen manuell zusammenstellen (siehe [Spielsysteme & Doppel](spielsysteme_doppel.md)).
-   - K.-o.-Feld für Doppel erzeugen und starten.
-   - KO-Endrunde Einzel starten.
-6. **Endrunden, 3. Platz & Siegerehrung:**
-   - Spiel um Platz 3 im Einzel durchführen.
-   - Geldpreise (50 € / 30 € / 20 €) und Urkunden überreichen.
-   - Siegerehrung durchführen.
+1. **Vor 11:30 Uhr (Tagesstart & Anmeldung Klasse D):**  
+   - Vortagesdatenbank sichern. Rechner 1 und 2 hochfahren.  
+   - Rechner 2: Anwesenheit für Klasse D erfassen (*Bezahlt* = *Anwesend*).  
+   - Nachmeldungen über Rechner 3 in click-TT anlegen, bezahlen lassen und per Spielerabgleich synchronisieren.  
+   - Details: Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md).  
+2. **11:30 bis 11:45 Uhr (Vorbereitung & Kontrolle):**  
+   - Meldeschluss um 11:30 Uhr strikt einhalten.  
+   - Q-TTR-Bereich kontrollieren: maximal 1450 Punkte.  
+   - Nicht erschienene Spieler austragen. MKTT-Einstellungen prüfen.  
+3. **11:45 Uhr (Auslosung Einzel):**  
+   - Gruppen auslosen, Plausibilität und Vereinstrennung prüfen, „Spiele erstellen“.  
+4. **12:00 Uhr (Start Einzel-Gruppenphase):**  
+   - Gruppenphase Klasse D starten.  
+   - Auf Rechner 2 parallel bereits Voranmeldungen für Klasse A entgegennehmen (Meldeschluss 14:30 Uhr).  
+5. **Nach Abschluss der Gruppenphase (Start Doppel):**  
+   - Doppelpaarungen manuell zusammenstellen (siehe [Spielsysteme & Doppel](spielsysteme_doppel.md)).  
+   - K.-o.-Feld für Doppel erzeugen und starten.  
+   - KO-Endrunde Einzel starten.  
+6. **Endrunden, 3. Platz & Siegerehrung:**  
+   - Spiel um Platz 3 im Einzel durchführen.  
+   - Geldpreise (50 € / 30 € / 20 €) und Urkunden überreichen.  
+   - Siegerehrung durchführen.  
 
 ---
 
-## 🔗 Nützliche Links & Vertiefungen
-- [Hauptübersicht & Zeitplan (README.md)](README.md)
-- [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)
-- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md)
-- [Spielsysteme & Doppel-Einstellungen](spielsysteme_doppel.md)
-- [click-TT Export-Anleitung](clicktt_export.md)
-- [Checkliste & Notfallkontakte](checkliste.md)
+## 🔗 Nützliche Links & Vertiefungen  
+- [Hauptübersicht & Zeitplan (README.md)](README.md)  
+- [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
+- [Anmeldung, Nachmeldung & 2-Schlangen-System](anmeldung_nachmeldung.md)  
+- [Spielsysteme & Doppel-Einstellungen](spielsysteme_doppel.md)  
+- [click-TT Export-Anleitung](clicktt_export.md)  
+- [Checkliste & Notfallkontakte](checkliste.md)  
