@@ -42,23 +42,23 @@
 
 ## 📋 Ablaufschritte für die Turnierleitung vor Ort
 
-1. **Vor 11:30 Uhr (Anmeldung & Anwesenheit an Schlange 1 / Laptop 1):**
-   - Morgens gibt es 3 Schlangen: Schlange 1 an Laptop 1 übernimmt speziell die Anmeldung für **Jugend 19**!
-   - Vorangemeldete Spieler bei Erscheinen und Bezahlung (5 € Startgeld, inkl. Doppel) im Menü `Spieler` als `Anwesend` markieren (*Bezahlt* = *Anwesend*).
-   - Nachmeldungen über Schlange 3 (Laptop 3) in click-TT anlegen lassen, danach Bezahlung an Laptop 1 und Online-Spielerabgleich.
+1. **Vor 11:30 Uhr (Anmeldung & Anwesenheit an Schlange 1 / Laptop 1):**  
+   - Morgens gibt es 3 Schlangen: Schlange 1 an Laptop 1 übernimmt speziell die Anmeldung für **Jugend 19**!  
+   - Vorangemeldete Spieler bei Erscheinen und Bezahlung (5 € Startgeld, inkl. Doppel) im Menü `Spieler` als `Anwesend` markieren (*Bezahlt* = *Anwesend*).  
+   - Nachmeldungen über Schlange 3 (Laptop 3) in click-TT anlegen lassen, danach Bezahlung an Laptop 1 und Online-Spielerabgleich.  
    - Details: Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md).  
-2. **11:30 bis 11:45 Uhr (Meldeschluss & Auslosungsvorbereitung):**
-   - Meldeschluss um 11:30 Uhr durchsetzen (nach 11:30 Uhr keine Meldungen mehr für Jugend 19 annehmen).
-   - Nicht erschienene Spieler abgleichen und streichen.
+2. **11:30 bis 11:45 Uhr (Meldeschluss & Auslosungsvorbereitung):**  
+   - Meldeschluss um 11:30 Uhr durchsetzen (nach 11:30 Uhr keine Meldungen mehr für Jugend 19 annehmen).  
+   - Nicht erschienene Spieler abgleichen und streichen.  
    - Teilnehmerliste und Altersstichtag (ab 01.01.2008) prüfen.  
    - Einstellungen in MKTT prüfen: 3. Platz Einzel aktiv, 3. Platz Doppel inaktiv.  
-3. **11:45 Uhr (Auslosung Einzel & Phasenwechsel Laptop 1):**
-   - **Laptop 1 wird aus der Anmeldung genommen.**
-   - Auslosung der Gruppen auf Laptop 1 durchführen (Gruppeneinteilung prüfen, Vereinszugehörigkeiten beachten).
+3. **11:45 Uhr (Auslosung Einzel & Phasenwechsel Laptop 1):**  
+   - **Laptop 1 wird aus der Anmeldung genommen.**  
+   - Auslosung der Gruppen auf Laptop 1 durchführen (Gruppeneinteilung prüfen, Vereinszugehörigkeiten beachten).  
    - „Spiele erstellen“ klicken.  
 4. **12:00 Uhr (Start Einzel-Gruppenphase):**  
    - Erste Runde aufrufen und Tische zuweisen (in der Regel Tische 1–18 nach Belegungsplan).  
-   - Spielbetrieb und Ergebniseingabe fortlaufend auf Laptop 1 durchführen.
+   - Spielbetrieb und Ergebniseingabe fortlaufend auf Laptop 1 durchführen.  
 5. **Nach Beendigung der Gruppenphase (Start Doppel):**  
    - Gemeldete Doppelpaare manuell zusammenstellen (siehe [Spielsysteme & Doppel](spielsysteme_doppel.md)).  
    - K.-o.-Feld für Doppel auslosen und starten.  
@@ -74,7 +74,7 @@
 ## 🔗 Nützliche Links & Vertiefungen  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)  
 - [Spielsysteme & Doppel-Einstellungen](spielsysteme_doppel.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  

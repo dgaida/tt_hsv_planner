@@ -42,19 +42,19 @@ Dieses Dokument dient der **Turnierleitung während des Turniers** als Leitfaden
    - MKTT kann Doppelpaare **nicht automatisch** zuweisen. Doppelpaarungen müssen manuell zusammengestellt werden.  
 4. **Startzeitpunkt des Doppels:**  
    - Der Doppelwettbewerb startet erst, **wenn die Gruppenphase der jeweiligen Kategorie im Einzel abgeschlossen** ist.  
-5. **Zeitliche Priorisierung & Vorrunden-Abschluss:**
-   - Das übergeordnete Ziel der Turnierleitung ist es, mit der **Vorrunde (Gruppenphase)** der aktuellen Konkurrenz fertig zu sein, **bevor die nächste Turnierklasse startet**.
-   - Sobald die nächste Konkurrenz beginnt, werden Doppel und K.-o.-Phase der vorherigen Klasse fortgesetzt, während die **Vorrunde der neu gestarteten Klasse stets mit oberster Priorität** auf freien Tischen eingesteuert wird.
-6. **„Bezahlt“ = „Anwesend“:**
+5. **Zeitliche Priorisierung & Vorrunden-Abschluss:**  
+   - Das übergeordnete Ziel der Turnierleitung ist es, mit der **Vorrunde (Gruppenphase)** der aktuellen Konkurrenz fertig zu sein, **bevor die nächste Turnierklasse startet**.  
+   - Sobald die nächste Konkurrenz beginnt, werden Doppel und K.-o.-Phase der vorherigen Klasse fortgesetzt, während die **Vorrunde der neu gestarteten Klasse stets mit oberster Priorität** auf freien Tischen eingesteuert wird.  
+6. **„Bezahlt“ = „Anwesend“:**  
    - Im MKTT-Menü *Spielerinfo* gibt es die Spalte **Bezahlt**.  
    - Im MKTT-Menü *Spieler* heißt dieselbe Spalte **Anwesend**.  
    - Bezahlt und anwesend bedeutet exakt das Gleiche.  
-7. **Mehrfachstart-Ablauf & Startgeld:**
-   - Ein Spieler kann sich vor Ort immer **nur für eine Turnierklasse auf einmal** anmelden.
-   - Ein Parallelstart in überlappenden Konkurrenzen ist **nicht gestattet**.
-   - Erst wenn das vorherige Turnier für den Spieler **vollständig beendet** ist (keine offenen Einzel- oder Doppelspiele), muss der Spieler **erneut zur Anmeldung kommen** und sich für die nächste Klasse anmelden (vor dem jeweiligen Vor-Ort-Meldeschluss).
-   - Für jede Turnierklasse muss das Startgeld voll bezahlt werden (Doppel ist inklusive).
-8. **Nachmeldungen – Getrennte Schlangen & Dritter Rechner:**
+7. **Mehrfachstart-Ablauf & Startgeld:**  
+   - Ein Spieler kann sich vor Ort immer **nur für eine Turnierklasse auf einmal** anmelden.  
+   - Ein Parallelstart in überlappenden Konkurrenzen ist **nicht gestattet**.  
+   - Erst wenn das vorherige Turnier für den Spieler **vollständig beendet** ist (keine offenen Einzel- oder Doppelspiele), muss der Spieler **erneut zur Anmeldung kommen** und sich für die nächste Klasse anmelden (vor dem jeweiligen Vor-Ort-Meldeschluss).  
+   - Für jede Turnierklasse muss das Startgeld voll bezahlt werden (Doppel ist inklusive).  
+8. **Nachmeldungen – Getrennte Schlangen & Dritter Rechner:**  
    - Für Nachmeldungen gibt es eine **eigene Schlange** und einen **dritten Laptop**.  
    - Nachmeldungen werden direkt über **click-TT** erfasst (nicht direkt als lokale Freieingabe in MKTT).  
    - Bezahlt wird **nicht** am Nachmelde-Laptop, sondern der Nachmelder stellt sich danach in die reguläre Anmeldeschlange.  
@@ -66,14 +66,14 @@ Dieses Dokument dient der **Turnierleitung während des Turniers** als Leitfaden
 
 Zur Entzerrung des Turnierbetriebs arbeiten an der Turnierleitung drei Rechner. Morgens gibt es drei Schlangen, um den großen Einlass-Andrang schnell abzuarbeiten:
 
-- **Laptop 1 (Morgens Anmeldung 1. Klasse -> danach Spielbetrieb & Ergebnisse):**
-  - **Morgens bis zur Auslosung (ca. 11:45 Uhr):** Laptop 1 wird für die Anmeldung genutzt und übernimmt die **Turnierklasse, die als erstes am Tag startet** (Mo: Jugend 19; Di: Damen/Herren C; Mi: Damen/Herren D).
-  - **Ab Auslosung (11:45 Uhr):** Sobald die erste Konkurrenz ausgelost wird, wird **Laptop 1 aus der Anmeldung herausgenommen**. Ab dann steuert Laptop 1 exklusiv den laufenden Spielbetrieb, Aufrufe, Tischanweisungen, Ergebniseingabe sowie KO-Runden.
-- **Laptop 2 (Anmeldung anderer Klassen & Vorbereitung):**
-  - **Morgens:** Übernimmt die reguläre Anmeldung der anderen Konkurrenzen des Tages (am Mo: Klassen F und B; Di: Klasse E; Mi: Klasse A).
-  - **Nach 11:45 Uhr:** Übernimmt **alle** weiteren regulären Anmeldungen, Nachmelde-Kassierungen, click-TT-Abgleiche und Vorbereitungen der folgenden Klassen.
-- **Laptop 3 (Nachmeldungen click-TT):**
-  - Separater Laptop (dritte Schlange) ausschließlich zur schnellen Datenerfassung von Nachmeldern im click-TT-Vereinsportal (kein Kassieren an Laptop 3).
+- **Laptop 1 (Morgens Anmeldung 1. Klasse -> danach Spielbetrieb & Ergebnisse):**  
+  - **Morgens bis zur Auslosung (ca. 11:45 Uhr):** Laptop 1 wird für die Anmeldung genutzt und übernimmt die **Turnierklasse, die als erstes am Tag startet** (Mo: Jugend 19; Di: Damen/Herren C; Mi: Damen/Herren D).  
+  - **Ab Auslosung (11:45 Uhr):** Sobald die erste Konkurrenz ausgelost wird, wird **Laptop 1 aus der Anmeldung herausgenommen**. Ab dann steuert Laptop 1 exklusiv den laufenden Spielbetrieb, Aufrufe, Tischanweisungen, Ergebniseingabe sowie KO-Runden.  
+- **Laptop 2 (Anmeldung anderer Klassen & Vorbereitung):**  
+  - **Morgens:** Übernimmt die reguläre Anmeldung der anderen Konkurrenzen des Tages (am Mo: Klassen F und B; Di: Klasse E; Mi: Klasse A).  
+  - **Nach 11:45 Uhr:** Übernimmt **alle** weiteren regulären Anmeldungen, Nachmelde-Kassierungen, click-TT-Abgleiche und Vorbereitungen der folgenden Klassen.  
+- **Laptop 3 (Nachmeldungen click-TT):**  
+  - Separater Laptop (dritte Schlange) ausschließlich zur schnellen Datenerfassung von Nachmeldern im click-TT-Vereinsportal (kein Kassieren an Laptop 3).  
 
 ### Phasenweiser Ablaufplan an den Turniertagen
 
@@ -117,7 +117,7 @@ Zur Entzerrung des Turnierbetriebs arbeiten an der Turnierleitung drei Rechner. 
 
 ### 2. Praxishilfen & Schritt-für-Schritt-Guides  
 - [MKTT-Schritt-für-Schritt-Arbeitsanleitung](mktt_anleitung.md) – Umfassender Leitfaden von der Turniervorbereitung bis zur Siegerehrung  
-- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md) – Rechner 3, click-TT, Abgleich und Kassenablauf
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md) – Rechner 3, click-TT, Abgleich und Kassenablauf  
 - [Spielsysteme & Doppelkonkurrenzen](spielsysteme_doppel.md) – 3. Platz Einzel/Doppel, manuelle Doppel-Zuweisung & Startzeitpunkte  
 - [click-TT Ergebnisexport & Spielerabgleich](clicktt_export.md) – XML-Export und Rückmeldung an click-TT  
 - [Checkliste & Notfallkontakte / Quellen](checkliste.md) – Praktische Abhak-Checkliste und offizielle Verbands-Hilfelinks  

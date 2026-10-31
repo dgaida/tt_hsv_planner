@@ -70,6 +70,6 @@ Sobald eine Konkurrenz (oder der Turniertag) vollständig abgeschlossen ist:
 ## 🔗 Verwandte Dokumente  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)  
 - [Spielsysteme & Doppelkonkurrenzen](spielsysteme_doppel.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  

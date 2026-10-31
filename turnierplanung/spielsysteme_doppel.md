@@ -86,6 +86,6 @@ In MKTT muss das Ausspielen des 3. Platzes korrekt konfiguriert sein:
 ## 🔗 Verwandte Dokumente  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  

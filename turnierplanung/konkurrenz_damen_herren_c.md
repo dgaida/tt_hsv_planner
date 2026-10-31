@@ -41,21 +41,21 @@
 
 ## 📋 Ablaufschritte für die Turnierleitung vor Ort
 
-1. **Vor 11:30 Uhr (Tagesstart & Anmeldung):**
+1. **Vor 11:30 Uhr (Tagesstart & Anmeldung):**  
    - Vortagesdatenbank sichern und neuen Tag überprüfen.  
-   - Morgens gibt es 3 Schlangen: Laptop 1 (Schlange 1) übernimmt die Anmeldung für Klasse C (Startgeld 10 € inkl. Doppel; *Bezahlt* = *Anwesend*); Laptop 2 (Schlange 2) übernimmt Voranmeldungen für Klasse E; Laptop 3 (Schlange 3) übernimmt click-TT Nachmeldungen.
-   - Nachmeldungen über Laptop 3 in click-TT anlegen, an Laptop 1 bezahlen lassen und per Spielerabgleich synchronisieren.
+   - Morgens gibt es 3 Schlangen: Laptop 1 (Schlange 1) übernimmt die Anmeldung für Klasse C (Startgeld 10 € inkl. Doppel; *Bezahlt* = *Anwesend*); Laptop 2 (Schlange 2) übernimmt Voranmeldungen für Klasse E; Laptop 3 (Schlange 3) übernimmt click-TT Nachmeldungen.  
+   - Nachmeldungen über Laptop 3 in click-TT anlegen, an Laptop 1 bezahlen lassen und per Spielerabgleich synchronisieren.  
    - Details: Siehe [Anmeldung & Nachmeldung](anmeldung_nachmeldung.md).  
 2. **11:30 bis 11:45 Uhr (Vorbereitung & Kontrolle):**  
    - Meldeschluss um 11:30 Uhr einhalten.  
    - Q-TTR-Bereich kontrollieren: bis maximal 1600 Punkte.  
    - Nicht erschienene Spieler streichen. MKTT-Einstellungen prüfen.  
-3. **11:45 Uhr (Auslosung Einzel & Phasenwechsel Laptop 1):**
-   - **Laptop 1 wird aus der Anmeldung genommen.**
-   - Gruppen auf Laptop 1 auslosen, Freilose/Vereinstrennung prüfen, „Spiele erstellen“.
+3. **11:45 Uhr (Auslosung Einzel & Phasenwechsel Laptop 1):**  
+   - **Laptop 1 wird aus der Anmeldung genommen.**  
+   - Gruppen auf Laptop 1 auslosen, Freilose/Vereinstrennung prüfen, „Spiele erstellen“.  
 4. **12:00 Uhr (Start Einzel-Gruppenphase):**  
-   - Spielbetrieb Klasse C auf Laptop 1 leiten.
-   - Auf Laptop 2 parallel alle weiteren Voranmeldungen für Klasse E abwickeln (Meldeschluss 14:30 Uhr).
+   - Spielbetrieb Klasse C auf Laptop 1 leiten.  
+   - Auf Laptop 2 parallel alle weiteren Voranmeldungen für Klasse E abwickeln (Meldeschluss 14:30 Uhr).  
 5. **Nach Abschluss der Gruppenphase (Start Doppel):**  
    - Doppelpaarungen manuell zusammenstellen (siehe [Spielsysteme & Doppel](spielsysteme_doppel.md)).  
    - K.-o.-Feld für Doppel erzeugen und starten.  
@@ -70,7 +70,7 @@
 ## 🔗 Nützliche Links & Vertiefungen  
 - [Hauptübersicht & Zeitplan (README.md)](README.md)  
 - [MKTT-Schritt-für-Schritt-Leitfaden](mktt_anleitung.md)  
-- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)
+- [Anmeldung, Nachmeldung & 3-Schlangen-System](anmeldung_nachmeldung.md)  
 - [Spielsysteme & Doppel-Einstellungen](spielsysteme_doppel.md)  
 - [click-TT Export-Anleitung](clicktt_export.md)  
 - [Checkliste & Notfallkontakte](checkliste.md)  
